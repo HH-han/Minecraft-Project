@@ -5,12 +5,14 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.minecraft.dto.request.LoginRequest;
 import com.minecraft.dto.request.RegisterRequest;
 import com.minecraft.dto.response.LoginResponse;
+import com.minecraft.entity.LoginInfo;
 import com.minecraft.entity.LoginLog;
 import com.minecraft.entity.PointsRecord;
 import com.minecraft.entity.User;
 import com.minecraft.exception.BusinessException;
 import com.minecraft.mapper.PointsRecordMapper;
 import com.minecraft.mapper.UserMapper;
+import com.minecraft.service.LoginInfoService;
 import com.minecraft.service.LoginLogService;
 import com.minecraft.service.UserService;
 import com.minecraft.utils.*;
@@ -48,6 +50,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     
     @Autowired
     private LoginLogService loginLogService;
+
+    @Autowired
+    private LoginInfoService loginInfoService;
     
     @Autowired
     private OnlineUserMapper onlineUserMapper;
@@ -196,6 +201,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             } catch (Exception e) {
                 // 日志保存失败，不影响登录流程
                 log.warn("操作失败", e);
+            }
+            try {
+                LoginInfo loginInfo = new LoginInfo();
+                loginInfo.setUserId(loginLog.getUserId());
+                loginInfo.setUsername(loginLog.getUsername());
+                loginInfo.setIpaddr(loginLog.getIpaddr());
+                loginInfo.setLoginLocation(loginLog.getLoginLocation());
+                loginInfo.setBrowser(loginLog.getBrowser());
+                loginInfo.setOs(loginLog.getOs());
+                loginInfo.setStatus(loginLog.getStatus());
+                loginInfo.setMsg(loginLog.getMsg());
+                loginInfo.setLoginTime(loginLog.getLoginTime());
+                loginInfoService.save(loginInfo);
+            } catch (Exception e) {
+                // 登录信息保存失败，不影响登录流程
+                log.warn("保存登录信息失败", e);
             }
         }).start();
     }

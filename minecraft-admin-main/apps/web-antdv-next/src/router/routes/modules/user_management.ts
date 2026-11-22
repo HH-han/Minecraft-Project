@@ -47,7 +47,7 @@ const routes: RouteRecordRaw[] = [
         },
         name: 'login',
         path: 'login',
-        component: () => import('#/views/user_management/index.vue'),
+        component: () => import('#/views/user_management/loginInfo.vue'),
       }
     ],
   },
