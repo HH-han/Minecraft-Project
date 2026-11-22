@@ -42,6 +42,15 @@ const routes: RouteRecordRaw[] = [
       },
       {
         meta: {
+          icon: 'lucide:shield-check',
+          title: $t('system.captcha_records'),
+        },
+        name: 'CaptchaRecords',
+        path: 'captcha-records',
+        component: () => import('#/views/system_management/captcha.vue'),
+      },
+      {
+        meta: {
           icon: 'lucide:plug',
           title: $t('system.SwaggerUI'),
         },

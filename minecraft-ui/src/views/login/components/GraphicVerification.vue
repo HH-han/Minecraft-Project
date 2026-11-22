@@ -11,7 +11,14 @@
       <div ref="cardEl" class="captcha-card" :class="{ 'captcha-card--shake': shaking }" @animationend="handleCardAnimationEnd">
         <!-- 左侧插画区（移动端隐藏） -->
         <aside class="captcha-aside">
-          <img class="aside-illustration" :src="travelIllustration" alt="" />
+          <img
+            v-for="(image, index) in asideImages"
+            :key="image"
+            class="aside-illustration"
+            :class="{ 'aside-illustration--active': index === activeImageIndex }"
+            :src="image"
+            alt=""
+          />
           <span class="aside-scrim"></span>
           <div class="aside-overlay">
             <span class="aside-brand">Minecraft 旅行</span>
@@ -52,7 +59,12 @@
             </div>
 
             <!-- TAC 验证码挂载点 -->
-            <div v-show="loadState === 'ready'" ref="captchaBox" class="captcha-container"></div>
+            <div
+              v-show="loadState === 'ready'"
+              ref="captchaBox"
+              class="captcha-container"
+              :style="captchaHintStyle"
+            ></div>
           </div>
 
           <footer v-if="loadState === 'ready'" class="captcha-footer">
@@ -72,10 +84,30 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick, onUnmounted } from 'vue';
+import { ref, computed, watch, nextTick, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Lock, Close, Refresh, WarningFilled, InfoFilled } from '@element-plus/icons-vue';
-import travelIllustration from '@/assets/loging/31d494f83e7fef6eed32f2ac1d746e79dd387cd7bc439-5C2vFY_fw1200webp.webp';
+import asideImage1 from '@/assets/defaultimage/1.png';
+import asideImage2 from '@/assets/defaultimage/2.png';
+import asideImage3 from '@/assets/defaultimage/3.png';
+
+// 左侧插画轮播
+const asideImages = [asideImage1, asideImage2, asideImage3];
+const activeImageIndex = ref(0);
+const CAROUSEL_INTERVAL = 4000;
+let carouselTimer = null;
+
+const stopCarousel = () => {
+  clearInterval(carouselTimer);
+  carouselTimer = null;
+};
+
+const startCarousel = () => {
+  stopCarousel();
+  carouselTimer = setInterval(() => {
+    activeImageIndex.value = (activeImageIndex.value + 1) % asideImages.length;
+  }, CAROUSEL_INTERVAL);
+};
 
 const props = defineProps({
   visible: {
@@ -91,6 +123,11 @@ const props = defineProps({
 const emit = defineEmits(['close', 'success', 'fail']);
 
 const { t } = useI18n();
+
+// 拖动提示文案通过 CSS 变量注入 TAC 轨道（TAC 模板内无法直接渲染文本）
+const captchaHintStyle = computed(() => ({
+  '--captcha-drag-hint': `'${t('login.captcha.dragHint')}'`
+}));
 
 const captchaBox = ref(null);
 const cardEl = ref(null);
@@ -133,8 +170,6 @@ const initCaptcha = async () => {
     style: {
       // 传 null：TAC loadStyle 会将 logo 置为 display:none
       logoUrl: null,
-      moveTrackMaskBgColor: 'var(--theme-primary-soft)',
-      moveTrackMaskBorderColor: 'var(--theme-primary)',
       i18n: {
         slider_title: t('login.captcha.sliderTitle'),
         slider_title_size: '13px',
@@ -206,10 +241,13 @@ watch(
   () => props.visible,
   (newVal) => {
     if (newVal) {
+      activeImageIndex.value = 0;
+      startCarousel();
       nextTick(() => {
         initCaptcha();
       });
     } else {
+      stopCarousel();
       destroyCaptcha();
     }
   },
@@ -217,6 +255,7 @@ watch(
 );
 
 onUnmounted(() => {
+  stopCarousel();
   clearTimeout(shakeTimer);
   destroyCaptcha();
 });
@@ -305,14 +344,31 @@ onUnmounted(() => {
 .captcha-aside {
   position: relative;
   overflow: hidden;
+  background: var(--theme-bg-surface-2);
 }
 
+/* 轮播图叠层淡入淡出 */
 .aside-illustration {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  opacity: 0;
+  transform: scale(1.06);
+  transition: opacity 0.9s ease, transform 6s ease;
+}
+
+.aside-illustration--active {
+  opacity: 1;
   transform: scale(1.03);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aside-illustration {
+    transition: opacity 0.3s ease;
+  }
 }
 
 .aside-scrim {
@@ -500,34 +556,73 @@ onUnmounted(() => {
   border-radius: 10px;
 }
 
+/* ---------- 滑块轨道 ---------- */
 .captcha-container :deep(#tianai-captcha .slider-move) {
-  height: 38px;
-  margin: 8px 0 0;
-  line-height: 38px;
+  height: 42px;
+  line-height: 42px;
 }
 
 .captcha-container :deep(#tianai-captcha .slider-move-track) {
-  height: 36px;
-  line-height: 36px;
+  position: relative;
+  /* TAC 为 content-box，减去左右描边避免总宽超出 300px 画布 */
+  width: calc(100% - 2px);
+  height: 30px;
+  line-height: 40px;
   border: 1px solid var(--theme-border);
-  border-radius: 10px;
+  border-radius: 13px;
   background: var(--theme-bg-surface);
+  box-shadow: inset 0 1px 3px color-mix(in srgb, var(--theme-overlay) 8%, transparent);
   color: var(--theme-text-3);
   font-size: 12px;
+  overflow: hidden;
+  transition: border-color var(--theme-duration-fast) ease, box-shadow var(--theme-duration-fast) ease;
 }
 
+.captcha-container :deep(#tianai-captcha .slider-move-track:hover) {
+  border-color: color-mix(in srgb, var(--theme-primary) 45%, var(--theme-border));
+  box-shadow:
+    inset 0 1px 3px color-mix(in srgb, var(--theme-overlay) 8%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--theme-primary) 10%, transparent);
+}
+
+/* 居中拖动提示：文案由 i18n 通过 CSS 变量注入，跟随语言切换 */
+.captcha-container :deep(#tianai-captcha .slider-move-track::after) {
+  content: var(--captcha-drag-hint, '');
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--theme-text-3);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 拖动进度：主题渐变填充 */
 .captcha-container :deep(#tianai-captcha-parent #tianai-captcha-slider-move-track-mask) {
   top: 0;
   left: 0;
-  height: 36px;
-  border-radius: 9px;
+  height: 40px;
+  border: none;
+  border-radius: 12px;
+  background-color: transparent !important;
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--theme-primary) 24%, transparent),
+    color-mix(in srgb, var(--theme-accent-2) 30%, transparent)
+  ) !important;
+  opacity: 1 !important;
 }
 
+/* ---------- 拖拽滑块 ---------- */
 .captcha-container :deep(#tianai-captcha-parent #tianai-captcha .slider-move-btn) {
   top: -2px;
+  /* 58px：与 TAC 内部 242px 的最大拖动距离相加正好等于轨道宽度 300px */
   width: 58px;
-  height: 42px;
-  border-radius: 10px;
+  height: 36px;
+  border-radius: 13px;
   /* 覆盖 TAC 通过行内样式写入的默认按钮图 */
   background-color: transparent !important;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 6l6 6-6 6'/%3E%3Cpath d='M13 6l5 6-5 6'/%3E%3C/svg%3E"),
@@ -535,13 +630,26 @@ onUnmounted(() => {
   background-size: 18px 18px, 100% 100% !important;
   background-position: center, center !important;
   background-repeat: no-repeat !important;
-  box-shadow: 0 8px 18px -10px color-mix(in srgb, var(--theme-primary) 90%, transparent) !important;
+  box-shadow:
+    0 10px 20px -10px color-mix(in srgb, var(--theme-primary) 75%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+  transition: filter var(--theme-duration-fast) ease, box-shadow var(--theme-duration-fast) ease;
 }
 
+.captcha-container :deep(#tianai-captcha-parent #tianai-captcha .slider-move-btn:hover) {
+  filter: brightness(1.06);
+}
+
+.captcha-container :deep(#tianai-captcha-parent #tianai-captcha .slider-move-btn:active) {
+  filter: brightness(0.97);
+  box-shadow:
+    0 6px 12px -8px color-mix(in srgb, var(--theme-primary) 80%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
+}
+
+/* TAC 默认的移动光带会在轨道中间留下一道竖线，直接隐藏 */
 .captcha-container :deep(#tianai-captcha .slider-move-shadow) {
-  background-color: var(--theme-primary);
-  opacity: 0.22;
-  box-shadow: none;
+  display: none;
 }
 
 .captcha-container :deep(#tianai-captcha .tianai-captcha-tips) {

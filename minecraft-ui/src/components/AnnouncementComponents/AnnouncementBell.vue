@@ -7,7 +7,7 @@
     popper-class="ann-bell-popover"
   >
     <template #reference>
-      <el-badge :value="store.unreadCount" :hidden="!store.unreadCount" :max="99">
+      <el-badge class="bell-badge" :value="store.unreadCount" :hidden="!store.unreadCount" :max="99">
         <button class="bell-btn" title="系统公告">
           <svg viewBox="0 0 1024 1024" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
             <path
@@ -101,6 +101,30 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 角标自铃铛右上角外扩，预留横向空间，避免未读数遮挡导航栏中的头像 */
+.bell-badge {
+  display: inline-flex;
+  margin-right: 8px;
+}
+
+/* 角标收进铃铛右上角并略微缩小，减小横向溢出 */
+.bell-badge :deep(.el-badge__content) {
+  top: 3px;
+  right: 3px;
+  height: 16px;
+  padding: 0 5px;
+  font-size: 11px;
+  line-height: 14px;
+  transform: translateY(-50%) translateX(50%);
+}
+
+/* 小屏导航栏间距更紧，进一步加大右侧留白 */
+@media (max-width: 768px) {
+  .bell-badge {
+    margin-right: 10px;
+  }
+}
+
 .bell-btn {
   display: inline-flex;
   align-items: center;

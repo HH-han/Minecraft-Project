@@ -9,6 +9,7 @@
       "refresh": "换一张",
       "hint": "平稳拖动滑块，通过率更高",
       "sliderTitle": "拖动滑块完成拼图",
+      "dragHint": "按住滑块，向右拖动",
       "success": "验证成功，耗时 %s 秒",
       "fail": "验证失败，请重新尝试",
       "brandSlogan": "安心出行 · 快乐出发"

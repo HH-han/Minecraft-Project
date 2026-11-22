@@ -9,6 +9,7 @@
       "refresh": "New puzzle",
       "hint": "Keep the slider steady for a better pass rate",
       "sliderTitle": "Drag the slider to complete the puzzle",
+      "dragHint": "Hold the slider and drag right",
       "success": "Verified in %s s",
       "fail": "Verification failed, please try again",
       "brandSlogan": "Travel with ease, depart with joy"

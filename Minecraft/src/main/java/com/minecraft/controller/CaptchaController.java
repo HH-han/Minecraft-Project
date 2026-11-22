@@ -10,8 +10,7 @@ import cloud.tianai.captcha.validator.common.model.dto.ImageCaptchaTrack;
 import com.minecraft.dto.request.VerifyRequest;
 import com.minecraft.dto.response.CaptchaResponse;
 import com.minecraft.dto.response.VerifyResult;
-import com.minecraft.entity.VerifyRecord;
-import com.minecraft.mapper.VerifyRecordMapper;
+import com.minecraft.service.CaptchaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,30 +32,13 @@ public class CaptchaController {
     private ImageCaptchaApplication imageCaptchaApplication;
 
     @Autowired
-    private VerifyRecordMapper recordMapper;
+    private CaptchaService captchaService;
 
     @Operation(summary = "获取滑块验证码")
     @GetMapping("/get")
     public com.minecraft.dto.response.ApiResponse<CaptchaResponse> getCaptcha(@RequestParam String traceId) {
         try {
-            ApiResponse<ImageCaptchaVO> response = imageCaptchaApplication.generateCaptcha(CaptchaTypeConstant.SLIDER);
-
-            if (!response.isSuccess()) {
-                return com.minecraft.dto.response.ApiResponse.error(response.getMsg());
-            }
-
-            ImageCaptchaVO captchaVO = response.getData();
-
-            CaptchaResponse captchaResponse = CaptchaResponse.builder()
-                    .traceId(traceId)
-                    .imageId(captchaVO.getId())
-                    .imageData(captchaVO.getBackgroundImage())
-                    .sliderImage(captchaVO.getTemplateImage())
-                    .type(captchaVO.getType())
-                    .build();
-
-            return com.minecraft.dto.response.ApiResponse.success("获取成功", captchaResponse);
-
+            return com.minecraft.dto.response.ApiResponse.success("获取成功", captchaService.getCaptcha(traceId));
         } catch (Exception e) {
             logger.error("Failed to generate captcha for traceId: {}", traceId, e);
             return com.minecraft.dto.response.ApiResponse.error("获取验证码失败");
@@ -65,43 +47,16 @@ public class CaptchaController {
 
     @Operation(summary = "验证滑块位置")
     @PostMapping("/verify")
-    public com.minecraft.dto.response.ApiResponse<VerifyResult> verify(@Valid @RequestBody VerifyRequest request, HttpServletRequest httpRequest) {
-        String clientIp = getClientIP(httpRequest);
-        long startTime = System.currentTimeMillis();
-
+    public com.minecraft.dto.response.ApiResponse<VerifyResult> verify(@Valid @RequestBody VerifyRequest request,
+                                                                      HttpServletRequest httpRequest) {
         try {
-            ImageCaptchaTrack track = new ImageCaptchaTrack();
-            track.setLeft(request.getSliderPosition());
-            track.setTop(0);
-
-            ApiResponse<?> response = imageCaptchaApplication.matching(request.getTraceId(), track);
-
-            boolean passed = response.isSuccess();
-
-            VerifyRecord record = new VerifyRecord();
-            record.setTraceId(request.getTraceId());
-            record.setImageId(request.getTraceId());
-            record.setClientIp(clientIp);
-            record.setUserAgent(request.getUserAgent());
-            record.setSliderOffset(request.getSliderPosition());
-            record.setTargetOffset(null);
-            record.setIsPassed(passed ? 1 : 0);
-            record.setCostTime((int) (System.currentTimeMillis() - startTime));
-
-            new Thread(() -> {
-                try {
-                    recordMapper.insert(record);
-                } catch (Exception e) {
-                    logger.error("Failed to save verify record", e);
-                }
-            }).start();
-
-            if (passed) {
-                return com.minecraft.dto.response.ApiResponse.success("验证成功", VerifyResult.builder().passed(true).message("验证成功").build());
-            } else {
-                return com.minecraft.dto.response.ApiResponse.success("验证失败", VerifyResult.builder().passed(false).message(response.getMsg() != null ? response.getMsg() : "验证失败，请重试").build());
-            }
-
+            VerifyResult result = captchaService.verify(
+                    request.getTraceId(),
+                    request.getSliderPosition(),
+                    resolveUserAgent(request.getUserAgent(), httpRequest),
+                    getClientIP(httpRequest));
+            return com.minecraft.dto.response.ApiResponse.success(
+                    Boolean.TRUE.equals(result.getPassed()) ? "验证成功" : "验证失败", result);
         } catch (Exception e) {
             logger.error("Failed to verify captcha for traceId: {}", request.getTraceId(), e);
             return com.minecraft.dto.response.ApiResponse.error("验证服务异常");
@@ -114,14 +69,22 @@ public class CaptchaController {
         return imageCaptchaApplication.generateCaptcha(CaptchaTypeConstant.SLIDER);
     }
 
-    @Operation(summary = "TIANAI-CAPTCHA标准验证接口")
+    @Operation(summary = "TIANAI-CAPTCHA标准验证接口（成功后持久化验证记录）")
     @PostMapping("/check")
-    public ApiResponse<?> checkCaptcha(@RequestBody VerifyData data) {
-        ApiResponse<?> response = imageCaptchaApplication.matching(data.getId(), data.getData());
-        if (response.isSuccess()) {
+    public ApiResponse<?> checkCaptcha(@RequestBody VerifyData data, HttpServletRequest httpRequest) {
+        VerifyResult result = captchaService.verify(
+                data.getId(),
+                data.getData(),
+                httpRequest.getHeader("User-Agent"),
+                getClientIP(httpRequest));
+        if (Boolean.TRUE.equals(result.getPassed())) {
             return ApiResponse.ofSuccess(Collections.singletonMap("id", data.getId()));
         }
-        return response;
+        return ApiResponse.ofError(result.getMessage());
+    }
+
+    private String resolveUserAgent(String userAgent, HttpServletRequest request) {
+        return userAgent != null && !userAgent.isBlank() ? userAgent : request.getHeader("User-Agent");
     }
 
     private String getClientIP(HttpServletRequest request) {
