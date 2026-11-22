@@ -134,8 +134,8 @@ image:
     unix-dir: /www/wwwroot/springboot/upload/images/
     # Windows系统访问URL（相对路径，由前端当前域名拼接，经nginx代理到后端）
     windows-url: /upload/
-    # Linux/Mac系统访问URL
-    unix-url: /www/wwwroot/springboot/upload/images/
+    # Linux/Mac系统访问URL（Web访问路径，不是磁盘目录；Nginx 将 /upload/ 映射到 unix-dir）
+    unix-url: /upload/
     # 返回给前端的URL服务器前缀（留空=返回相对路径，浏览器自动拼接当前域名，请求经Nginx转发到后端；
     # 仅当需要绕过Nginx直连后端时才填写，可用环境变量 IMAGE_URL_BASE 覆盖）
     # 服务器地址

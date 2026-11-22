@@ -55,13 +55,20 @@ public class CountriesServiceImpl extends ServiceImpl<CountriesMapper, Countries
     @Override
     public boolean updateById(Countries country) {
         try {
+            Countries old = country.getId() != null ? getById(country.getId()) : null;
+
             // 处理图片上传
             if (country.getImage() != null && country.getImage().startsWith("data:image")) {
                 String processedImage = imageUtils.processBase64Image(country.getImage());
                 country.setImage(processedImage);
             }
             
-            return super.updateById(country);
+            boolean updated = super.updateById(country);
+            if (updated && old != null) {
+                // 图片被替换后删除旧图片文件
+                imageUtils.deleteReplacedImages(old.getImage(), country.getImage());
+            }
+            return updated;
         } catch (Exception e) {
             log.warn("操作失败", e);
             return false;

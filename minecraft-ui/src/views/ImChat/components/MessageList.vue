@@ -66,7 +66,7 @@
 
 <script setup>
 import { ref, computed, watch, nextTick, onMounted } from 'vue'
-import { apiBaseUrl } from '@/config'
+import { normalizeImageUrl } from '@/utils/imageUrl'
 import { getUserInfo } from '@/api/user'
 import { getToken } from '@/utils/storage'
 import Icon from './Icon.vue'
@@ -224,13 +224,7 @@ const isUnicodeEmoji = (content) => {
   return emojiRegex.test(content) && !content.startsWith('http') && !content.startsWith('/')
 }
 
-const getMessageImageUrl = (url) => {
-  if (!url) return ''
-  if (url.startsWith('http')) {
-    return url
-  }
-  return apiBaseUrl + url
-}
+const getMessageImageUrl = (url) => normalizeImageUrl(url)
 
 const previewImage = (url) => {
   previewImageUrl.value = getMessageImageUrl(url)

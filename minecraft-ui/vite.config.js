@@ -34,6 +34,11 @@ export default defineConfig(({ mode }) => {
         '/ws': {
           target: 'ws://localhost:8080',
           ws: true
+        },
+        // 后端上传目录（Spring Boot 在 8080 提供 /upload 静态资源，生产由 Nginx 转发）
+        '/upload': {
+          target: 'http://localhost:8080',
+          changeOrigin: true
         }
       }
     },

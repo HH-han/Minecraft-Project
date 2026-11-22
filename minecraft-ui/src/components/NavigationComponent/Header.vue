@@ -215,6 +215,7 @@ import { mainNavMenus, moreNavMenus } from '@/router/routes';
 // 接口
 import { useAuthStore } from '@/stores/auth';
 import { getUserInfo, logout } from '@/api/user';
+import { normalizeImageUrl } from '@/utils/imageUrl';
 
 const props = defineProps({
   mediaList: {
@@ -478,7 +479,9 @@ const userInfo = ref({
 // 头像加载失败（如断网、图片地址失效）时回退到默认头像，避免出现浏览器破图占位
 const avatarLoadFailed = ref(false);
 const avatarSrc = computed(() =>
-  !userInfo.value.avatar || avatarLoadFailed.value ? defaultAvatar : userInfo.value.avatar
+  !userInfo.value.avatar || avatarLoadFailed.value
+    ? defaultAvatar
+    : normalizeImageUrl(userInfo.value.avatar)
 );
 const onAvatarError = () => {
   if (!avatarLoadFailed.value) avatarLoadFailed.value = true;

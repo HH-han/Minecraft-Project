@@ -120,6 +120,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     @Override
     public boolean updateById(Product product) {
         try {
+            Product old = product.getId() != null ? getById(product.getId()) : null;
+
             // 处理封面图片上传
             if (product.getCoverImage() != null && product.getCoverImage().startsWith("data:image")) {
                 String processedCoverImage = imageUtils.processBase64Image(product.getCoverImage());
@@ -153,7 +155,13 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
                 }
             }
             
-            return super.updateById(product);
+            boolean updated = super.updateById(product);
+            if (updated && old != null) {
+                // 封面或多图被替换后删除旧图片文件
+                imageUtils.deleteReplacedImages(old.getCoverImage(), product.getCoverImage());
+                imageUtils.deleteReplacedImages(old.getImages(), product.getImages());
+            }
+            return updated;
         } catch (Exception e) {
             log.warn("操作失败", e);
             return false;

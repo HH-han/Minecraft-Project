@@ -290,6 +290,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public void updateUserInfo(User user) {
+        User old = user.getId() != null ? getById(user.getId()) : null;
+
         // 排除生成列，只更新允许更新的字段
         User updateUser = new User();
         updateUser.setId(user.getId());
@@ -314,6 +316,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         updateUser.setPermissions(user.getPermissions());
         
         updateById(updateUser);
+
+        if (old != null) {
+            // 头像被替换后删除旧图片文件
+            imageUtils.deleteReplacedImages(old.getAvatar(), updateUser.getAvatar());
+        }
         
         // 清除用户登录缓存
         String cacheKey = "login:user:" + user.getAccount();
@@ -352,17 +359,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             // 更新用户头像
             User user = getById(userId);
             if (user != null) {
-                // 删除旧头像
-                if (user.getAvatar() != null) {
-                    try {
-                        imageUtils.deleteImage(user.getAvatar());
-                    } catch (Exception e) {
-                        // 旧头像删除失败不影响新头像上传
-                        log.warn("操作失败", e);
-                    }
-                }
+                String oldAvatar = user.getAvatar();
                 user.setAvatar(avatarUrl);
                 updateById(user);
+                // 头像更新成功后删除旧图片文件
+                imageUtils.deleteReplacedImages(oldAvatar, avatarUrl);
             }
             
             return avatarUrl;

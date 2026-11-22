@@ -6,7 +6,7 @@ import type { UserDetail } from '#/api/management/user/user';
 import { computed, onMounted, reactive, ref } from 'vue';
 
 import { Page, VCropper } from '@vben/common-ui';
-import { Plus } from '@vben/icons';
+import { ImagePlus, Plus } from '@vben/icons';
 import { $t } from '@vben/locales';
 import { preferences } from '@vben/preferences';
 
@@ -176,30 +176,29 @@ const rules = computed(() => ({
 // 规则：
 //   1) 空 / null / undefined / 纯空白 → 默认头像
 //   2) 字符串值为 'null' / 'undefined' → 默认头像
-//   3) 已以 http(s):// 开头的绝对 URL → 原样返回（不剥离 localhost 主机名，
-//      否则在前端开发服务器端口与后端不同时会出现 404）
-//   4) 相对路径（如 /upload/xxx.jpeg、upload/xxx.jpeg）→ 拼接后端静态资源前缀
-//      （后端通常在 8080 端口提供 /upload 静态目录）
+//   3) 历史数据中的 localhost 主机、物理目录前缀 → 清洗为同源相对路径
+//   4) 真正的 http(s) 绝对 URL → 原样返回
+//   5) 相对路径（/upload/xxx.jpeg）→ 生产环境走当前域名，开发环境由 Vite 代理 /upload
 // =========================
 function normalizeAvatarUrl(url?: null | string): string {
   if (!url) return preferences.app.defaultAvatar;
-  const raw = String(url).trim();
-  if (!raw) return preferences.app.defaultAvatar;
-  if (raw === 'null' || raw === 'undefined') return preferences.app.defaultAvatar;
+  let raw = String(url).trim();
+  if (!raw || raw === 'null' || raw === 'undefined') {
+    return preferences.app.defaultAvatar;
+  }
 
-  // 绝对 URL：直接使用
+  // 兼容历史数据：去掉 localhost 主机与物理目录前缀，统一改为同源相对路径
+  raw = raw
+    .replace(/^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?/i, '')
+    .replace('/www/wwwroot/springboot/upload/images/', '/upload/');
+
+  // 真正的绝对 URL：直接使用
   if (/^https?:\/\//i.test(raw)) {
     return raw;
   }
 
-  // 相对路径 → 统一补全到后端 upload 服务
-  // 若以后上线要改成同源路径，只需改这里
-  const BACKEND_STATIC_BASE = 'http://localhost:8080';
-  if (raw.startsWith('/')) {
-    return BACKEND_STATIC_BASE + raw;
-  }
-  // 无前导斜杠
-  return `${BACKEND_STATIC_BASE}/${raw}`;
+  // 相对路径：生产环境走当前域名（Nginx 转发），开发环境由 Vite 代理 /upload
+  return raw.startsWith('/') ? raw : `/${raw}`;
 }
 
 // =========================
@@ -1288,34 +1287,40 @@ async function confirmCropperAvatar() {
               >
                 <!-- 点击上传图片区域 -->
                 <Upload
+                  class="avatar-upload w-full"
                   :max-count="1"
                   :show-upload-list="false"
                   accept="image/*"
                   :before-upload="() => false"
                   @change="handleAvatarSelect"
                 >
-                  <Button
-                    class="avatar-upload-trigger flex w-full items-center gap-3 border-dashed"
-                    style="height: auto; padding: 8px 12px;"
-                  >
-                    <Avatar
-                      :src="formAvatarDisplayUrl"
-                      :size="48"
-                      class="border border-border flex-shrink-0 overflow-hidden object-cover"
-                    />
-                    <div class="flex flex-col text-left">
-                      <span class="text-sm font-medium">
+                  <div class="avatar-upload-zone">
+                    <div class="avatar-upload-preview">
+                      <Avatar
+                        :src="formAvatarDisplayUrl"
+                        :size="56"
+                        class="avatar-upload-avatar"
+                      />
+                      <span class="avatar-upload-mask">
+                        <ImagePlus class="size-6" />
+                      </span>
+                    </div>
+                    <div class="avatar-upload-body">
+                      <span class="avatar-upload-title">
                         {{
                           formData.avatar
                             ? $t('user.form.avatar_change')
                             : $t('user.form.avatar_upload')
                         }}
                       </span>
-                      <span class="text-xs text-muted-foreground">
+                      <span class="avatar-upload-desc">
                         {{ $t('user.form.avatar_tip') }}
                       </span>
                     </div>
-                  </Button>
+                    <span class="avatar-upload-action">
+                      <ImagePlus class="size-4" />
+                    </span>
+                  </div>
                 </Upload>
               </FormItem>
             </div>

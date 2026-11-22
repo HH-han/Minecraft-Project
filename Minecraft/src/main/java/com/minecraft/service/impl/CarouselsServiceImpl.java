@@ -124,6 +124,8 @@ public class CarouselsServiceImpl extends ServiceImpl<CarouselsMapper, Carousels
     @Override
     public boolean updateById(Carousels carousel) {
         try {
+            Carousels old = carousel.getId() != null ? getById(carousel.getId()) : null;
+
             // 处理图片上传
             if (carousel.getImageUrl() != null && carousel.getImageUrl().startsWith("data:image")) {
                 String processedImageUrl = imageUtils.processBase64Image(carousel.getImageUrl());
@@ -142,7 +144,14 @@ public class CarouselsServiceImpl extends ServiceImpl<CarouselsMapper, Carousels
                 carousel.setThumbnailUrl(processedThumbnailUrl);
             }
             
-            return super.updateById(carousel);
+            boolean updated = super.updateById(carousel);
+            if (updated && old != null) {
+                // 图片被替换后删除旧图片文件
+                imageUtils.deleteReplacedImages(old.getImageUrl(), carousel.getImageUrl());
+                imageUtils.deleteReplacedImages(old.getMobileImageUrl(), carousel.getMobileImageUrl());
+                imageUtils.deleteReplacedImages(old.getThumbnailUrl(), carousel.getThumbnailUrl());
+            }
+            return updated;
         } catch (Exception e) {
             log.warn("操作失败", e);
             return false;

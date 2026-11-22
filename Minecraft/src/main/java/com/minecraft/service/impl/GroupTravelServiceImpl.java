@@ -113,6 +113,8 @@ public class GroupTravelServiceImpl extends ServiceImpl<GroupTravelMapper, Group
     @Override
     public boolean updateById(GroupTravel group) {
         try {
+            GroupTravel old = group.getId() != null ? getById(group.getId()) : null;
+
             // 处理单张图片上传（如果是Base64格式）
             if (group.getImages() != null && group.getImages().startsWith("data:image")) {
                 String processedImage = imageUtils.processBase64Image(group.getImages());
@@ -145,7 +147,12 @@ public class GroupTravelServiceImpl extends ServiceImpl<GroupTravelMapper, Group
                 }
             }
             
-            return super.updateById(group);
+            boolean updated = super.updateById(group);
+            if (updated && old != null) {
+                // 图片被替换后删除旧图片文件
+                imageUtils.deleteReplacedImages(old.getImages(), group.getImages());
+            }
+            return updated;
         } catch (Exception e) {
             log.warn("操作失败", e);
             return false;

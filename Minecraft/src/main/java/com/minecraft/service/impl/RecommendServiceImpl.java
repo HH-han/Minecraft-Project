@@ -70,13 +70,20 @@ public class RecommendServiceImpl extends ServiceImpl<RecommendMapper, Recommend
     @Override
     public boolean updateById(Recommend recommend) {
         try {
+            Recommend old = recommend.getId() != null ? getById(recommend.getId()) : null;
+
             // 处理图片上传
             if (recommend.getImage() != null && recommend.getImage().startsWith("data:image")) {
                 String processedImage = imageUtils.processBase64Image(recommend.getImage());
                 recommend.setImage(processedImage);
             }
             
-            return super.updateById(recommend);
+            boolean updated = super.updateById(recommend);
+            if (updated && old != null) {
+                // 图片被替换后删除旧图片文件
+                imageUtils.deleteReplacedImages(old.getImage(), recommend.getImage());
+            }
+            return updated;
         } catch (Exception e) {
             log.warn("操作失败", e);
             return false;

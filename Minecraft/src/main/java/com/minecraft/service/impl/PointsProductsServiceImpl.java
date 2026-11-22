@@ -29,6 +29,17 @@ public class PointsProductsServiceImpl extends ServiceImpl<PointsProductsMapper,
     private static final long MAX_IMAGE_SIZE = 2L * 1024 * 1024;
 
     @Override
+    public boolean updateById(PointsProducts product) {
+        PointsProducts old = product.getId() != null ? getById(product.getId()) : null;
+        boolean updated = super.updateById(product);
+        if (updated && old != null) {
+            // 封面被替换后删除旧图片文件
+            imageUtils.deleteReplacedImages(old.getImageUrl(), product.getImageUrl());
+        }
+        return updated;
+    }
+
+    @Override
     public boolean deductStock(Long id, Integer quantity) {
         int result = baseMapper.deductStock(id, quantity);
         return result > 0;

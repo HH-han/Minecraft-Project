@@ -1,25 +1,8 @@
-import { apiBaseUrl } from '@/config'
-
 /**
  * 旅行卡片展示工具函数
  */
 
-const BACKEND_BASE = apiBaseUrl
-
-/**
- * 规范化图片 URL：
- * - data: / http(s): 原样返回
- * - 相对路径拼接后端地址
- */
-export function normalizeImageUrl(url) {
-  if (!url) return ''
-  const raw = String(url).trim()
-  if (!raw || raw === 'null' || raw === 'undefined') return ''
-  if (/^data:/i.test(raw)) return raw
-  if (/^https?:\/\//i.test(raw)) return raw
-  if (raw.startsWith('/')) return BACKEND_BASE + raw
-  return `${BACKEND_BASE}/${raw}`
-}
+export { normalizeImageUrl } from '@/utils/imageUrl'
 
 /**
  * 解析卡片图片列表：

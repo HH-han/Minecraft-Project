@@ -55,12 +55,19 @@ public class SafetyTipsServiceImpl extends ServiceImpl<SafetyTipsMapper, SafetyT
     @Override
     public boolean updateById(SafetyTips safetyTips) {
         try {
+            SafetyTips old = safetyTips.getId() != null ? getById(safetyTips.getId()) : null;
+
             // 处理图片上传
             if (safetyTips.getImageUrl() != null && safetyTips.getImageUrl().startsWith("data:image")) {
                 String processedImageUrl = imageUtils.processBase64Image(safetyTips.getImageUrl());
                 safetyTips.setImageUrl(processedImageUrl);
             }
-            return super.updateById(safetyTips);
+            boolean updated = super.updateById(safetyTips);
+            if (updated && old != null) {
+                // 图片被替换后删除旧图片文件
+                imageUtils.deleteReplacedImages(old.getImageUrl(), safetyTips.getImageUrl());
+            }
+            return updated;
         } catch (Exception e) {
             log.warn("操作失败", e);
             return false;

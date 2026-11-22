@@ -340,6 +340,7 @@ public class AttractionServiceImpl extends ServiceImpl<AttractionMapper, Attract
     public void updateAttraction(AttractionVO attractionVO) {
         Attraction attraction = new Attraction();
         BeanUtils.copyProperties(attractionVO, attraction);
+        Attraction old = attraction.getId() != null ? getById(attraction.getId()) : null;
         
         // 处理 coverImage Base64 图片
         if (attractionVO.getCoverImage() != null && attractionVO.getCoverImage().startsWith("data:image")) {
@@ -376,6 +377,12 @@ public class AttractionServiceImpl extends ServiceImpl<AttractionMapper, Attract
         }
         
         updateById(attraction);
+
+        if (old != null) {
+            // 封面或图集被替换后删除旧图片文件
+            imageUtils.deleteReplacedImages(old.getCoverImage(), attraction.getCoverImage());
+            imageUtils.deleteReplacedImages(old.getImages(), attraction.getImages());
+        }
         
         LambdaQueryWrapper<AttractionTicket> ticketWrapper = new LambdaQueryWrapper<>();
         ticketWrapper.eq(AttractionTicket::getAttractionId, attraction.getId());

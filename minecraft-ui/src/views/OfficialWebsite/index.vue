@@ -182,6 +182,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import officialwebsiteApi from '@/api/officialwebsite';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
+import { normalizeImageUrl } from '@/utils/imageUrl';
 
 const isMenuOpen = ref(false);
 const isScrolled = ref(false);
@@ -270,10 +271,7 @@ const formatPrice = (price) => {
     return price.toLocaleString();
 };
 
-const cleanImageUrl = (url) => {
-    if (!url) return '';
-    return url.replace(/[`\s]/g, '');
-};
+const cleanImageUrl = (url) => normalizeImageUrl(url);
 
 const toggleMenu = () => {
     isMenuOpen.value = !isMenuOpen.value;

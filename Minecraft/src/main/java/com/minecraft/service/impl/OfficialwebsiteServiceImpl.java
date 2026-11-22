@@ -86,11 +86,16 @@ public class OfficialwebsiteServiceImpl extends ServiceImpl<OfficialwebsiteHeroM
     @Override
     @Transactional
     public void saveHero(OfficialwebsiteHero hero) {
+        OfficialwebsiteHero old = hero.getId() != null ? baseMapper.selectById(hero.getId()) : null;
         if (hero.getBgImage() != null && hero.getBgImage().startsWith("data:image")) {
             hero.setBgImage(imageUtils.processBase64ImageSafe(hero.getBgImage()));
         }
         if (hero.getId() != null) {
             baseMapper.updateById(hero);
+            if (old != null) {
+                // 背景图被替换后删除旧图片文件
+                imageUtils.deleteReplacedImages(old.getBgImage(), hero.getBgImage());
+            }
         } else {
             baseMapper.insert(hero);
         }
@@ -114,11 +119,16 @@ public class OfficialwebsiteServiceImpl extends ServiceImpl<OfficialwebsiteHeroM
     @Override
     @Transactional
     public void saveDestination(OfficialwebsiteDestinations destination) {
+        OfficialwebsiteDestinations old = destination.getId() != null ? destinationsMapper.selectById(destination.getId()) : null;
         if (destination.getImageUrl() != null && destination.getImageUrl().startsWith("data:image")) {
             destination.setImageUrl(imageUtils.processBase64ImageSafe(destination.getImageUrl()));
         }
         if (destination.getId() != null) {
             destinationsMapper.updateById(destination);
+            if (old != null) {
+                // 图片被替换后删除旧图片文件
+                imageUtils.deleteReplacedImages(old.getImageUrl(), destination.getImageUrl());
+            }
         } else {
             destinationsMapper.insert(destination);
         }
@@ -165,11 +175,16 @@ public class OfficialwebsiteServiceImpl extends ServiceImpl<OfficialwebsiteHeroM
     @Override
     @Transactional
     public void saveNarrative(OfficialwebsiteNarrative narrative) {
+        OfficialwebsiteNarrative old = narrative.getId() != null ? narrativeMapper.selectById(narrative.getId()) : null;
         if (narrative.getImageUrl() != null && narrative.getImageUrl().startsWith("data:image")) {
             narrative.setImageUrl(imageUtils.processBase64ImageSafe(narrative.getImageUrl()));
         }
         if (narrative.getId() != null) {
             narrativeMapper.updateById(narrative);
+            if (old != null) {
+                // 图片被替换后删除旧图片文件
+                imageUtils.deleteReplacedImages(old.getImageUrl(), narrative.getImageUrl());
+            }
         } else {
             narrativeMapper.insert(narrative);
         }
@@ -199,11 +214,16 @@ public class OfficialwebsiteServiceImpl extends ServiceImpl<OfficialwebsiteHeroM
     @Override
     @Transactional
     public void saveStory(OfficialwebsiteStories story) {
+        OfficialwebsiteStories old = story.getId() != null ? storiesMapper.selectById(story.getId()) : null;
         if (story.getAuthorAvatar() != null && story.getAuthorAvatar().startsWith("data:image")) {
             story.setAuthorAvatar(imageUtils.processBase64ImageSafe(story.getAuthorAvatar()));
         }
         if (story.getId() != null) {
             storiesMapper.updateById(story);
+            if (old != null) {
+                // 头像被替换后删除旧图片文件
+                imageUtils.deleteReplacedImages(old.getAuthorAvatar(), story.getAuthorAvatar());
+            }
         } else {
             storiesMapper.insert(story);
         }

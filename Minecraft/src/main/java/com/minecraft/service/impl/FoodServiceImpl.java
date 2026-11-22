@@ -119,6 +119,8 @@ public class FoodServiceImpl extends ServiceImpl<FoodMapper, Food> implements Fo
     @Override
     public boolean updateById(Food food) {
         try {
+            Food old = food.getId() != null ? getById(food.getId()) : null;
+
             // 处理封面图片上传
             if (food.getCoverImage() != null && food.getCoverImage().startsWith("data:image")) {
                 String processedCoverImage = imageUtils.processBase64Image(food.getCoverImage());
@@ -152,7 +154,13 @@ public class FoodServiceImpl extends ServiceImpl<FoodMapper, Food> implements Fo
                 }
             }
             
-            return super.updateById(food);
+            boolean updated = super.updateById(food);
+            if (updated && old != null) {
+                // 封面或多图被替换后删除旧图片文件
+                imageUtils.deleteReplacedImages(old.getCoverImage(), food.getCoverImage());
+                imageUtils.deleteReplacedImages(old.getImages(), food.getImages());
+            }
+            return updated;
         } catch (Exception e) {
             log.warn("操作失败", e);
             return false;

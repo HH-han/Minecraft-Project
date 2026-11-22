@@ -23,9 +23,13 @@ import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -102,6 +106,54 @@ public class ImageUtils {
                 Files.delete(imagePath);
             }
         }
+    }
+
+    /**
+     * 图片更新后清理不再使用的旧图片：仅删除旧值中存在、新值中已不存在的图片。
+     * 新值为空时不处理，避免部分字段更新（未提交图片字段）时误删原图。
+     */
+    public void deleteReplacedImages(String oldValue, String newValue) {
+        if (oldValue == null || oldValue.isBlank() || newValue == null || newValue.isBlank()) {
+            return;
+        }
+        Set<String> newUrls = new HashSet<>(parseImageUrls(newValue));
+        for (String oldUrl : parseImageUrls(oldValue)) {
+            if (!newUrls.contains(oldUrl)) {
+                deleteImageQuietly(oldUrl);
+            }
+        }
+    }
+
+    /**
+     * 静默删除图片文件，失败仅记录日志，不影响主流程。
+     */
+    public void deleteImageQuietly(String imageUrl) {
+        try {
+            deleteImage(imageUrl);
+        } catch (Exception e) {
+            logger.warn("删除旧图片失败: {}", imageUrl, e);
+        }
+    }
+
+    /**
+     * 解析图片字段：支持单个 URL、JSON 数组 ["url1","url2"] 和逗号分隔 url1,url2。
+     */
+    private List<String> parseImageUrls(String value) {
+        List<String> urls = new ArrayList<>();
+        String content = value.trim();
+        if (content.startsWith("[")) {
+            content = content.substring(1);
+        }
+        if (content.endsWith("]")) {
+            content = content.substring(0, content.length() - 1);
+        }
+        for (String part : content.split(",")) {
+            String url = part.trim().replace("\"", "").replace("`", "");
+            if (!url.isEmpty()) {
+                urls.add(url);
+            }
+        }
+        return urls;
     }
 
     /**

@@ -218,15 +218,16 @@ const alwaysOptions = computed(() => [
 // =========================
 // 图片 URL 规范化 / 字典翻译
 // =========================
-const BACKEND_STATIC_BASE = 'http://localhost:8080';
-
 function normalizeImageUrl(url?: null | string): string {
   if (!url) return '';
-  const raw = String(url).trim();
+  let raw = String(url).trim();
   if (!raw || raw === 'null' || raw === 'undefined') return '';
+  // 兼容历史数据：去掉 localhost 主机与物理目录前缀，统一改为同源相对路径
+  raw = raw
+    .replace(/^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?/i, '')
+    .replace('/www/wwwroot/springboot/upload/images/', '/upload/');
   if (/^https?:\/\//i.test(raw)) return raw;
-  if (raw.startsWith('/')) return BACKEND_STATIC_BASE + raw;
-  return `${BACKEND_STATIC_BASE}/${raw}`;
+  return raw.startsWith('/') ? raw : `/${raw}`;
 }
 
 /** 字典翻译：字典值 → 本地化文案；未登记的值原样返回 */

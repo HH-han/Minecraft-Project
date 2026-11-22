@@ -81,7 +81,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { ChatDotRound, EditPen, Picture, Pointer, Star, View } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
-import { apiBaseUrl } from '@/config'
+import { normalizeImageUrl as resolveImageUrl } from '@/utils/imageUrl'
 import { deleteNote, getMyNotes } from '@/api/travelNote'
 import { useAuthStore } from '@/stores/auth'
 import { useAutoRefresh } from '@/hooks/useAutoRefresh'
@@ -95,20 +95,14 @@ const notes = ref([])
 const total = ref(0)
 const query = reactive({ pageNum: 1, pageSize: 10 })
 
-const BACKEND_BASE = apiBaseUrl
 // 记录加载失败的封面，回退为图标占位，避免出现浏览器破图
 const failedCovers = ref(new Set())
 
 /** 补全相对图片地址；blob/file 为本地临时预览地址，无法跨会话访问 */
 function normalizeImageUrl(url) {
-  if (!url) return ''
-  const raw = String(url).trim()
-  if (!raw || raw === 'null' || raw === 'undefined') return ''
+  const raw = String(url || '').trim()
   if (/^(blob|file):/i.test(raw)) return ''
-  if (/^data:/i.test(raw)) return raw
-  if (/^https?:\/\//i.test(raw)) return raw
-  if (raw.startsWith('/')) return BACKEND_BASE + raw
-  return `${BACKEND_BASE}/${raw}`
+  return resolveImageUrl(url)
 }
 
 function coverSrc(note) {

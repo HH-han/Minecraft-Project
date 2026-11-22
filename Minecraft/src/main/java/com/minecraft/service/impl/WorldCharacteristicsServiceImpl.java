@@ -33,12 +33,19 @@ public class WorldCharacteristicsServiceImpl extends ServiceImpl<WorldCharacteri
     @Override
     public boolean updateById(WorldCharacteristics worldCharacteristics) {
         try {
+            WorldCharacteristics old = worldCharacteristics.getId() != null ? getById(worldCharacteristics.getId()) : null;
+
             // 处理图片上传
             if (worldCharacteristics.getImage() != null && worldCharacteristics.getImage().startsWith("data:image")) {
                 String processedImage = imageUtils.processBase64Image(worldCharacteristics.getImage());
                 worldCharacteristics.setImage(processedImage);
             }
-            return super.updateById(worldCharacteristics);
+            boolean updated = super.updateById(worldCharacteristics);
+            if (updated && old != null) {
+                // 图片被替换后删除旧图片文件
+                imageUtils.deleteReplacedImages(old.getImage(), worldCharacteristics.getImage());
+            }
+            return updated;
         } catch (Exception e) {
             log.warn("操作失败", e);
             return false;

@@ -69,6 +69,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Login_background from '@/components/LoginComponent/Login_background.vue';
 import request from '@/utils/request';
+import { normalizeImageUrl } from '@/utils/imageUrl';
 import { useAuthStore } from '@/stores/auth.js'
 
 const router = useRouter();
@@ -103,7 +104,7 @@ const handleUsernameInput = () => {
   // 仅当本地有匹配的已登录用户时才显示头像
   const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
   if (storedUser && storedUser.username === loginForm.value.username.trim()) {
-    loginForm.value.image = storedUser.image || defaultAvatar;
+    loginForm.value.image = normalizeImageUrl(storedUser.image, defaultAvatar);
   } else {
     loginForm.value.image = defaultAvatar;
   }
@@ -147,13 +148,8 @@ const handleLogin = async () => {
         throw new Error('无效的用户数据');
       }
 
-      // 处理头像URL（确保包含完整路径）
-      let fullImageUrl = defaultAvatar;
-      if (user.image) {
-        fullImageUrl = user.image.startsWith('http')
-          ? user.image
-          : `http://localhost:2025${user.image.startsWith('/') ? '' : '/'}${user.image}`;
-      }
+      // 处理头像URL（统一清洗历史 localhost / 物理目录地址，相对路径走同源）
+      const fullImageUrl = normalizeImageUrl(user.image, defaultAvatar);
 
       // 更新界面显示
       loginForm.value.image = fullImageUrl;
@@ -194,7 +190,7 @@ onMounted(() => {
     const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
     if (storedUser?.username === rememberedUsername) {
       // 确保头像URL有效
-      loginForm.value.image = storedUser.image || defaultAvatar;
+      loginForm.value.image = normalizeImageUrl(storedUser.image, defaultAvatar);
     }
   }
 });

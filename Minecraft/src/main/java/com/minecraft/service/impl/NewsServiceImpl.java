@@ -85,13 +85,20 @@ public class NewsServiceImpl extends ServiceImpl<NewsMapper, News> implements Ne
     @Override
     public boolean updateById(News news) {
         try {
+            News old = news.getId() != null ? getById(news.getId()) : null;
+
             // 处理封面图片上传
             if (news.getCoverImage() != null && news.getCoverImage().startsWith("data:image")) {
                 String processedCoverImage = imageUtils.processBase64Image(news.getCoverImage());
                 news.setCoverImage(processedCoverImage);
             }
             
-            return super.updateById(news);
+            boolean updated = super.updateById(news);
+            if (updated && old != null) {
+                // 封面被替换后删除旧图片文件
+                imageUtils.deleteReplacedImages(old.getCoverImage(), news.getCoverImage());
+            }
+            return updated;
         } catch (Exception e) {
             log.warn("操作失败", e);
             return false;

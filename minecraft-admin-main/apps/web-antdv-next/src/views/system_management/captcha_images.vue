@@ -31,8 +31,6 @@ import {
 
 defineOptions({ name: 'CaptchaImages' });
 
-/** 后端静态资源地址（与项目其它管理页保持一致） */
-const BACKEND_STATIC_BASE = 'http://localhost:8080';
 /** 与后端 CaptchaImageServiceImpl.MAX_FILE_SIZE 保持一致 */
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
@@ -76,15 +74,16 @@ function formatFileSize(bytes?: null | number): string {
   return `${(size / 1024 / 1024).toFixed(2)} MB`;
 }
 
-/** 相对路径补全为后端静态资源地址 */
+/** 相对路径补全为同源静态资源地址（兼容历史 localhost / 物理目录地址） */
 function resolveImageUrl(url?: null | string): string {
   if (!url) return '';
-  const raw = String(url).trim();
-  if (!raw) return '';
+  let raw = String(url).trim();
+  if (!raw || raw === 'null' || raw === 'undefined') return '';
+  raw = raw
+    .replace(/^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?/i, '')
+    .replace('/www/wwwroot/springboot/upload/images/', '/upload/');
   if (/^https?:\/\//i.test(raw)) return raw;
-  return raw.startsWith('/')
-    ? `${BACKEND_STATIC_BASE}${raw}`
-    : `${BACKEND_STATIC_BASE}/${raw}`;
+  return raw.startsWith('/') ? raw : `/${raw}`;
 }
 
 function statusInfo(value?: null | number): { color: string; text: string } {

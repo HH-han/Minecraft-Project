@@ -19,6 +19,7 @@ import com.minecraft.mapper.CardTagMapper;
 import com.minecraft.service.CardService;
 import com.minecraft.service.TagsService;
 import com.minecraft.service.UserService;
+import com.minecraft.utils.ImageUtils;
 import com.minecraft.vo.CardVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -48,6 +49,9 @@ public class CardServiceImpl extends ServiceImpl<CardMapper, Card> implements Ca
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ImageUtils imageUtils;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -169,6 +173,8 @@ public class CardServiceImpl extends ServiceImpl<CardMapper, Card> implements Ca
         card.setLikeCount(existCard.getLikeCount());
         card.setStatus(existCard.getStatus());
         updateById(card);
+        // 图片被替换后删除旧图片文件
+        imageUtils.deleteReplacedImages(existCard.getImages(), card.getImages());
 
         // 全量同步卡片标签关联关系：先删除旧关联，再写入新关联
         cardTagMapper.delete(new LambdaQueryWrapper<CardTag>().eq(CardTag::getCardId, existCard.getId()));

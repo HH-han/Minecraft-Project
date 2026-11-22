@@ -152,6 +152,8 @@ public class HomeRecommendationsServiceImpl extends ServiceImpl<HomeRecommendati
     @Override
     public boolean updateById(HomeRecommendations homeRecommendations) {
         try {
+            HomeRecommendations old = homeRecommendations.getId() != null ? getById(homeRecommendations.getId()) : null;
+
             // 处理封面图片上传
             if (homeRecommendations.getCoverImageUrl() != null && homeRecommendations.getCoverImageUrl().startsWith("data:image")) {
                 String processedImage = imageUtils.processBase64Image(homeRecommendations.getCoverImageUrl());
@@ -164,7 +166,13 @@ public class HomeRecommendationsServiceImpl extends ServiceImpl<HomeRecommendati
                 homeRecommendations.setBannerImageUrl(processedImage);
             }
 
-            return super.updateById(homeRecommendations);
+            boolean updated = super.updateById(homeRecommendations);
+            if (updated && old != null) {
+                // 封面/Banner 被替换后删除旧图片文件
+                imageUtils.deleteReplacedImages(old.getCoverImageUrl(), homeRecommendations.getCoverImageUrl());
+                imageUtils.deleteReplacedImages(old.getBannerImageUrl(), homeRecommendations.getBannerImageUrl());
+            }
+            return updated;
         } catch (Exception e) {
             log.warn("操作失败", e);
             return false;

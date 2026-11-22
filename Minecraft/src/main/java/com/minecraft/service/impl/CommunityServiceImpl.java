@@ -138,8 +138,15 @@ public class CommunityServiceImpl extends ServiceImpl<CommunityPostMapper, Commu
     @Override
     public boolean updateById(CommunityPost post) {
         try {
+            CommunityPost old = post.getId() != null ? getById(post.getId()) : null;
+
             processImages(post);
-            return super.updateById(post);
+            boolean updated = super.updateById(post);
+            if (updated && old != null) {
+                // 图片被替换后删除旧图片文件
+                imageUtils.deleteReplacedImages(old.getImages(), post.getImages());
+            }
+            return updated;
         } catch (Exception e) {
             log.warn("操作失败", e);
             return false;

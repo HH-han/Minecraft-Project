@@ -280,7 +280,8 @@ public class HotelServiceImpl extends ServiceImpl<HotelMapper, Hotel> implements
     public void updateHotel(HotelVO hotelVO) {
         Hotel hotel = new Hotel();
         BeanUtils.copyProperties(hotelVO, hotel);
-        
+        Hotel old = hotel.getId() != null ? getById(hotel.getId()) : null;
+
         // 处理 coverImage Base64 图片
         if (hotelVO.getCoverImage() != null && hotelVO.getCoverImage().startsWith("data:image")) {
             hotel.setCoverImage(imageUtils.processBase64ImageSafe(hotelVO.getCoverImage()));
@@ -307,6 +308,12 @@ public class HotelServiceImpl extends ServiceImpl<HotelMapper, Hotel> implements
         }
         
         updateById(hotel);
+
+        if (old != null) {
+            // 封面或图集被替换后删除旧图片文件
+            imageUtils.deleteReplacedImages(old.getCoverImage(), hotel.getCoverImage());
+            imageUtils.deleteReplacedImages(old.getImages(), hotel.getImages());
+        }
 
         // rooms 为 null 表示本次请求未提交房型数据，保持数据库原样（房型由 /api/hotelRoom 独立维护）
         if (hotelVO.getRooms() != null) {

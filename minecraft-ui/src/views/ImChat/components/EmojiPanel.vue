@@ -81,7 +81,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { apiBaseUrl } from '@/config'
+import { normalizeImageUrl } from '@/utils/imageUrl'
 import Icon from './Icon.vue'
 import { 
   getEmojiList, 
@@ -227,13 +227,7 @@ const handleEmojiUpload = async (event) => {
   event.target.value = ''
 }
 
-const getEmojiUrl = (url) => {
-  if (!url) return ''
-  if (url.startsWith('http')) {
-    return url
-  }
-  return apiBaseUrl + url
-}
+const getEmojiUrl = (url) => normalizeImageUrl(url)
 
 const handleClickOutside = (e) => {
   if (contextMenu.value.visible && !e.target.closest('.context-menu')) {
