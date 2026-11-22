@@ -50,11 +50,13 @@ public class CommunityServiceImpl extends ServiceImpl<CommunityPostMapper, Commu
 
         Page<CommunityPost> result = page(page, wrapper);
 
+        java.util.Map<Long, User> userMap = batchUsers(
+                result.getRecords().stream().map(CommunityPost::getUserId).toList());
         List<CommunityPostVO> voList = result.getRecords().stream().map(item -> {
             CommunityPostVO vo = new CommunityPostVO();
             BeanUtils.copyProperties(item, vo);
             // 根据 userId 查询用户信息
-            fillUserInfo(vo);
+            fillUserInfo(vo, userMap.get(item.getUserId()));
             return vo;
         }).collect(Collectors.toList());
 
@@ -75,11 +77,13 @@ public class CommunityServiceImpl extends ServiceImpl<CommunityPostMapper, Commu
 
         Page<CommunityPost> result = page(page, wrapper);
 
+        java.util.Map<Long, User> userMap = batchUsers(
+                result.getRecords().stream().map(CommunityPost::getUserId).toList());
         List<CommunityPostVO> voList = result.getRecords().stream().map(item -> {
             CommunityPostVO vo = new CommunityPostVO();
             BeanUtils.copyProperties(item, vo);
             // 填充用户信息
-            fillUserInfo(vo);
+            fillUserInfo(vo, userMap.get(item.getUserId()));
             return vo;
         }).collect(Collectors.toList());
 
@@ -246,29 +250,7 @@ public class CommunityServiceImpl extends ServiceImpl<CommunityPostMapper, Commu
         }
 
         try {
-            User user = userService.getUserInfo(vo.getUserId());
-            if (user != null) {
-                // 优先使用 nickname，其次使用 username，最后使用 account
-                if (user.getNickname() != null && !user.getNickname().isEmpty()) {
-                    vo.setUsername(user.getNickname());
-                } else if (user.getUsername() != null && !user.getUsername().isEmpty()) {
-                    vo.setUsername(user.getUsername());
-                } else if (user.getAccount() != null && !user.getAccount().isEmpty()) {
-                    vo.setUsername(user.getAccount());
-                } else {
-                    vo.setUsername("未知用户");
-                }
-                
-                // 设置头像
-                vo.setAvatar(user.getAvatar());
-                
-                // 设置简介（bio）
-                vo.setBio(user.getBio());
-            } else {
-                vo.setUsername("未知用户");
-                vo.setAvatar(null);
-                vo.setBio(null);
-            }
+            fillUserInfo(vo, userService.getUserInfo(vo.getUserId()));
         } catch (Exception e) {
             // 查询用户信息失败时使用默认值
             vo.setUsername("未知用户");
@@ -276,5 +258,35 @@ public class CommunityServiceImpl extends ServiceImpl<CommunityPostMapper, Commu
             vo.setBio(null);
             e.printStackTrace();
         }
+    }
+
+    private void fillUserInfo(CommunityPostVO vo, User user) {
+        if (user == null) {
+            vo.setUsername("未知用户");
+            vo.setAvatar(null);
+            vo.setBio(null);
+            return;
+        }
+        if (user.getNickname() != null && !user.getNickname().isEmpty()) {
+            vo.setUsername(user.getNickname());
+        } else if (user.getUsername() != null && !user.getUsername().isEmpty()) {
+            vo.setUsername(user.getUsername());
+        } else if (user.getAccount() != null && !user.getAccount().isEmpty()) {
+            vo.setUsername(user.getAccount());
+        } else {
+            vo.setUsername("未知用户");
+        }
+        vo.setAvatar(user.getAvatar());
+        vo.setBio(user.getBio());
+    }
+
+    /** 批量加载用户，避免列表页逐条查询作者。 */
+    private java.util.Map<Long, User> batchUsers(List<Long> userIds) {
+        List<Long> distinctIds = userIds.stream().filter(java.util.Objects::nonNull).distinct().toList();
+        if (distinctIds.isEmpty()) {
+            return java.util.Map.of();
+        }
+        return userService.listByIds(distinctIds).stream()
+                .collect(Collectors.toMap(User::getId, user -> user, (a, b) -> a));
     }
 }

@@ -80,7 +80,14 @@ public class GroupPostServiceImpl extends ServiceImpl<GroupPostMapper, GroupPost
     @Override
     public List<GroupPostVO> getPostList(Long groupId, Long userId) {
         List<GroupPost> posts = baseMapper.selectByGroupId(groupId);
-        return posts.stream().map(post -> convertToVO(post, userId)).collect(Collectors.toList());
+        if (posts.isEmpty()) {
+            return new ArrayList<>();
+        }
+        // 批量加载作者信息，避免每条动态一次 selectById
+        List<Long> authorIds = posts.stream().map(GroupPost::getUserId).distinct().toList();
+        java.util.Map<Long, User> userMap = userMapper.selectBatchIds(authorIds).stream()
+                .collect(Collectors.toMap(User::getId, user -> user));
+        return posts.stream().map(post -> convertToVO(post, userId, userMap)).collect(Collectors.toList());
     }
 
     @Override
@@ -110,11 +117,11 @@ public class GroupPostServiceImpl extends ServiceImpl<GroupPostMapper, GroupPost
         return isLiked != null && isLiked;
     }
 
-    private GroupPostVO convertToVO(GroupPost post, Long userId) {
+    private GroupPostVO convertToVO(GroupPost post, Long userId, java.util.Map<Long, User> userMap) {
         GroupPostVO vo = new GroupPostVO();
         BeanUtils.copyProperties(post, vo);
 
-        User user = userMapper.selectById(post.getUserId());
+        User user = userMap.get(post.getUserId());
         if (user != null) {
             vo.setUsername(user.getNickname());
             vo.setAvatar(user.getAvatar());

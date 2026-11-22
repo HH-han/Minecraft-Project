@@ -239,11 +239,14 @@ public class TravelNoteServiceImpl extends ServiceImpl<TravelNoteMapper, TravelN
 
         Map<Long, List<String>> tagMap = batchTagNames(
                 result.getRecords().stream().map(TravelNote::getId).collect(Collectors.toList()));
+        // 批量加载作者信息，避免每条笔记一次查询
+        Map<Long, User> userMap = batchUsers(
+                result.getRecords().stream().map(TravelNote::getUserId).collect(Collectors.toList()));
 
         List<TravelNoteVO> voList = result.getRecords().stream().map(item -> {
             TravelNoteVO vo = new TravelNoteVO();
             BeanUtils.copyProperties(item, vo);
-            fillUserInfo(vo);
+            fillUserInfo(vo, userMap.get(item.getUserId()));
             vo.setTags(tagMap.getOrDefault(item.getId(), Collections.emptyList()));
             return vo;
         }).collect(Collectors.toList());
@@ -336,11 +339,13 @@ public class TravelNoteServiceImpl extends ServiceImpl<TravelNoteMapper, TravelN
 
         Map<Long, List<String>> tagMap = batchTagNames(
                 result.getRecords().stream().map(TravelNote::getId).collect(Collectors.toList()));
+        Map<Long, User> userMap = batchUsers(
+                result.getRecords().stream().map(TravelNote::getUserId).collect(Collectors.toList()));
 
         List<TravelNoteVO> voList = result.getRecords().stream().map(item -> {
             TravelNoteVO vo = new TravelNoteVO();
             BeanUtils.copyProperties(item, vo);
-            fillUserInfo(vo);
+            fillUserInfo(vo, userMap.get(item.getUserId()));
             vo.setTags(tagMap.getOrDefault(item.getId(), Collections.emptyList()));
             return vo;
         }).collect(Collectors.toList());
@@ -788,16 +793,29 @@ public class TravelNoteServiceImpl extends ServiceImpl<TravelNoteMapper, TravelN
             return;
         }
         try {
-            User user = userService.getUserInfo(vo.getUserId());
-            if (user != null) {
-                vo.setUsername(displayName(user));
-                vo.setAvatar(user.getAvatar());
-            } else {
-                vo.setUsername("未知用户");
-            }
+            fillUserInfo(vo, userService.getUserInfo(vo.getUserId()));
         } catch (Exception e) {
             vo.setUsername("未知用户");
         }
+    }
+
+    private void fillUserInfo(TravelNoteVO vo, User user) {
+        if (user != null) {
+            vo.setUsername(displayName(user));
+            vo.setAvatar(user.getAvatar());
+        } else {
+            vo.setUsername("未知用户");
+        }
+    }
+
+    /** 批量加载用户，避免列表页逐条查询作者。 */
+    private Map<Long, User> batchUsers(List<Long> userIds) {
+        List<Long> distinctIds = userIds.stream().filter(Objects::nonNull).distinct().toList();
+        if (distinctIds.isEmpty()) {
+            return Map.of();
+        }
+        return userService.listByIds(distinctIds).stream()
+                .collect(Collectors.toMap(User::getId, user -> user, (a, b) -> a));
     }
 
     private void fillAuthor(TravelNoteStatVO.TopAuthor ta) {

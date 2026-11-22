@@ -1,6 +1,7 @@
 package com.minecraft.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.alibaba.fastjson2.JSONObject;
 import com.minecraft.entity.ChatMessage;
@@ -95,20 +96,16 @@ public class ChatServiceImpl extends ServiceImpl<ChatMessageMapper, ChatMessage>
     @Override
     @Transactional
     public void markAsRead(Long userId, Long friendId) {
-        LambdaQueryWrapper<ChatMessage> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(ChatMessage::getSenderId, friendId)
+        // 单条 UPDATE 批量置为已读，避免逐条 updateById 产生 N 次数据库往返
+        update(new LambdaUpdateWrapper<ChatMessage>()
+                .eq(ChatMessage::getSenderId, friendId)
                 .eq(ChatMessage::getReceiverId, userId)
-                .eq(ChatMessage::getIsRead, 0);
-        
-        List<ChatMessage> messages = list(wrapper);
-        messages.forEach(msg -> {
-            msg.setIsRead(1);
-            updateById(msg);
-        });
-        
+                .eq(ChatMessage::getIsRead, 0)
+                .set(ChatMessage::getIsRead, 1));
+
         String cacheKey = CHAT_HISTORY_KEY + getChatKey(userId, friendId);
         redisUtil.delete(cacheKey);
-        
+
         String unreadKey = UNREAD_COUNT_KEY + userId + ":" + friendId;
         redisUtil.delete(unreadKey);
     }

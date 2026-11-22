@@ -102,14 +102,34 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
     @Override
     public List<FriendInfoDTO> getFriendInfoList(Long userId) {
         List<Friend> friends = getFriendList(userId);
-        List<FriendInfoDTO> friendInfoList = new ArrayList<>();
+        if (friends.isEmpty()) {
+            return new ArrayList<>();
+        }
 
+        // 批量查用户，避免每个好友一次 selectById
+        List<Long> friendIds = friends.stream().map(Friend::getFriendId).distinct().toList();
+        java.util.Map<Long, User> userMap = userService.listByIds(friendIds).stream()
+                .collect(java.util.stream.Collectors.toMap(User::getId, user -> user));
+
+        // 批量取在线状态与未读数，避免 2N 次 Redis 往返
+        List<String> onlineKeys = friendIds.stream()
+                .map(id -> CacheConstants.ONLINE_STATUS_KEY + id).toList();
+        List<String> unreadKeys = friendIds.stream()
+                .map(id -> UNREAD_COUNT_KEY + userId + ":" + id).toList();
+        List<Object> onlineValues = redisUtil.multiGet(onlineKeys);
+        List<Object> unreadValues = redisUtil.multiGet(unreadKeys);
+        java.util.Map<Long, Integer> indexMap = new java.util.HashMap<>(friendIds.size());
+        for (int i = 0; i < friendIds.size(); i++) {
+            indexMap.put(friendIds.get(i), i);
+        }
+
+        List<FriendInfoDTO> friendInfoList = new ArrayList<>(friends.size());
         for (Friend friend : friends) {
             FriendInfoDTO dto = new FriendInfoDTO();
             dto.setFriendId(friend.getFriendId());
             dto.setRemark(friend.getRemark());
 
-            User user = userService.getById(friend.getFriendId());
+            User user = userMap.get(friend.getFriendId());
             if (user != null) {
                 dto.setUsername(user.getUsername());
                 dto.setAvatar(user.getAvatar());
@@ -117,12 +137,13 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
                 dto.setEmail(user.getEmail());
             }
 
-            String onlineStatus = (String) redisUtil.get(CacheConstants.ONLINE_STATUS_KEY + friend.getFriendId());
-            dto.setOnline("1".equals(onlineStatus));
-
-            String unreadKey = UNREAD_COUNT_KEY + userId + ":" + friend.getFriendId();
-            Integer unreadCount = (Integer) redisUtil.get(unreadKey);
-            dto.setUnreadCount(unreadCount != null ? unreadCount : 0);
+            Integer index = indexMap.get(friend.getFriendId());
+            boolean online = index != null && onlineValues != null && index < onlineValues.size()
+                    && "1".equals(String.valueOf(onlineValues.get(index)));
+            dto.setOnline(online);
+            Object unreadCount = index != null && unreadValues != null && index < unreadValues.size()
+                    ? unreadValues.get(index) : null;
+            dto.setUnreadCount(unreadCount instanceof Number number ? number.intValue() : 0);
 
             friendInfoList.add(dto);
         }
@@ -152,8 +173,15 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
     @Override
     public List<FriendRequestDTO> getFriendRequestInfoList(Long userId) {
         List<Friend> requests = getFriendRequestList(userId);
-        List<FriendRequestDTO> requestInfoList = new ArrayList<>();
+        if (requests.isEmpty()) {
+            return new ArrayList<>();
+        }
 
+        List<Long> requestUserIds = requests.stream().map(Friend::getUserId).distinct().toList();
+        java.util.Map<Long, User> userMap = userService.listByIds(requestUserIds).stream()
+                .collect(java.util.stream.Collectors.toMap(User::getId, user -> user));
+
+        List<FriendRequestDTO> requestInfoList = new ArrayList<>(requests.size());
         for (Friend request : requests) {
             FriendRequestDTO dto = new FriendRequestDTO();
             dto.setId(request.getId());
@@ -162,7 +190,7 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
             dto.setMessage(request.getRemark());
             dto.setCreateTime(request.getCreateTime() != null ? request.getCreateTime().toString() : null);
 
-            User user = userService.getById(request.getUserId());
+            User user = userMap.get(request.getUserId());
             if (user != null) {
                 dto.setUsername(user.getUsername());
                 dto.setAvatar(user.getAvatar());

@@ -76,12 +76,24 @@ public class GroupCommentServiceImpl extends ServiceImpl<GroupCommentMapper, Gro
     @Override
     public List<GroupCommentVO> getCommentList(Long postId) {
         List<GroupComment> comments = baseMapper.selectByPostId(postId);
-        
+
+        // 批量加载评论/回复用户，避免逐条 selectById（评论列表 N+1 的主因）
+        List<Long> userIds = new ArrayList<>();
+        for (GroupComment comment : comments) {
+            userIds.add(comment.getUserId());
+            if (comment.getReplyToUserId() != null) {
+                userIds.add(comment.getReplyToUserId());
+            }
+        }
+        Map<Long, User> userMap = userIds.isEmpty() ? Map.of()
+                : userMapper.selectBatchIds(userIds.stream().distinct().toList()).stream()
+                        .collect(java.util.stream.Collectors.toMap(User::getId, user -> user));
+
         Map<Long, GroupCommentVO> commentMap = new HashMap<>();
         List<GroupCommentVO> rootComments = new ArrayList<>();
 
         for (GroupComment comment : comments) {
-            GroupCommentVO vo = convertToVO(comment);
+            GroupCommentVO vo = convertToVO(comment, userMap);
             commentMap.put(comment.getId(), vo);
 
             if (comment.getParentId() == 0) {
@@ -107,18 +119,18 @@ public class GroupCommentServiceImpl extends ServiceImpl<GroupCommentMapper, Gro
         return rootComments;
     }
 
-    private GroupCommentVO convertToVO(GroupComment comment) {
+    private GroupCommentVO convertToVO(GroupComment comment, Map<Long, User> userMap) {
         GroupCommentVO vo = new GroupCommentVO();
         BeanUtils.copyProperties(comment, vo);
 
-        User user = userMapper.selectById(comment.getUserId());
+        User user = userMap.get(comment.getUserId());
         if (user != null) {
             vo.setUsername(user.getNickname());
             vo.setAvatar(user.getAvatar());
         }
 
         if (comment.getReplyToUserId() != null) {
-            User replyToUser = userMapper.selectById(comment.getReplyToUserId());
+            User replyToUser = userMap.get(comment.getReplyToUserId());
             if (replyToUser != null) {
                 vo.setReplyToUsername(replyToUser.getNickname());
             }

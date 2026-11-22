@@ -198,9 +198,14 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
         List<MomentLike> likes = momentLikeMapper.selectList(new LambdaQueryWrapper<MomentLike>()
                 .eq(MomentLike::getMomentId, momentId)
                 .orderByAsc(MomentLike::getCreateTime));
-        List<MomentUserVO> result = new ArrayList<>();
+        if (likes.isEmpty()) {
+            return new ArrayList<>();
+        }
+        Map<Long, User> userMap = loadUserMap(likes.stream().map(MomentLike::getUserId).toList());
+
+        List<MomentUserVO> result = new ArrayList<>(likes.size());
         for (MomentLike like : likes) {
-            MomentUserVO userVO = toUserVO(userService.getById(like.getUserId()));
+            MomentUserVO userVO = toUserVO(userMap.get(like.getUserId()));
             if (userVO != null) {
                 result.add(userVO);
             }
@@ -248,9 +253,22 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
                 .eq(MomentComment::getMomentId, momentId)
                 .eq(MomentComment::getStatus, STATUS_NORMAL)
                 .orderByAsc(MomentComment::getCreateTime));
-        List<MomentCommentVO> result = new ArrayList<>();
+        if (comments.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<Long> userIds = new ArrayList<>();
         for (MomentComment comment : comments) {
-            result.add(buildCommentVO(comment));
+            userIds.add(comment.getUserId());
+            if (comment.getReplyToUserId() != null) {
+                userIds.add(comment.getReplyToUserId());
+            }
+        }
+        Map<Long, User> userMap = loadUserMap(userIds);
+
+        List<MomentCommentVO> result = new ArrayList<>(comments.size());
+        for (MomentComment comment : comments) {
+            result.add(buildCommentVO(comment, userMap));
         }
         return result;
     }
@@ -320,21 +338,61 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
 
     private List<MomentVO> toVOList(List<Moment> moments, Long currentUserId) {
         List<MomentVO> result = new ArrayList<>();
-        if (moments == null) {
+        if (moments == null || moments.isEmpty()) {
             return result;
         }
+
+        List<Long> momentIds = moments.stream().map(Moment::getId).toList();
+        // 一次性批量加载点赞与评论，避免每条动态各查一次（列表页 N+1 的主因）
+        List<MomentLike> allLikes = momentLikeMapper.selectList(new LambdaQueryWrapper<MomentLike>()
+                .in(MomentLike::getMomentId, momentIds)
+                .orderByAsc(MomentLike::getCreateTime));
+        List<MomentComment> allComments = momentCommentMapper.selectList(new LambdaQueryWrapper<MomentComment>()
+                .in(MomentComment::getMomentId, momentIds)
+                .eq(MomentComment::getStatus, STATUS_NORMAL)
+                .orderByAsc(MomentComment::getCreateTime));
+
+        List<Long> userIds = new ArrayList<>();
         for (Moment moment : moments) {
-            result.add(buildMomentVO(moment, currentUserId));
+            userIds.add(moment.getUserId());
+        }
+        for (MomentLike like : allLikes) {
+            userIds.add(like.getUserId());
+        }
+        for (MomentComment comment : allComments) {
+            userIds.add(comment.getUserId());
+            if (comment.getReplyToUserId() != null) {
+                userIds.add(comment.getReplyToUserId());
+            }
+        }
+        Map<Long, User> userMap = loadUserMap(userIds);
+
+        Map<Long, List<MomentLike>> likesByMoment = allLikes.stream()
+                .collect(java.util.stream.Collectors.groupingBy(MomentLike::getMomentId));
+        Map<Long, List<MomentComment>> commentsByMoment = allComments.stream()
+                .collect(java.util.stream.Collectors.groupingBy(MomentComment::getMomentId));
+
+        for (Moment moment : moments) {
+            result.add(buildMomentVO(moment, currentUserId,
+                    userMap.get(moment.getUserId()),
+                    likesByMoment.getOrDefault(moment.getId(), List.of()),
+                    commentsByMoment.getOrDefault(moment.getId(), List.of()),
+                    userMap));
         }
         return result;
     }
 
     private MomentVO buildMomentVO(Moment moment, Long currentUserId) {
+        return toVOList(List.of(moment), currentUserId).get(0);
+    }
+
+    private MomentVO buildMomentVO(Moment moment, Long currentUserId, User author,
+                                   List<MomentLike> likes, List<MomentComment> comments,
+                                   Map<Long, User> userMap) {
         MomentVO vo = new MomentVO();
         vo.setId(moment.getId());
         vo.setUserId(moment.getUserId());
 
-        User author = userService.getById(moment.getUserId());
         if (author != null) {
             vo.setUsername(author.getUsername());
             vo.setNickname(author.getNickname() != null ? author.getNickname() : author.getUsername());
@@ -350,33 +408,44 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
         vo.setStatus(moment.getStatus());
         vo.setCreateTime(moment.getCreateTime());
 
-        List<MomentLike> likes = momentLikeMapper.selectList(new LambdaQueryWrapper<MomentLike>()
-                .eq(MomentLike::getMomentId, moment.getId())
-                .orderByAsc(MomentLike::getCreateTime));
-        List<MomentUserVO> likeUsers = new ArrayList<>();
+        List<MomentUserVO> likeUsers = new ArrayList<>(likes.size());
         boolean liked = false;
         for (MomentLike like : likes) {
             if (Objects.equals(like.getUserId(), currentUserId)) {
                 liked = true;
             }
-            MomentUserVO userVO = toUserVO(userService.getById(like.getUserId()));
+            MomentUserVO userVO = toUserVO(userMap.get(like.getUserId()));
             if (userVO != null) {
                 likeUsers.add(userVO);
             }
         }
         vo.setLiked(liked);
         vo.setLikes(likeUsers);
-        vo.setComments(getComments(moment.getId()));
+
+        List<MomentCommentVO> commentVOs = new ArrayList<>(comments.size());
+        for (MomentComment comment : comments) {
+            commentVOs.add(buildCommentVO(comment, userMap));
+        }
+        vo.setComments(commentVOs);
         return vo;
     }
 
     private MomentCommentVO buildCommentVO(MomentComment comment) {
+        List<Long> userIds = new ArrayList<>(2);
+        userIds.add(comment.getUserId());
+        if (comment.getReplyToUserId() != null) {
+            userIds.add(comment.getReplyToUserId());
+        }
+        return buildCommentVO(comment, loadUserMap(userIds));
+    }
+
+    private MomentCommentVO buildCommentVO(MomentComment comment, Map<Long, User> userMap) {
         MomentCommentVO vo = new MomentCommentVO();
         vo.setId(comment.getId());
         vo.setMomentId(comment.getMomentId());
         vo.setUserId(comment.getUserId());
 
-        User author = userService.getById(comment.getUserId());
+        User author = userMap.get(comment.getUserId());
         if (author != null) {
             vo.setUsername(author.getUsername());
             vo.setNickname(author.getNickname() != null ? author.getNickname() : author.getUsername());
@@ -385,7 +454,7 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
 
         vo.setReplyToUserId(comment.getReplyToUserId());
         if (comment.getReplyToUserId() != null) {
-            User replyUser = userService.getById(comment.getReplyToUserId());
+            User replyUser = userMap.get(comment.getReplyToUserId());
             if (replyUser != null) {
                 vo.setReplyToNickname(replyUser.getNickname() != null ? replyUser.getNickname() : replyUser.getUsername());
             }
@@ -394,6 +463,16 @@ public class MomentServiceImpl extends ServiceImpl<MomentMapper, Moment> impleme
         vo.setStatus(comment.getStatus());
         vo.setCreateTime(comment.getCreateTime());
         return vo;
+    }
+
+    /** 批量加载用户并转为 id -> User 映射，避免逐条 selectById。 */
+    private Map<Long, User> loadUserMap(List<Long> userIds) {
+        List<Long> distinctIds = userIds.stream().filter(Objects::nonNull).distinct().toList();
+        if (distinctIds.isEmpty()) {
+            return Map.of();
+        }
+        return userService.listByIds(distinctIds).stream()
+                .collect(java.util.stream.Collectors.toMap(User::getId, user -> user, (a, b) -> a));
     }
 
     private MomentUserVO toUserVO(User user) {

@@ -18,6 +18,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Component
 public class WebSocketHandler extends TextWebSocketHandler {
 
@@ -123,8 +126,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     break;
             }
         } catch (Exception e) {
-            System.out.println("Error handling WebSocket message: " + e.getMessage());
-            e.printStackTrace();
+            log.warn("WebSocket 消息处理失败: {}", e.getMessage());
+            log.debug("WebSocket 消息处理异常", e);
         }
     }
 
@@ -260,7 +263,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     try {
                         return java.net.URLDecoder.decode(pair.substring(idx + 1), "UTF-8");
                     } catch (Exception e) {
-                        System.out.println("Error decoding token: " + e.getMessage());
+                        log.debug("解码 token 失败: {}", e.getMessage());
                         return null;
                     }
                 }
@@ -274,7 +277,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         if (session != null && session.isOpen()) {
             sendMessageToSession(session, message.toJSONString());
         } else {
-            System.out.println("User not online or session closed: " + userId);
+            log.debug("用户不在线或会话已关闭: {}", userId);
         }
     }
 
@@ -369,7 +372,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 session.sendMessage(new TextMessage(message));
             }
         } catch (IOException e) {
-            System.out.println("Error sending WebSocket message: " + e.getMessage());
+            log.warn("WebSocket 消息发送失败: {}", e.getMessage());
         } finally {
             lock.unlock();
         }
@@ -379,8 +382,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
         try {
             session.sendMessage(new TextMessage(message));
         } catch (IOException e) {
-            System.out.println("Error sending WebSocket message: " + e.getMessage());
-            e.printStackTrace();
+            log.warn("WebSocket 消息发送失败: {}", e.getMessage());
+            log.debug("WebSocket 消息发送异常", e);
         }
     }
 }

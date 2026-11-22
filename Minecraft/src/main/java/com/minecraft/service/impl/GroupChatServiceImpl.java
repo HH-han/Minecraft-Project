@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -115,12 +116,23 @@ public class GroupChatServiceImpl extends ServiceImpl<GroupChatMessageMapper, Gr
 
         List<GroupChatMessage> history = list(wrapper);
 
-        for (GroupChatMessage message : history) {
-            if (message.getSenderName() == null || message.getSenderAvatar() == null) {
-                User sender = userMapper.selectById(message.getSenderId());
-                if (sender != null) {
-                    message.setSenderName(sender.getUsername());
-                    message.setSenderAvatar(sender.getAvatar());
+        // 批量补齐发送者昵称/头像，避免每条消息一次 selectById
+        List<Long> missingSenderIds = history.stream()
+                .filter(m -> m.getSenderName() == null || m.getSenderAvatar() == null)
+                .map(GroupChatMessage::getSenderId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        if (!missingSenderIds.isEmpty()) {
+            java.util.Map<Long, User> senderMap = userMapper.selectBatchIds(missingSenderIds).stream()
+                    .collect(java.util.stream.Collectors.toMap(User::getId, user -> user));
+            for (GroupChatMessage message : history) {
+                if (message.getSenderName() == null || message.getSenderAvatar() == null) {
+                    User sender = senderMap.get(message.getSenderId());
+                    if (sender != null) {
+                        message.setSenderName(sender.getUsername());
+                        message.setSenderAvatar(sender.getAvatar());
+                    }
                 }
             }
         }

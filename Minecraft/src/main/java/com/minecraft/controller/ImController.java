@@ -229,9 +229,7 @@ public class ImController {
     @Operation(summary = "获取好友信息列表")
     @GetMapping("/friend/info/list")
     public ApiResponse<List<FriendInfoDTO>> getFriendInfoList(@RequestParam Long userId) {
-        System.out.println("[ImController] getFriendInfoList called with userId: " + userId);
         List<FriendInfoDTO> friends = friendService.getFriendInfoList(userId);
-        System.out.println("[ImController] getFriendInfoList returned " + friends.size() + " friends for userId: " + userId);
         return ApiResponse.success("成功", friends);
     }
 

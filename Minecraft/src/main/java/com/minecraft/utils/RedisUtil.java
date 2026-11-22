@@ -35,6 +35,16 @@ public class RedisUtil {
         return redisTemplate.opsForValue().get(key);
     }
 
+    /**
+     * 批量获取值，将 N 次网络往返压缩为 1 次（如好友列表的在线状态/未读数）。
+     */
+    public List<Object> multiGet(Collection<String> keys) {
+        if (keys == null || keys.isEmpty()) {
+            return List.of();
+        }
+        return redisTemplate.opsForValue().multiGet(keys);
+    }
+
     public Boolean delete(String key) {
         return redisTemplate.delete(key);
     }

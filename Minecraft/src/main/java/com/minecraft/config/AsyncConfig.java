@@ -3,6 +3,7 @@ package com.minecraft.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -12,6 +13,22 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 @Configuration
 public class AsyncConfig {
+
+    /**
+     * 全局定时任务调度器。
+     * <p>推荐系统已单独定义 recommendationTaskScheduler；这里显式提供名为 taskScheduler 的调度器，
+     * 避免所有 @Scheduled 任务退化到单线程互相阻塞（如推荐重算期间延误关单、物流同步等任务）。</p>
+     */
+    @Bean(name = "taskScheduler")
+    public ThreadPoolTaskScheduler taskScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(4);
+        scheduler.setThreadNamePrefix("scheduling-");
+        scheduler.setWaitForTasksToCompleteOnShutdown(true);
+        scheduler.setAwaitTerminationSeconds(30);
+        scheduler.setRemoveOnCancelPolicy(true);
+        return scheduler;
+    }
 
     @Bean("taskExecutor")
     public Executor taskExecutor() {
