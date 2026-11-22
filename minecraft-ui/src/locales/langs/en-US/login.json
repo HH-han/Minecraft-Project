@@ -1,0 +1,17 @@
+{
+  "login": {
+    "captcha": {
+      "title": "Security check",
+      "subtitle": "Complete the check below to keep your account secure",
+      "loading": "Loading verification...",
+      "error": "Failed to load verification. Check your network and try again.",
+      "retry": "Reload",
+      "refresh": "New puzzle",
+      "hint": "Keep the slider steady for a better pass rate",
+      "sliderTitle": "Drag the slider to complete the puzzle",
+      "success": "Verified in %s s",
+      "fail": "Verification failed, please try again",
+      "brandSlogan": "Travel with ease, depart with joy"
+    }
+  }
+}

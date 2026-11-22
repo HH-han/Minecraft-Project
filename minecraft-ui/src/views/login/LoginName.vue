@@ -1,5 +1,5 @@
 <template>
-  <div class="login-container" :class="`layout-${loginLayout}`">
+  <div class="login-container" :class="`layout-${renderedLayout}`">
     <!-- 左侧介绍区域 -->
     <div class="left-section" :class="{ 'register-mode': isRegister }">
       <div class="logo">博览旅行</div>
@@ -351,7 +351,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { login, register } from '@/api/auth.js';
 import { getUserByAccount } from '@/api/user.js';
@@ -377,8 +377,50 @@ const readLoginLayout = () => {
   return LOGIN_LAYOUTS.includes(saved) ? saved : 'panel-center';
 };
 const loginLayout = ref(readLoginLayout());
+// 实际渲染的布局：与 loginLayout 分离，浏览器过渡期间只在快照下替换一次
+const renderedLayout = ref(loginLayout.value);
+let activeViewTransition = null;
+
+const prefersReducedMotion = () =>
+  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+
 watch(loginLayout, (value) => {
   localStorage.setItem(LOGIN_LAYOUT_KEY, value);
+
+  if (value === renderedLayout.value) return;
+
+  const canUseViewTransition =
+    typeof window !== 'undefined' &&
+    typeof document.startViewTransition === 'function' &&
+    !prefersReducedMotion();
+
+  // 不支持（或用户关闭动效）：直接切换布局。
+  // 两栏已无 width/padding/order 过渡，瞬间替换不会出现中间错位帧。
+  if (!canUseViewTransition) {
+    renderedLayout.value = value;
+    return;
+  }
+
+  // 原生 View Transitions：先对旧布局拍快照，在快照覆盖下完成 DOM 替换，
+  // 再交叉淡入新布局，避免 section 宽度 / order / padding 突变被看到
+  try {
+    activeViewTransition?.skipTransition?.();
+  } catch {
+    /* 上一次过渡可能已结束，忽略 */
+  }
+
+  activeViewTransition = document.startViewTransition(() => {
+    renderedLayout.value = value;
+    return nextTick();
+  });
+});
+
+onUnmounted(() => {
+  try {
+    activeViewTransition?.skipTransition?.();
+  } catch {
+    /* 组件卸载时过渡已销毁，忽略 */
+  }
 });
 
 // 模糊背景模态框状态
@@ -771,7 +813,6 @@ onMounted(() => {
   justify-content: center;
   position: relative;
   overflow: hidden;
-  transition: all 0.5s ease;
 }
 
 .left-section::before {
@@ -888,7 +929,6 @@ onMounted(() => {
   flex-direction: column;
   justify-content: center;
   position: relative;
-  transition: all 0.5s ease;
 }
 
 .right-section::before {
@@ -2227,4 +2267,18 @@ onMounted(() => {
   }
 }
 
+</style>
+
+<!-- 布局切换使用原生 View Transitions，统一整页交叉过渡的时长与曲线 -->
+<style>
+::view-transition-group(root) {
+  animation-duration: 0.34s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.34s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
 </style>

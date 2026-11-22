@@ -1,43 +1,71 @@
 <template>
   <Teleport to="body">
-    <div v-if="visible" class="captcha-modal" @click.self="handleClose">
-      <div class="captcha-card">
+    <div
+      v-if="visible"
+      class="captcha-modal"
+      role="dialog"
+      aria-modal="true"
+      :aria-label="t('login.captcha.title')"
+      @click.self="handleClose"
+    >
+      <div ref="cardEl" class="captcha-card" :class="{ 'captcha-card--shake': shaking }" @animationend="handleCardAnimationEnd">
         <!-- 左侧插画区（移动端隐藏） -->
-        <div class="captcha-aside">
-          <img class="aside-illustration" :src="travelIllustration" alt="安全验证插画" />
+        <aside class="captcha-aside">
+          <img class="aside-illustration" :src="travelIllustration" alt="" />
+          <span class="aside-scrim"></span>
           <div class="aside-overlay">
             <span class="aside-brand">Minecraft 旅行</span>
-            <span class="aside-slogan">安心出行 · 快乐出发</span>
+            <span class="aside-slogan">{{ t('login.captcha.brandSlogan') }}</span>
           </div>
-        </div>
+        </aside>
 
         <!-- 右侧验证区 -->
-        <div class="captcha-main">
+        <section class="captcha-main">
           <header class="captcha-header">
             <div class="captcha-title">
-              <span class="title-icon">🛡️</span>
+              <span class="title-icon"><Lock /></span>
               <div class="title-text">
-                <h3>安全验证</h3>
-                <p>拖动滑块完成拼图，验证后继续操作</p>
+                <h3>{{ t('login.captcha.title') }}</h3>
+                <p>{{ t('login.captcha.subtitle') }}</p>
               </div>
             </div>
+            <button class="modal-close" type="button" :aria-label="t('common.cancel')" @click="handleClose">
+              <Close />
+            </button>
           </header>
 
-          <!-- 加载中 -->
-          <div v-if="loadState === 'loading'" class="captcha-status">
-            <div class="status-spinner"></div>
-            <p>正在加载验证组件...</p>
+          <div class="captcha-body">
+            <!-- 加载中 -->
+            <div v-if="loadState === 'loading'" class="captcha-status">
+              <div class="status-spinner"></div>
+              <p>{{ t('login.captcha.loading') }}</p>
+            </div>
+
+            <!-- 加载失败 -->
+            <div v-else-if="loadState === 'error'" class="captcha-status error">
+              <span class="status-icon"><WarningFilled /></span>
+              <p>{{ t('login.captcha.error') }}</p>
+              <button class="retry-btn" type="button" @click="initCaptcha">
+                <Refresh />
+                <span>{{ t('login.captcha.retry') }}</span>
+              </button>
+            </div>
+
+            <!-- TAC 验证码挂载点 -->
+            <div v-show="loadState === 'ready'" ref="captchaBox" class="captcha-container"></div>
           </div>
 
-          <!-- 加载失败 -->
-          <div v-else-if="loadState === 'error'" class="captcha-status error">
-            <p>验证组件加载失败，请检查网络后重试</p>
-            <button class="retry-btn" type="button" @click="initCaptcha">重新加载</button>
-          </div>
-
-          <!-- TAC 验证码挂载点 -->
-          <div v-show="loadState === 'ready'" ref="captchaBox" class="captcha-container"></div>
-        </div>
+          <footer v-if="loadState === 'ready'" class="captcha-footer">
+            <p class="footer-hint">
+              <InfoFilled />
+              <span>{{ t('login.captcha.hint') }}</span>
+            </p>
+            <button class="ghost-btn" type="button" @click="refreshCaptcha">
+              <Refresh />
+              <span>{{ t('login.captcha.refresh') }}</span>
+            </button>
+          </footer>
+        </section>
       </div>
     </div>
   </Teleport>
@@ -45,6 +73,8 @@
 
 <script setup>
 import { ref, watch, nextTick, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { Lock, Close, Refresh, WarningFilled, InfoFilled } from '@element-plus/icons-vue';
 import travelIllustration from '@/assets/loging/31d494f83e7fef6eed32f2ac1d746e79dd387cd7bc439-5C2vFY_fw1200webp.webp';
 
 const props = defineProps({
@@ -60,9 +90,27 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'success', 'fail']);
 
+const { t } = useI18n();
+
 const captchaBox = ref(null);
+const cardEl = ref(null);
 const loadState = ref('loading'); // loading | ready | error
+const shaking = ref(false);
 let tacInstance = null;
+let shakeTimer = null;
+
+const triggerShake = async () => {
+  shaking.value = false;
+  clearTimeout(shakeTimer);
+  // 等待一次渲染并强制重排，保证连续失败时动画可以重新触发
+  await nextTick();
+  if (!cardEl.value) return;
+  void cardEl.value.offsetWidth;
+  shaking.value = true;
+  shakeTimer = setTimeout(() => {
+    shaking.value = false;
+  }, 520);
+};
 
 const initCaptcha = async () => {
   if (tacInstance) return;
@@ -84,16 +132,25 @@ const initCaptcha = async () => {
     bindEl: captchaBox.value,
     style: {
       // 传 null：TAC loadStyle 会将 logo 置为 display:none
-      logoUrl: null
+      logoUrl: null,
+      moveTrackMaskBgColor: 'var(--theme-primary-soft)',
+      moveTrackMaskBorderColor: 'var(--theme-primary)',
+      i18n: {
+        slider_title: t('login.captcha.sliderTitle'),
+        slider_title_size: '13px',
+        tips_success: t('login.captcha.success'),
+        tips_error: t('login.captcha.fail')
+      }
     },
-    validSuccess: (res, c, t) => {
+    validSuccess: (res, c, tInstance) => {
       emit('success');
-      t.destroyWindow();
+      tInstance.destroyWindow();
       tacInstance = null;
     },
-    validFail: (res, c, t) => {
+    validFail: (res, c, tInstance) => {
       emit('fail');
-      t.reloadCaptcha();
+      triggerShake();
+      tInstance.reloadCaptcha();
     },
     btnRefreshFun: (el, tac) => {
       tac.reloadCaptcha();
@@ -125,6 +182,10 @@ const loadTACScript = () => {
   });
 };
 
+const refreshCaptcha = () => {
+  tacInstance?.reloadCaptcha();
+};
+
 const destroyCaptcha = () => {
   if (tacInstance) {
     tacInstance.destroyWindow();
@@ -137,6 +198,10 @@ const handleClose = () => {
   emit('close');
 };
 
+const handleCardAnimationEnd = () => {
+  shaking.value = false;
+};
+
 watch(
   () => props.visible,
   (newVal) => {
@@ -147,27 +212,35 @@ watch(
     } else {
       destroyCaptcha();
     }
-  }
+  },
+  { immediate: true }
 );
 
 onUnmounted(() => {
+  clearTimeout(shakeTimer);
   destroyCaptcha();
 });
 </script>
 
 <style scoped>
+/* 遮罩：叠加主色光晕，避免纯灰蒙层 */
 .captcha-modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--theme-overlay);
-  backdrop-filter: blur(8px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  inset: 0;
   z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(
+      720px 420px at 50% -10%,
+      color-mix(in srgb, var(--theme-primary) 30%, transparent),
+      transparent 70%
+    ),
+    var(--theme-overlay);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   animation: modal-fade 0.25s ease-out;
 }
 
@@ -182,9 +255,12 @@ onUnmounted(() => {
 
 /* 验证卡片：左插画 + 右验证 */
 .captcha-card {
-  display: flex;
-  background: var(--theme-bg-surface);
-  border-radius: 20px;
+  display: grid;
+  grid-template-columns: 232px auto;
+  max-width: 100%;
+  background: var(--theme-bg-elevated);
+  border: 1px solid var(--theme-hairline);
+  border-radius: var(--theme-radius-xl);
   overflow: hidden;
   box-shadow: var(--theme-shadow-lg);
   animation: card-pop 0.28s cubic-bezier(0.34, 1.4, 0.64, 1);
@@ -201,11 +277,34 @@ onUnmounted(() => {
   }
 }
 
+/* 拖动失败抖动反馈 */
+.captcha-card--shake {
+  animation: card-shake 0.45s ease;
+}
+
+@keyframes card-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-7px);
+  }
+  40% {
+    transform: translateX(6px);
+  }
+  60% {
+    transform: translateX(-4px);
+  }
+  80% {
+    transform: translateX(3px);
+  }
+}
+
 /* 插画区 */
 .captcha-aside {
   position: relative;
-  width: 220px;
-  flex-shrink: 0;
+  overflow: hidden;
 }
 
 .aside-illustration {
@@ -213,6 +312,15 @@ onUnmounted(() => {
   height: 100%;
   object-fit: cover;
   display: block;
+  transform: scale(1.03);
+}
+
+.aside-scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(2, 6, 23, 0) 40%, rgba(2, 6, 23, 0.62) 74%, rgba(2, 6, 23, 0.86) 100%),
+    linear-gradient(90deg, rgba(2, 6, 23, 0.14), transparent 45%);
 }
 
 .aside-overlay {
@@ -220,89 +328,118 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 40px 16px 16px;
+  padding: 18px 18px 20px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  background: linear-gradient(180deg, transparent 0%, var(--theme-overlay) 100%);
+  gap: 5px;
 }
 
 .aside-brand {
   color: #ffffff;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 1px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 14px rgba(2, 6, 23, 0.45);
 }
 
 .aside-slogan {
   color: rgba(255, 255, 255, 0.82);
   font-size: 12px;
+  letter-spacing: 0.3px;
 }
 
 /* 验证主区 */
 .captcha-main {
-  padding: 22px 24px 20px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  padding: 22px 26px 20px;
+  background:
+    radial-gradient(
+      320px 180px at 100% 0%,
+      color-mix(in srgb, var(--theme-primary) 10%, transparent),
+      transparent 72%
+    ),
+    var(--theme-bg-elevated);
 }
 
 .captcha-header {
-  width: 100%;
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 18px;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .captcha-title {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  min-width: 0;
 }
 
 .title-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  font-size: 20px;
-  font-style: normal;
-  background: var(--theme-bg-surface-2);
-  border-radius: 12px;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--theme-primary);
+  background: var(--theme-primary-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--theme-primary) 20%, transparent);
+}
+
+.title-icon svg {
+  width: 21px;
+  height: 21px;
 }
 
 .title-text h3 {
   margin: 0;
   font-size: 17px;
   font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.2px;
   color: var(--theme-text-1);
 }
 
 .title-text p {
-  margin: 3px 0 0;
+  margin: 4px 0 0;
   font-size: 12px;
+  line-height: 1.45;
   color: var(--theme-text-3);
 }
 
-.close-btn {
-  width: 30px;
-  height: 30px;
+.modal-close {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  padding: 0;
   border: none;
   border-radius: 50%;
   background: var(--theme-bg-surface-2);
-  color: var(--theme-text-2);
-  font-size: 18px;
-  line-height: 1;
+  color: var(--theme-text-3);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color var(--theme-duration-fast) ease, color var(--theme-duration-fast) ease,
+    transform var(--theme-duration-fast) ease;
 }
 
-.close-btn:hover {
+.modal-close svg {
+  width: 14px;
+  height: 14px;
+}
+
+.modal-close:hover {
   background: var(--theme-bg-hover);
   color: var(--theme-text-1);
   transform: rotate(90deg);
+}
+
+.captcha-body {
+  display: flex;
+  justify-content: center;
 }
 
 /* TAC 挂载容器：覆盖 TAC 默认皮肤 */
@@ -312,48 +449,162 @@ onUnmounted(() => {
 }
 
 .captcha-container :deep(#tianai-captcha-parent) {
-  box-shadow: none;
+  width: 318px;
+  height: auto;
+  padding: 8px;
   border: 1px solid var(--theme-hairline);
-  border-radius: 14px;
+  border-radius: 16px;
+  background: var(--theme-bg-surface-2);
+  box-shadow: none;
+  overflow: hidden;
 }
 
-.captcha-container :deep(#tianai-captcha-box) {
+/* 隐藏 TAC 默认的白色底图占位层，让容器主题底色生效 */
+.captcha-container :deep(#tianai-captcha-parent #tianai-captcha-bg-img) {
+  background-color: transparent;
+}
+
+/* 隐藏 TAC 默认的绿色/红色圆形按钮，改用卡片内的主题化操作 */
+.captcha-container :deep(#tianai-captcha-parent .slider-bottom) {
+  display: none;
+}
+
+.captcha-container :deep(#tianai-captcha-parent #tianai-captcha-box) {
+  height: 260px;
   border-radius: 10px;
 }
 
-.captcha-container :deep(.slider-bottom) {
-  height: 26px;
-  padding-top: 4px;
+.captcha-container :deep(#tianai-captcha-parent #tianai-captcha-box .loading) {
+  background: linear-gradient(var(--theme-primary) 0 0) 0 / 0% no-repeat var(--theme-bg-surface);
+  border-radius: 999px;
+}
+
+.captcha-container :deep(#tianai-captcha .slider-tip) {
+  margin: 0 2px 8px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--theme-text-1);
+}
+
+.captcha-container :deep(#tianai-captcha .slider-tip span) {
+  font-size: 13px !important;
+}
+
+.captcha-container :deep(#tianai-captcha .content) {
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--theme-bg-surface);
+}
+
+.captcha-container :deep(#tianai-captcha-slider-bg-img) {
+  border-radius: 10px;
+}
+
+.captcha-container :deep(#tianai-captcha .slider-move) {
+  height: 38px;
+  margin: 8px 0 0;
+  line-height: 38px;
+}
+
+.captcha-container :deep(#tianai-captcha .slider-move-track) {
+  height: 36px;
+  line-height: 36px;
+  border: 1px solid var(--theme-border);
+  border-radius: 10px;
+  background: var(--theme-bg-surface);
+  color: var(--theme-text-3);
+  font-size: 12px;
+}
+
+.captcha-container :deep(#tianai-captcha-parent #tianai-captcha-slider-move-track-mask) {
+  top: 0;
+  left: 0;
+  height: 36px;
+  border-radius: 9px;
+}
+
+.captcha-container :deep(#tianai-captcha-parent #tianai-captcha .slider-move-btn) {
+  top: -2px;
+  width: 58px;
+  height: 42px;
+  border-radius: 10px;
+  /* 覆盖 TAC 通过行内样式写入的默认按钮图 */
+  background-color: transparent !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 6l6 6-6 6'/%3E%3Cpath d='M13 6l5 6-5 6'/%3E%3C/svg%3E"),
+    var(--theme-gradient) !important;
+  background-size: 18px 18px, 100% 100% !important;
+  background-position: center, center !important;
+  background-repeat: no-repeat !important;
+  box-shadow: 0 8px 18px -10px color-mix(in srgb, var(--theme-primary) 90%, transparent) !important;
+}
+
+.captcha-container :deep(#tianai-captcha .slider-move-shadow) {
+  background-color: var(--theme-primary);
+  opacity: 0.22;
+  box-shadow: none;
+}
+
+.captcha-container :deep(#tianai-captcha .tianai-captcha-tips) {
+  /* 保留 TAC 的上下滑入逻辑，仅调整字体与圆角 */
+  font-size: 12px;
+  border-radius: 0 0 10px 10px;
+}
+
+.captcha-container :deep(#tianai-captcha .tianai-captcha-tips.tianai-captcha-tips-error) {
+  background-color: var(--theme-danger);
+}
+
+.captcha-container :deep(#tianai-captcha .tianai-captcha-tips.tianai-captcha-tips-success) {
+  background-color: var(--theme-success);
 }
 
 /* 加载 / 错误状态 */
 .captcha-status {
   width: 318px;
   max-width: 100%;
-  height: 318px;
+  height: 278px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 14px;
-  border: 1px solid var(--theme-hairline);
-  border-radius: 14px;
+  padding: 24px;
+  text-align: center;
+  border: 1px dashed var(--theme-border);
+  border-radius: 16px;
   background: var(--theme-bg-surface-2);
 }
 
 .captcha-status p {
   margin: 0;
   font-size: 13px;
+  line-height: 1.5;
   color: var(--theme-text-3);
 }
 
-.captcha-status.error p {
+.captcha-status .status-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  color: var(--theme-warning);
+  background: var(--theme-warning-soft);
+}
+
+.captcha-status.error .status-icon {
   color: var(--theme-danger);
+  background: var(--theme-danger-soft);
+}
+
+.captcha-status .status-icon svg {
+  width: 24px;
+  height: 24px;
 }
 
 .status-spinner {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border: 3px solid var(--theme-border);
   border-top-color: var(--theme-primary);
   border-radius: 50%;
@@ -367,30 +618,123 @@ onUnmounted(() => {
 }
 
 .retry-btn {
-  padding: 8px 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 20px;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--theme-radius-pill);
   background: var(--theme-gradient);
   color: var(--theme-primary-text);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  box-shadow: 0 8px 18px -10px color-mix(in srgb, var(--theme-primary) 85%, transparent);
+  transition: transform var(--theme-duration-fast) ease, box-shadow var(--theme-duration-fast) ease;
+}
+
+.retry-btn svg {
+  width: 14px;
+  height: 14px;
 }
 
 .retry-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 14px color-mix(in srgb, var(--theme-primary) 35%, transparent);
+  box-shadow: 0 10px 22px -10px color-mix(in srgb, var(--theme-primary) 90%, transparent);
+}
+
+/* 底部操作栏 */
+.captcha-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--theme-hairline);
+}
+
+.footer-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  min-width: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--theme-text-3);
+}
+
+.footer-hint svg {
+  flex: 0 0 auto;
+  width: 13px;
+  height: 13px;
+}
+
+.ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius-pill);
+  background: transparent;
+  color: var(--theme-text-2);
+  font-size: 12px;
+  cursor: pointer;
+  transition: color var(--theme-duration-fast) ease, border-color var(--theme-duration-fast) ease,
+    background-color var(--theme-duration-fast) ease;
+}
+
+.ghost-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+.ghost-btn:hover {
+  color: var(--theme-primary);
+  border-color: var(--theme-primary);
+  background: var(--theme-primary-soft);
 }
 
 /* 移动端：隐藏插画，卡片收窄 */
-@media (max-width: 640px) {
+@media (max-width: 720px) {
+  .captcha-modal {
+    padding: 16px;
+  }
+
+  .captcha-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .captcha-aside {
     display: none;
   }
 
   .captcha-main {
     padding: 18px 16px 16px;
+  }
+
+  .captcha-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .ghost-btn {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 400px) {
+  .captcha-modal {
+    padding: 8px;
+  }
+
+  .captcha-main {
+    padding: 14px 10px;
   }
 }
 </style>
