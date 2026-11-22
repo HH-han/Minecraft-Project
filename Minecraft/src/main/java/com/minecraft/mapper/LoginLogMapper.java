@@ -12,4 +12,9 @@ public interface LoginLogMapper extends BaseMapper<LoginLog> {
                                       @Param("status") String status, 
                                       @Param("startTime") String startTime, 
                                       @Param("endTime") String endTime);
+
+    /**
+     * 统计独立登录用户数
+     */
+    long countDistinctUsers();
 }

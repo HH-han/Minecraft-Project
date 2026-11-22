@@ -19,4 +19,8 @@
         </where>
         ORDER BY login_time DESC
     </select>
+
+    <select id="countDistinctUsers" resultType="long">
+        SELECT COUNT(DISTINCT user_id) FROM login_log WHERE user_id IS NOT NULL
+    </select>
 </mapper>

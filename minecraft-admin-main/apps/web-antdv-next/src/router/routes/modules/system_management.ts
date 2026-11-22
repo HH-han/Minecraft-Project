@@ -38,7 +38,7 @@ const routes: RouteRecordRaw[] = [
         },
         name: 'LoginLogs',
         path: 'login-logs',
-        component: () => import('#/views/system_management/index.vue'),
+        component: () => import('#/views/system_management/loginlog.vue'),
       },
       {
         meta: {
@@ -48,6 +48,15 @@ const routes: RouteRecordRaw[] = [
         name: 'CaptchaRecords',
         path: 'captcha-records',
         component: () => import('#/views/system_management/captcha.vue'),
+      },
+      {
+        meta: {
+          icon: 'lucide:image-plus',
+          title: $t('system.captcha_images'),
+        },
+        name: 'CaptchaImages',
+        path: 'captcha-images',
+        component: () => import('#/views/system_management/captcha_images.vue'),
       },
       {
         meta: {

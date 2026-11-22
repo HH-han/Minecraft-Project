@@ -47,6 +47,10 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${logging.file.path:logs}")
     private String logDir;
 
+    /** 滑块验证码图片上传目录 */
+    @Value("${captcha.upload-dir:./uploads/captcha}")
+    private String captchaUploadDir;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // 写操作成功后广播数据变更事件，驱动客户端自动刷新
@@ -108,6 +112,17 @@ public class WebConfig implements WebMvcConfigurer {
         String logsLocation = "file:" + logsPath.toString().replace("\\", "/") + "/";
         registry.addResourceHandler("/logs/**")
                 .addResourceLocations(logsLocation);
+
+        // 滑块验证码图片上传目录映射，供管理端预览已上传的验证码图片
+        Path captchaPath = Paths.get(captchaUploadDir);
+        if (!captchaPath.isAbsolute()) {
+            captchaPath = Paths.get(System.getProperty("user.dir")).resolve(captchaPath);
+        }
+        captchaPath = captchaPath.normalize();
+        createDirectoryIfNotExists(captchaPath);
+        String captchaLocation = "file:" + captchaPath.toString().replace("\\", "/") + "/";
+        registry.addResourceHandler("/captcha-upload/**")
+                .addResourceLocations(captchaLocation);
     }
 
     @Override

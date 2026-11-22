@@ -139,7 +139,7 @@ image:
     # 返回给前端的URL服务器前缀（留空=返回相对路径，浏览器自动拼接当前域名，请求经Nginx转发到后端；
     # 仅当需要绕过Nginx直连后端时才填写，可用环境变量 IMAGE_URL_BASE 覆盖）
     # 服务器地址
-    url-base: ${IMAGE_URL_BASE:http://43.142.153.247:8080}
+    url-base: ${IMAGE_URL_BASE:https://43.142.153.247:8080}
     # 本地地址
     # url-base: ${IMAGE_URL_BASE:http://localhost:8080}
 #    url-base: ${IMAGE_URL_BASE:}
@@ -193,6 +193,8 @@ knife4j:
 
 captcha:
   prefix: captcha
+  # 管理端上传的滑块验证码图片存放目录（相对路径基于应用工作目录）
+  upload-dir: ./uploads/captcha
   expire:
     default: 120000
   init-default-resource: true
@@ -213,7 +215,7 @@ pay:
   # 模拟支付时允许的渠道（为空表示全部走 mock）
   mock-channels: MOCK, WECHAT, ALIPAY, UNIONPAY
   # 回调基地址（生产环境必须为公网可访问地址）
-  notify-base: ${PAY_NOTIFY_BASE:http://localhost:8080}
+  notify-base: ${PAY_NOTIFY_BASE:https://localhost:8080}
   wechat:
     app-id: ${WECHAT_APP_ID:}
     mch-id: ${WECHAT_MCH_ID:}

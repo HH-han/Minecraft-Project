@@ -54,9 +54,7 @@ public class LoginLogServiceImpl extends ServiceImpl<LoginLogMapper, LoginLog> i
         statistics.put("fail", fail);
         
         // 统计独立用户数
-        LambdaQueryWrapper<LoginLog> uniqueWrapper = new LambdaQueryWrapper<>();
-        uniqueWrapper.select(LoginLog::getUserId).groupBy(LoginLog::getUserId);
-        long uniqueUsers = count((LambdaQueryWrapper<LoginLog>) uniqueWrapper);
+        long uniqueUsers = loginLogMapper.countDistinctUsers();
         statistics.put("uniqueUsers", uniqueUsers);
         
         return statistics;
