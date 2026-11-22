@@ -139,7 +139,7 @@ image:
     # 返回给前端的URL服务器前缀（留空=返回相对路径，浏览器自动拼接当前域名，请求经Nginx转发到后端；
     # 仅当需要绕过Nginx直连后端时才填写，可用环境变量 IMAGE_URL_BASE 覆盖）
     # 服务器地址
-    url-base: ${IMAGE_URL_BASE:https://43.142.153.247:8080}
+    url-base: ${IMAGE_URL_BASE:}
     # 本地地址
     # url-base: ${IMAGE_URL_BASE:http://localhost:8080}
 #    url-base: ${IMAGE_URL_BASE:}

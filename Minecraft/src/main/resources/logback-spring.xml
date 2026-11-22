@@ -8,16 +8,16 @@
     <springProperty scope="context" name="APP_LOG_LEVEL" source="logging.level.com.minecraft" defaultValue="INFO"/>
     <!-- 异步日志队列长度：过大只是徒增内存占用，256 足够抹平突发写日志 -->
     <property name="ASYNC_QUEUE_SIZE" value="256"/>
-    <!-- 日志输出格式 -->
+    <!-- 日志输出格式（文件日志使用纯文本，不写入 ANSI 转义符） -->
     <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>
+    <!-- 控制台日志格式：日志级别着色（ERROR 红 / WARN 黄 / INFO 绿 / DEBUG 白），其余信息统一白色 -->
+    <conversionRule conversionWord="levelColor" converterClass="com.minecraft.common.logback.LevelColorConverter"/>
+    <property name="LOG_COLOR_PATTERN" value="%white(%d{yyyy-MM-dd HH:mm:ss.SSS}) %white([%thread]) %levelColor(%-5level) %white(%logger{36}) %white(- %msg%n)"/>
 
-    <!-- 自定义颜色转换器 -->
-    <conversionRule conversionWord="coloredLevel" converterClass="com.minecraft.log.ColoredLevelConverter"/>
-
-    <!-- 控制台输出 -->
+    <!-- 控制台输出（日志级别彩色，其余白色） -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %coloredLevel %logger{36} - %msg%n</pattern>
+            <pattern>${LOG_COLOR_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
