@@ -49,7 +49,7 @@ public class GroupTravelDiaryServiceImpl extends ServiceImpl<GroupTravelDiaryMap
         }
 
         List<GroupTripPlan> tripPlans = tripPlanMapper.selectByGroupIdOrdered(groupId);
-        List<GroupPost> posts = postMapper.selectByGroupId(groupId);
+        List<GroupPost> posts = postMapper.selectByGroupId(groupId, 1000);
         List<GroupAlbum> albums = albumMapper.selectByGroupIdOrdered(groupId);
 
         Map<Integer, List<GroupTripPlan>> plansByDay = tripPlans.stream()
