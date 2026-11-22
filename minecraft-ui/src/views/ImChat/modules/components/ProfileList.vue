@@ -1,7 +1,12 @@
 <template>
   <div class="contact-item" @click="emit('user-profile')">
     <div class="avatar-wrapper">
-      <img :src="avatar || DEFAULT_AVATAR" :alt="userName" class="contact-avatar" />
+      <img
+        :src="avatar || DEFAULT_AVATAR"
+        :alt="userName"
+        class="contact-avatar"
+        @error="handleAvatarError"
+      />
     </div>
     <div class="contact-info">
       <h4 class="contact-name">{{ userName }}</h4>
@@ -36,7 +41,7 @@
 
 <script setup>
 import Icon from '../../components/Icon.vue'
-import { DEFAULT_AVATAR } from '../constants'
+import { DEFAULT_AVATAR, handleAvatarError } from '../constants'
 
 defineProps({
   avatar: {

@@ -31,7 +31,12 @@
       <!-- 昵称 + 头像 -->
       <div class="cover-user" @click.stop>
         <span class="cover-name">{{ displayName }}</span>
-        <img :src="currentUserAvatar || defaultAvatar" :alt="displayName" class="cover-avatar" />
+        <img
+          :src="currentUserAvatar || defaultAvatar"
+          :alt="displayName"
+          class="cover-avatar"
+          @error="handleAvatarError"
+        />
       </div>
     </section>
 
@@ -54,7 +59,12 @@
 
       <template v-else>
         <article v-for="moment in moments" :key="moment.id" class="moment">
-          <img :src="moment.avatar || defaultAvatar" :alt="moment.nickname" class="moment-avatar" />
+          <img
+            :src="moment.avatar || defaultAvatar"
+            :alt="moment.nickname"
+            class="moment-avatar"
+            @error="handleAvatarError"
+          />
 
           <div class="moment-main">
             <h3 class="moment-name">{{ moment.nickname || moment.username || '用户' }}</h3>
@@ -327,6 +337,7 @@
 import { ref, computed, onMounted, onUnmounted, reactive, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import Icon from './Icon.vue'
+import { DEFAULT_AVATAR as defaultAvatar, handleAvatarError } from '../modules/constants'
 import { uploadFile } from '@/api/upload'
 import {
   publishMoment,
@@ -356,8 +367,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
-
-const defaultAvatar = '/src/assets/defaultimage/moren.webp'
 
 const moments = ref([])
 const loading = ref(false)

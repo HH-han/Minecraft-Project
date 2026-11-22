@@ -38,7 +38,12 @@
         @click="emit('open-detail', friend)"
       >
         <div class="avatar-wrapper">
-          <img :src="friend.avatar || DEFAULT_AVATAR" :alt="friend.name" class="contact-avatar" />
+          <img
+            :src="friend.avatar || DEFAULT_AVATAR"
+            :alt="friend.name"
+            class="contact-avatar"
+            @error="handleAvatarError"
+          />
         </div>
         <div class="contact-info">
           <h4 class="contact-name">
@@ -64,7 +69,7 @@
 
 <script setup>
 import Icon from '../../components/Icon.vue'
-import { DEFAULT_AVATAR } from '../constants'
+import { DEFAULT_AVATAR, handleAvatarError } from '../constants'
 
 const props = defineProps({
   contactGroups: {

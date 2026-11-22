@@ -1,7 +1,12 @@
 <template>
   <div class="sidebar-left">
     <div class="user-avatar" @click="onUserProfile">
-      <img :src="avatar || DEFAULT_AVATAR" :alt="userName" class="avatar-img" />
+      <img
+        :src="avatar || DEFAULT_AVATAR"
+        :alt="userName"
+        class="avatar-img"
+        @error="handleAvatarError"
+      />
     </div>
     <div class="nav-list">
       <button
@@ -42,7 +47,7 @@
 
 <script setup>
 import Icon from '../../components/Icon.vue'
-import { DEFAULT_AVATAR } from '../constants'
+import { DEFAULT_AVATAR, handleAvatarError } from '../constants'
 
 const props = defineProps({
   avatar: {

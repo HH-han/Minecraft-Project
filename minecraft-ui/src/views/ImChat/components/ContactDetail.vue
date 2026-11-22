@@ -12,6 +12,7 @@
           :src="contact.avatar || defaultAvatar" 
           :alt="contact.name"
           class="detail-avatar"
+          @error="handleAvatarError"
         />
         <div class="name-section">
           <h3 class="detail-name">{{ contact.name }}</h3>
@@ -90,6 +91,7 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 import { updateFriendRemark } from '@/api/chat'
 import { useAuthStore } from '@/stores/auth'
 import Icon from './Icon.vue'
+import { DEFAULT_AVATAR as defaultAvatar, handleAvatarError } from '../modules/constants'
 
 const props = defineProps({
   contact: {
@@ -111,7 +113,6 @@ const emit = defineEmits([
 ])
 
 const authStore = useAuthStore()
-const defaultAvatar = '/src/assets/defaultimage/moren.webp'
 
 const isGroup = computed(() => {
   return props.contact?.isGroup || props.contact?.groupId

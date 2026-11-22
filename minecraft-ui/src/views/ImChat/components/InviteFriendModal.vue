@@ -29,6 +29,7 @@
               :src="friend.avatar || defaultAvatar" 
               :alt="friend.name"
               class="friend-avatar"
+              @error="handleAvatarError"
             />
             <div class="friend-info">
               <h4 class="friend-name">{{ friend.name }}</h4>
@@ -63,6 +64,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import Icon from './Icon.vue'
+import { DEFAULT_AVATAR as defaultAvatar, handleAvatarError } from '../modules/constants'
 
 const props = defineProps({
   visible: {
@@ -85,7 +87,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible', 'confirm'])
 
-const defaultAvatar = '/src/assets/defaultimage/moren.webp'
 const searchKeyword = ref('')
 const selectedFriendIds = ref([])
 

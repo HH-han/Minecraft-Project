@@ -53,6 +53,7 @@ import Icon from './Icon.vue'
 import { getPendingFriendRequestsWithInfo, acceptFriendRequest, rejectFriendRequest } from '@/api/chat'
 import { useAuthStore } from '@/stores/auth'
 import { getUserInfo } from '@/utils/storage'
+import { DEFAULT_AVATAR as defaultAvatar } from '../modules/constants'
 
 const authStore = useAuthStore()
 
@@ -67,7 +68,6 @@ const emit = defineEmits(['update:visible', 'request-handled'])
 
 const loading = ref(false)
 const requests = ref([])
-const defaultAvatar = '/src/assets/defaultimage/moren.webp'
 
 watch(() => props.visible, async (newVal) => {
   if (newVal) {

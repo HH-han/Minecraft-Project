@@ -70,6 +70,7 @@ import { apiBaseUrl } from '@/config'
 import { getUserInfo } from '@/api/user'
 import { getToken } from '@/utils/storage'
 import Icon from './Icon.vue'
+import { DEFAULT_AVATAR as defaultAvatar, handleAvatarError } from '../modules/constants'
 
 const props = defineProps({
   messages: {
@@ -94,7 +95,6 @@ const emit = defineEmits(['user-loaded'])
 
 const messageList = ref(null)
 const currentUserInfo = ref(null)
-const defaultAvatar = '/src/assets/defaultimage/moren.webp'
 const previewImageUrl = ref('')
 
 const getSenderAvatar = (message) => {
@@ -181,10 +181,6 @@ const scrollToBottom = () => {
   if (messageList.value) {
     messageList.value.scrollTop = messageList.value.scrollHeight
   }
-}
-
-const handleAvatarError = (e) => {
-  e.target.src = defaultAvatar
 }
 
 const handleEmojiError = (e) => {

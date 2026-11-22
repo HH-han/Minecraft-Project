@@ -6,7 +6,12 @@
   >
     <div class="contact-content" @click="emit('select-contact', contact)">
       <div class="avatar-wrapper">
-        <img :src="contact.avatar || DEFAULT_AVATAR" :alt="contact.name" class="contact-avatar" />
+        <img
+          :src="contact.avatar || DEFAULT_AVATAR"
+          :alt="contact.name"
+          class="contact-avatar"
+          @error="handleAvatarError"
+        />
         <span v-if="contact.isGroup" class="group-badge">
           <Icon name="users" :size="'10px'" />
         </span>
@@ -41,7 +46,7 @@
 
 <script setup>
 import Icon from '../../components/Icon.vue'
-import { DEFAULT_AVATAR } from '../constants'
+import { DEFAULT_AVATAR, handleAvatarError } from '../constants'
 
 defineProps({
   contacts: {

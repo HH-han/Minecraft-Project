@@ -26,7 +26,12 @@
 
             <div class="set-row">
               <div class="account-info">
-                <img class="account-avatar" :src="userAvatar || defaultAvatar" :alt="userName" />
+                <img
+                  class="account-avatar"
+                  :src="userAvatar || defaultAvatar"
+                  :alt="userName"
+                  @error="handleAvatarError"
+                />
                 <div class="set-row-main">
                   <div class="set-row-title">{{ userName || '用户' }}</div>
                   <div class="set-row-sub">账号 {{ account || '-' }}</div>
@@ -245,6 +250,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import ThemeSwitching from '@/components/ThemeComponents/ThemeSwitching.vue';
 import { THEME_LIST, getCurrentTheme, setTheme } from '@/utils/theme'
 import Icon from './Icon.vue'
+import { DEFAULT_AVATAR as defaultAvatar, handleAvatarError } from '../modules/constants'
 
 const props = defineProps({
   visible: {
@@ -267,7 +273,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible', 'logout'])
 
-const defaultAvatar = '/src/assets/defaultimage/moren.webp'
 const SETTINGS_KEY = 'im-settings'
 const APP_VERSION = '1.0.0'
 

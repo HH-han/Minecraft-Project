@@ -3,7 +3,12 @@
     <div class="call-window">
       <div class="call-header">
         <div class="caller-avatar-wrapper">
-          <img :src="contact?.avatar || defaultAvatar" :alt="contact?.name" class="caller-avatar" />
+          <img
+            :src="contact?.avatar || defaultAvatar"
+            :alt="contact?.name"
+            class="caller-avatar"
+            @error="handleAvatarError"
+          />
         </div>
         <h2 class="caller-name">{{ contact?.name || '未知联系人' }}</h2>
         <p class="call-status">{{ statusText }}</p>
@@ -105,6 +110,7 @@ import {
   sendVideoSdpAnswer
 } from '@/api/call'
 import { useAuthStore } from '@/stores/auth'
+import { DEFAULT_AVATAR as defaultAvatar, handleAvatarError } from '../modules/constants'
 
 const props = defineProps({
   visible: Boolean,
@@ -123,8 +129,6 @@ const authStore = useAuthStore()
 const storedUserId = localStorage.getItem('userId')
 const currentUserId = parseInt(authStore.userInfo?.id) || parseInt(storedUserId) || authStore.userInfo?.id || storedUserId || null
 console.log('[CallPanel] Current user ID:', currentUserId)
-
-const defaultAvatar = '/src/assets/defaultimage/moren.webp'
 
 const remoteVideo = ref(null)
 const localVideo = ref(null)

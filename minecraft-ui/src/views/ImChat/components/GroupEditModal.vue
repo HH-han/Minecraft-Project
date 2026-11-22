@@ -16,6 +16,7 @@
               :src="group.avatar || defaultAvatar" 
               :alt="group.name"
               class="preview-avatar"
+              @error="handleAvatarError"
             />
             <input 
               id="avatar-upload"
@@ -90,6 +91,7 @@
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
 import Icon from './Icon.vue'
+import { DEFAULT_AVATAR as defaultAvatar, handleAvatarError } from '../modules/constants'
 
 const props = defineProps({
   visible: {
@@ -104,7 +106,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible', 'confirm'])
 
-const defaultAvatar = '/src/assets/defaultimage/moren.webp'
 const avatarFile = ref(null)
 
 const isCreator = computed(() => {

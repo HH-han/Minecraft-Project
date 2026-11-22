@@ -17,7 +17,7 @@
               :class="['hero-avatar', { editable: editing }]"
               @click="editing && triggerAvatarPick()"
             >
-              <img :src="form.avatar || defaultAvatar" :alt="form.username" />
+              <img :src="form.avatar || defaultAvatar" :alt="form.username" @error="handleAvatarError" />
               <span v-if="editing" class="hero-avatar-mask">
                 <Icon name="camera" :size="'20px'" />
               </span>
@@ -121,6 +121,7 @@ import { ref, reactive, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getUserInfo as getUserInfoApi, updateUserInfo, uploadAvatar } from '@/api/user'
 import Icon from './Icon.vue'
+import { DEFAULT_AVATAR as defaultAvatar, handleAvatarError } from '../modules/constants'
 
 const props = defineProps({
   visible: {
@@ -135,7 +136,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:visible', 'updated'])
 
-const defaultAvatar = '/src/assets/defaultimage/moren.webp'
 const EDITABLE_FIELDS = ['nickname', 'gender', 'age', 'phone', 'email', 'occupation', 'signature', 'hobbies', 'bio', 'experience']
 
 const editing = ref(false)

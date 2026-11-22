@@ -18,6 +18,7 @@
             :src="selectedContact.avatar || defaultAvatar" 
             :alt="selectedContact.name"
             class="header-avatar"
+            @error="handleAvatarError"
           />
           <div class="header-text">
             <h3>{{ selectedContact.name }}</h3>
@@ -69,6 +70,7 @@ import { ref } from 'vue'
 import MessageList from './MessageList.vue'
 import ChatInput from './ChatInput.vue'
 import Icon from './Icon.vue'
+import { DEFAULT_AVATAR as defaultAvatar, handleAvatarError } from '../modules/constants'
 
 const props = defineProps({
   selectedContact: {
@@ -82,8 +84,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['voice-call', 'video-call', 'contact-info', 'send', 'back'])
-
-const defaultAvatar = '/src/assets/defaultimage/moren.webp'
 
 const messageListRef = ref(null)
 

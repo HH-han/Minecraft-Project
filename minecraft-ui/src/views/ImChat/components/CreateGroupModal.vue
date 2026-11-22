@@ -68,6 +68,7 @@
                 :src="friend.avatar || defaultAvatar"
                 :alt="friend.name"
                 class="friend-avatar"
+                @error="handleAvatarError"
               />
               <span class="friend-name">{{ friend.name }}</span>
               <span v-if="selectedFriends.includes(friend.id)" class="check-icon">
@@ -97,6 +98,7 @@ import Icon from './Icon.vue'
 import { createGroupWithMembers } from '@/api/chat'
 import { useAuthStore } from '@/stores/auth'
 import { ElMessage } from 'element-plus'
+import { DEFAULT_AVATAR as defaultAvatar, handleAvatarError } from '../modules/constants'
 
 const props = defineProps({
   visible: {
@@ -116,7 +118,6 @@ const groupName = ref('')
 const groupDescription = ref('')
 const groupAvatar = ref('')
 const selectedFriends = ref([])
-const defaultAvatar = '/src/assets/defaultimage/moren.webp'
 const fileInput = ref(null)
 
 const triggerUpload = () => {
