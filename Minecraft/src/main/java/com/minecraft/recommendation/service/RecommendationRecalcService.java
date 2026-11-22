@@ -305,18 +305,39 @@ public class RecommendationRecalcService {
     // ---------------- 特征装配 ----------------
 
     private List<ItemFeatures> loadActiveItems(RecommendCategory category) {
+        // 只查询特征计算所需列，避免把 description/images 等大字段整表载入堆内存
         return switch (category) {
             case ATTRACTION -> attractionMapper.selectList(
-                            new LambdaQueryWrapper<Attraction>().eq(Attraction::getStatus, 1))
+                            new LambdaQueryWrapper<Attraction>()
+                                    .select(Attraction::getId, Attraction::getTags, Attraction::getCity,
+                                            Attraction::getRating, Attraction::getPrice, Attraction::getSeason,
+                                            Attraction::getLikeCount, Attraction::getCollectCount,
+                                            Attraction::getCommentCount)
+                                    .eq(Attraction::getStatus, 1))
                     .stream().map(this::toFeatures).toList();
             case HOTEL -> hotelMapper.selectList(
-                            new LambdaQueryWrapper<Hotel>().eq(Hotel::getStatus, 1))
+                            new LambdaQueryWrapper<Hotel>()
+                                    .select(Hotel::getId, Hotel::getFacilities, Hotel::getCity,
+                                            Hotel::getStarLevel, Hotel::getRating, Hotel::getPrice,
+                                            Hotel::getLikeCount, Hotel::getCollectCount,
+                                            Hotel::getCommentCount)
+                                    .eq(Hotel::getStatus, 1))
                     .stream().map(this::toFeatures).toList();
             case RESTAURANT -> foodMapper.selectList(
-                            new LambdaQueryWrapper<Food>().eq(Food::getStatus, 1))
+                            new LambdaQueryWrapper<Food>()
+                                    .select(Food::getId, Food::getTags, Food::getCity,
+                                            Food::getCuisineType, Food::getRating, Food::getPrice,
+                                            Food::getLikeCount, Food::getCollectCount,
+                                            Food::getCommentCount)
+                                    .eq(Food::getStatus, 1))
                     .stream().map(this::toFeatures).toList();
             case SOUVENIR -> productMapper.selectList(
-                            new LambdaQueryWrapper<Product>().eq(Product::getStatus, 1))
+                            new LambdaQueryWrapper<Product>()
+                                    .select(Product::getId, Product::getTags, Product::getCity,
+                                            Product::getType, Product::getRating, Product::getPrice,
+                                            Product::getLikeCount, Product::getCollectCount,
+                                            Product::getCommentCount)
+                                    .eq(Product::getStatus, 1))
                     .stream().map(this::toFeatures).toList();
         };
     }

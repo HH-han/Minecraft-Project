@@ -4,6 +4,10 @@
     <springProperty scope="context" name="LOG_PATH" source="logging.file.path" defaultValue="logs"/>
     <!-- 应用名称 -->
     <property name="APP_NAME" value="tourism-backend"/>
+    <!-- 业务日志级别跟随 application(-dev/-prod).yml，避免生产环境仍输出 DEBUG/SQL 日志 -->
+    <springProperty scope="context" name="APP_LOG_LEVEL" source="logging.level.com.minecraft" defaultValue="INFO"/>
+    <!-- 异步日志队列长度：过大只是徒增内存占用，256 足够抹平突发写日志 -->
+    <property name="ASYNC_QUEUE_SIZE" value="256"/>
     <!-- 日志输出格式 -->
     <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>
 
@@ -105,63 +109,62 @@
 
     <!-- 异步控制台输出 -->
     <appender name="ASYNC_CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
-        <queueSize>512</queueSize>
+        <queueSize>${ASYNC_QUEUE_SIZE}</queueSize>
         <discardingThreshold>0</discardingThreshold>
         <appender-ref ref="CONSOLE"/>
     </appender>
 
     <!-- 异步主日志文件 -->
     <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
-        <queueSize>512</queueSize>
+        <queueSize>${ASYNC_QUEUE_SIZE}</queueSize>
         <discardingThreshold>0</discardingThreshold>
         <appender-ref ref="FILE"/>
     </appender>
 
     <!-- 异步错误日志文件 -->
     <appender name="ASYNC_ERROR_FILE" class="ch.qos.logback.classic.AsyncAppender">
-        <queueSize>512</queueSize>
+        <queueSize>${ASYNC_QUEUE_SIZE}</queueSize>
         <discardingThreshold>0</discardingThreshold>
         <appender-ref ref="ERROR_FILE"/>
     </appender>
 
     <!-- 异步 Controller 层日志文件 -->
     <appender name="ASYNC_CONTROLLER_FILE" class="ch.qos.logback.classic.AsyncAppender">
-        <queueSize>512</queueSize>
+        <queueSize>${ASYNC_QUEUE_SIZE}</queueSize>
         <discardingThreshold>0</discardingThreshold>
         <appender-ref ref="CONTROLLER_FILE"/>
     </appender>
 
     <!-- 异步 Service 层日志文件 -->
     <appender name="ASYNC_SERVICE_FILE" class="ch.qos.logback.classic.AsyncAppender">
-        <queueSize>512</queueSize>
+        <queueSize>${ASYNC_QUEUE_SIZE}</queueSize>
         <discardingThreshold>0</discardingThreshold>
         <appender-ref ref="SERVICE_FILE"/>
     </appender>
 
     <!-- 异步 Mapper 层日志文件 -->
     <appender name="ASYNC_MAPPER_FILE" class="ch.qos.logback.classic.AsyncAppender">
-        <queueSize>512</queueSize>
+        <queueSize>${ASYNC_QUEUE_SIZE}</queueSize>
         <discardingThreshold>0</discardingThreshold>
         <appender-ref ref="MAPPER_FILE"/>
     </appender>
 
     <!-- 异步 HTML 格式日志文件 -->
     <appender name="ASYNC_HTML_FILE" class="ch.qos.logback.classic.AsyncAppender">
-        <queueSize>512</queueSize>
+        <queueSize>${ASYNC_QUEUE_SIZE}</queueSize>
         <discardingThreshold>0</discardingThreshold>
         <appender-ref ref="HTML_FILE"/>
     </appender>
 
-    <!-- 根日志配置 -->
+    <!-- 根日志配置（框架日志只写控制台/主文件/错误文件，HTML 仅保留业务日志） -->
     <root level="INFO">
         <appender-ref ref="ASYNC_CONSOLE"/>
         <appender-ref ref="ASYNC_FILE"/>
         <appender-ref ref="ASYNC_ERROR_FILE"/>
-        <appender-ref ref="ASYNC_HTML_FILE"/>
     </root>
 
     <!-- 业务日志配置 -->
-    <logger name="com.minecraft" level="DEBUG" additivity="false">
+    <logger name="com.minecraft" level="${APP_LOG_LEVEL}" additivity="false">
         <appender-ref ref="ASYNC_CONSOLE"/>
         <appender-ref ref="ASYNC_FILE"/>
         <appender-ref ref="ASYNC_ERROR_FILE"/>
@@ -169,21 +172,21 @@
     </logger>
 
     <!-- Controller 层日志配置 -->
-    <logger name="com.minecraft.controller" level="DEBUG" additivity="false">
+    <logger name="com.minecraft.controller" level="${APP_LOG_LEVEL}" additivity="false">
         <appender-ref ref="ASYNC_CONSOLE"/>
         <appender-ref ref="ASYNC_CONTROLLER_FILE"/>
         <appender-ref ref="ASYNC_ERROR_FILE"/>
     </logger>
 
     <!-- Service 层日志配置 -->
-    <logger name="com.minecraft.service" level="DEBUG" additivity="false">
+    <logger name="com.minecraft.service" level="${APP_LOG_LEVEL}" additivity="false">
         <appender-ref ref="ASYNC_CONSOLE"/>
         <appender-ref ref="ASYNC_SERVICE_FILE"/>
         <appender-ref ref="ASYNC_ERROR_FILE"/>
     </logger>
 
-    <!-- Mapper 层日志配置 -->
-    <logger name="com.minecraft.mapper" level="DEBUG" additivity="false">
+    <!-- Mapper 层日志配置（生产环境 INFO 时不会输出 SQL 与参数） -->
+    <logger name="com.minecraft.mapper" level="${APP_LOG_LEVEL}" additivity="false">
         <appender-ref ref="ASYNC_MAPPER_FILE"/>
         <appender-ref ref="ASYNC_ERROR_FILE"/>
     </logger>

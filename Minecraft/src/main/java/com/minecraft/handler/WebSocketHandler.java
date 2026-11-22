@@ -15,9 +15,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Component
@@ -25,7 +23,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     private static final Map<Long, WebSocketSession> SESSIONS = new ConcurrentHashMap<>();
     private static final Map<String, Long> SESSION_USER = new ConcurrentHashMap<>();
-    private static final Map<Long, Queue<String>> MESSAGE_QUEUES = new ConcurrentHashMap<>();
     private static final Map<Long, ReentrantLock> SESSION_LOCKS = new ConcurrentHashMap<>();
 
     private final RedisUtil redisUtil;
@@ -46,13 +43,15 @@ public class WebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
-        Long userId = jwtUtil.getUserId(token);
-        if (userId == null) {
+        Long userId;
+        try {
+            // 解析时已完成签名与过期校验，无需再次 validateToken
+            userId = jwtUtil.getUserId(token);
+        } catch (Exception e) {
             session.close(CloseStatus.NOT_ACCEPTABLE);
             return;
         }
-
-        if (!jwtUtil.validateToken(token)) {
+        if (userId == null) {
             session.close(CloseStatus.NOT_ACCEPTABLE);
             return;
         }
@@ -69,7 +68,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
         SESSIONS.put(userId, session);
         SESSION_USER.put(session.getId(), userId);
-        MESSAGE_QUEUES.put(userId, new ConcurrentLinkedQueue<>());
         SESSION_LOCKS.put(userId, new ReentrantLock());
 
         redisUtil.set(CacheConstants.ONLINE_STATUS_KEY + userId, "1");
@@ -143,7 +141,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
             return;
         }
         SESSIONS.remove(userId);
-        MESSAGE_QUEUES.remove(userId);
         SESSION_LOCKS.remove(userId);
         redisUtil.delete(CacheConstants.ONLINE_STATUS_KEY + userId);
         redisUtil.hdel(CacheConstants.USER_SESSION_KEY, String.valueOf(userId));

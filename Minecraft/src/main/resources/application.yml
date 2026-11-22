@@ -12,9 +12,10 @@ spring:
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:123456}
     druid:
-      initial-size: 5
-      min-idle: 5
-      max-active: 20
+      # 按需创建连接，避免启动即占用大量连接及对应的网络/缓冲内存
+      initial-size: 2
+      min-idle: 2
+      max-active: 15
       max-wait: 60000
       time-between-eviction-runs-millis: 60000
       min-evictable-idle-time-millis: 300000
@@ -45,8 +46,8 @@ spring:
         enabled: true
         url-pattern: /*
         exclusions: /druid/*,*.js,*.gif,*.jpg,*.png,*.css,*.ico
-        session-stat-enable: true
-        session-stat-max-count: 1000
+        # 关闭 Session 维度统计，避免为每个 Session 额外维护统计对象
+        session-stat-enable: false
       stat-view-servlet:
         enabled: true
         url-pattern: /druid/*
@@ -152,6 +153,12 @@ server:
   tomcat:
     # 大文件上传被中断时不再强制吞掉剩余请求体，避免连接直接断开
     max-swallow-size: -1
+    # 限制工作线程数：默认 200 线程会常驻大量线程栈内存
+    threads:
+      max: 60
+      min-spare: 10
+    max-connections: 8192
+    accept-count: 200
   error:
     include-exception: true
     include-stacktrace: ALWAYS
@@ -165,7 +172,8 @@ management:
   endpoints:
     web:
       exposure:
-        include: metrics,httpexchanges
+        # 不暴露 httpexchanges，避免在内存中常驻请求/响应快照
+        include: metrics
 
 logging:
   # 日志文件目录（logback-spring.xml 与 WebConfig 的 /logs/** 映射共用，相对路径基于应用工作目录）

@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -86,11 +85,7 @@ public class LoginInfoServiceImpl extends ServiceImpl<LoginInfoMapper, LoginInfo
      * 清除登录信息缓存
      */
     private void clearLoginInfoCache() {
-        // 使用RedisUtil的keys方法获取所有登录信息缓存键
-        Set<String> keys = redisUtil.keys(LOGIN_INFO_CACHE_KEY + "*");
-        if (keys != null && !keys.isEmpty()) {
-            // 删除所有匹配的缓存键
-            redisUtil.delete(keys);
-        }
+        // 使用 SCAN 分批删除，避免 KEYS 一次性返回大量键造成阻塞与内存尖峰
+        redisUtil.deleteByPattern(LOGIN_INFO_CACHE_KEY + "*");
     }
 }

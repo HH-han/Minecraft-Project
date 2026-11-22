@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,8 +21,21 @@ public class JwtUtil {
     @Value("${jwt.expiration:604800000}")
     private Long expiration;
 
+    /** 签名密钥只构建一次，避免每个请求重复分配 SecretKey */
+    private volatile SecretKey signingKey;
+
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(secret.getBytes());
+        SecretKey key = signingKey;
+        if (key == null) {
+            synchronized (this) {
+                key = signingKey;
+                if (key == null) {
+                    key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+                    signingKey = key;
+                }
+            }
+        }
+        return key;
     }
 
     public String generateToken(Long userId, String username) {

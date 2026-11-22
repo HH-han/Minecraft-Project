@@ -11,9 +11,9 @@ spring:
     # 服务器部署时务必通过环境变量 DB_PASSWORD 覆盖默认密码
     password: ${DB_PASSWORD:123456}
     druid:
-      initial-size: 5
-      min-idle: 5
-      max-active: 20
+      initial-size: 2
+      min-idle: 2
+      max-active: 15
       max-wait: 60000
       time-between-eviction-runs-millis: 60000
       min-evictable-idle-time-millis: 300000
@@ -23,7 +23,8 @@ spring:
       test-on-return: false
       pool-prepared-statements: false
       max-pool-prepared-statement-per-connection-size: -1
-      filters: stat,wall,slf4j
+      # 生产环境去掉 slf4j filter，避免每条 SQL 额外产生日志开销
+      filters: stat,wall
       connect-properties:
         druid.stat.mergeSql: true
         druid.stat.slowSqlMillis: 2000
@@ -40,12 +41,9 @@ spring:
             delete-allow: true
             drop-table-allow: false
             truncate-allow: false
+      # 生产环境关闭 Web 维度统计，减少 URI/Session 统计对象常驻内存
       web-stat-filter:
-        enabled: true
-        url-pattern: /*
-        exclusions: /druid/*,*.js,*.gif,*.jpg,*.png,*.css,*.ico
-        session-stat-enable: true
-        session-stat-max-count: 1000
+        enabled: false
       stat-view-servlet:
         enabled: true
         url-pattern: /druid/*
@@ -59,6 +57,20 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
+
+server:
+  tomcat:
+    # 生产环境收敛工作线程，降低线程栈与请求上下文常驻内存
+    threads:
+      max: 50
+      min-spare: 10
+    max-connections: 8192
+    accept-count: 200
+  error:
+    # 生产环境不回传异常与堆栈，避免超大错误响应占用内存并泄露实现细节
+    include-exception: false
+    include-stacktrace: never
+    include-message: never
 
 logging:
   level:

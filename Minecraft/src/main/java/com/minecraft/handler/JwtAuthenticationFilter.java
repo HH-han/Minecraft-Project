@@ -31,7 +31,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String jwt = getJwtFromRequest(request);
 
-            if (StringUtils.hasText(jwt) && jwtUtil.validateToken(jwt)) {
+            if (StringUtils.hasText(jwt)) {
+                // 解析时会校验签名与过期时间，一次解析即可，避免重复 parse
                 Long userId = jwtUtil.getUserId(jwt);
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
@@ -44,7 +45,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {
-            logger.error("Cannot set user authentication: " + e.getMessage());
+            // 非法/过期 token 属于常态，降为 debug，避免刷日志
+            logger.debug("Cannot set user authentication: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);

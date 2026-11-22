@@ -91,23 +91,28 @@ public class FileUtils {
 
     public String mergeChunks(String fileMd5, String originalFilename) throws IOException {
         Path chunkDir = uploadPath.resolve("chunks").resolve(fileMd5);
+        File[] chunks = chunkDir.toFile().listFiles((dir, name) -> name.endsWith(".part"));
+        if (chunks == null || chunks.length == 0) {
+            throw new IOException("分片文件不存在: " + fileMd5);
+        }
 
         String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         String fileName = UUID.randomUUID().toString() + extension;
         Path targetPath = uploadPath.resolve(fileName);
 
-        try {
-            Files.createFile(targetPath);
-            for (int i = 0; i < chunkDir.toFile().listFiles().length; i++) {
+        // 以流式方式追加分片，避免 readAllBytes 一次性把整个分片读入堆内存
+        try (java.io.OutputStream out = Files.newOutputStream(targetPath,
+                java.nio.file.StandardOpenOption.CREATE,
+                java.nio.file.StandardOpenOption.TRUNCATE_EXISTING,
+                java.nio.file.StandardOpenOption.WRITE)) {
+            for (int i = 0; i < chunks.length; i++) {
                 Path chunkPath = chunkDir.resolve(i + ".part");
-                Files.write(targetPath, Files.readAllBytes(chunkPath), java.nio.file.StandardOpenOption.APPEND);
+                Files.copy(chunkPath, out);
             }
-
-            deleteDirectory(chunkDir.toFile());
-            return baseUrl + fileName;
-        } catch (IOException e) {
-            throw e;
         }
+
+        deleteDirectory(chunkDir.toFile());
+        return baseUrl + fileName;
     }
 
     private void deleteDirectory(File directory) {

@@ -1,9 +1,13 @@
 package com.minecraft.utils;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +16,9 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class RedisUtil {
+
+    /** SCAN 单批处理数量 */
+    private static final int SCAN_BATCH = 500;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -147,6 +154,32 @@ public class RedisUtil {
      */
     public Set<String> keys(String pattern) {
         return redisTemplate.keys(pattern);
+    }
+
+    /**
+     * 按模式分批删除键。
+     * <p>使用 SCAN 游标逐批处理，避免 KEYS 一次性返回海量键造成 Redis 阻塞与应用堆内存尖峰。</p>
+     */
+    public long deleteByPattern(String pattern) {
+        Long deleted = redisTemplate.execute((RedisCallback<Long>) connection -> {
+            long count = 0;
+            List<byte[]> batch = new ArrayList<>(SCAN_BATCH);
+            ScanOptions options = ScanOptions.scanOptions().match(pattern).count(SCAN_BATCH).build();
+            try (Cursor<byte[]> cursor = connection.keyCommands().scan(options)) {
+                while (cursor.hasNext()) {
+                    batch.add(cursor.next());
+                    if (batch.size() >= SCAN_BATCH) {
+                        count += connection.keyCommands().del(batch.toArray(new byte[0][]));
+                        batch.clear();
+                    }
+                }
+            }
+            if (!batch.isEmpty()) {
+                count += connection.keyCommands().del(batch.toArray(new byte[0][]));
+            }
+            return count;
+        });
+        return deleted == null ? 0L : deleted;
     }
 
     public boolean exists(String blockKey) {
