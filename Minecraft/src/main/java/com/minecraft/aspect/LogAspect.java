@@ -26,7 +26,9 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 操作日志切面。
@@ -49,11 +51,20 @@ public class LogAspect {
     private static final int MAX_DETAIL_LENGTH = 2000;
     private static final int MAX_ERROR_LENGTH = 1000;
 
+    /** 操作人昵称本地缓存：避免每个写请求都查一次用户表 */
+    private static final long OPERATOR_CACHE_TTL_MS = 5 * 60 * 1000L;
+    private static final int OPERATOR_CACHE_MAX_SIZE = 5000;
+
     private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
     private static final ParameterNameDiscoverer PARAMETER_NAME_DISCOVERER = new DefaultParameterNameDiscoverer();
 
     private final OperationLogRecorder operationLogRecorder;
     private final UserService userService;
+
+    private final Map<Long, CachedOperator> operatorCache = new ConcurrentHashMap<>();
+
+    private record CachedOperator(String name, long expireAt) {
+    }
 
     public LogAspect(OperationLogRecorder operationLogRecorder, UserService userService) {
         this.operationLogRecorder = operationLogRecorder;
@@ -148,17 +159,23 @@ public class LogAspect {
     }
 
     private String resolveOperatorName(Long userId) {
+        long now = System.currentTimeMillis();
+        CachedOperator cached = operatorCache.get(userId);
+        if (cached != null && cached.expireAt() > now) {
+            return cached.name();
+        }
         try {
             User user = userService.getById(userId);
             if (user != null) {
-                if (!isBlank(user.getNickname())) {
-                    return user.getNickname();
-                }
-                if (!isBlank(user.getUsername())) {
-                    return user.getUsername();
-                }
-                if (!isBlank(user.getAccount())) {
-                    return user.getAccount();
+                String name = !isBlank(user.getNickname()) ? user.getNickname()
+                        : !isBlank(user.getUsername()) ? user.getUsername()
+                        : !isBlank(user.getAccount()) ? user.getAccount() : null;
+                if (name != null) {
+                    if (operatorCache.size() >= OPERATOR_CACHE_MAX_SIZE) {
+                        operatorCache.clear();
+                    }
+                    operatorCache.put(userId, new CachedOperator(name, now + OPERATOR_CACHE_TTL_MS));
+                    return name;
                 }
             }
         } catch (Exception e) {

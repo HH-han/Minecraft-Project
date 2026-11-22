@@ -42,9 +42,10 @@ public class GroupPostController {
 
     @Operation(summary = "获取动态列表")
     @GetMapping("/list")
-    public ApiResponse<List<GroupPostVO>> getPostList(@PathVariable Long groupId) {
+    public ApiResponse<List<GroupPostVO>> getPostList(@PathVariable Long groupId,
+                                                      @RequestParam(required = false) Integer limit) {
         Long userId = SecurityUtils.getCurrentUserId();
-        List<GroupPostVO> posts = groupPostService.getPostList(groupId, userId);
+        List<GroupPostVO> posts = groupPostService.getPostList(groupId, userId, limit);
         return ApiResponse.success(posts);
     }
 

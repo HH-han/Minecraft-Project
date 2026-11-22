@@ -3,7 +3,10 @@
 <mapper namespace="com.minecraft.mapper.GroupPostMapper">
     
     <select id="selectByGroupId" resultType="com.minecraft.entity.GroupPost">
-        SELECT * FROM group_post WHERE group_id = #{groupId} AND deleted = 0 ORDER BY created_at DESC
+        SELECT * FROM group_post
+        WHERE group_id = #{groupId} AND deleted = 0
+        ORDER BY created_at DESC
+        LIMIT #{limit}
     </select>
     
     <update id="incrementLikeCount">

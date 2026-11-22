@@ -13,8 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class NewsServiceImpl extends ServiceImpl<NewsMapper, News> implements NewsService {
     @Autowired
     private ImageUtils imageUtils;
@@ -75,7 +77,7 @@ public class NewsServiceImpl extends ServiceImpl<NewsMapper, News> implements Ne
             
             return super.save(news);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }
@@ -91,7 +93,7 @@ public class NewsServiceImpl extends ServiceImpl<NewsMapper, News> implements Ne
             
             return super.updateById(news);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }

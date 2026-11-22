@@ -23,8 +23,10 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class CommunityServiceImpl extends ServiceImpl<CommunityPostMapper, CommunityPost> implements CommunityService {
 
     @Autowired
@@ -128,7 +130,7 @@ public class CommunityServiceImpl extends ServiceImpl<CommunityPostMapper, Commu
             processImages(post);
             return super.save(post);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }
@@ -139,7 +141,7 @@ public class CommunityServiceImpl extends ServiceImpl<CommunityPostMapper, Commu
             processImages(post);
             return super.updateById(post);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }
@@ -256,7 +258,7 @@ public class CommunityServiceImpl extends ServiceImpl<CommunityPostMapper, Commu
             vo.setUsername("未知用户");
             vo.setAvatar(null);
             vo.setBio(null);
-            e.printStackTrace();
+            log.warn("操作失败", e);
         }
     }
 

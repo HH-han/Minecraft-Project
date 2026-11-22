@@ -25,8 +25,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
     @Autowired
@@ -135,15 +137,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         
         // 添加在线用户记录
         try {
-            System.out.println("开始添加在线用户记录");
             OnlineUserVO onlineUser = OnlineUserUtil.createOnlineUserVO(user, httpRequest);
-            System.out.println("创建OnlineUserVO对象成功: " + onlineUser);
-            int result = onlineUserMapper.addOnlineUser(onlineUser);
-            System.out.println("添加在线用户记录结果: " + result);
+            onlineUserMapper.addOnlineUser(onlineUser);
         } catch (Exception e) {
             // 在线用户记录失败，不影响登录流程
-            System.out.println("添加在线用户记录失败: " + e.getMessage());
-            e.printStackTrace();
+            log.warn("添加在线用户记录失败: {}", e.getMessage());
         }
 
         return response;
@@ -197,7 +195,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 loginLogService.save(loginLog);
             } catch (Exception e) {
                 // 日志保存失败，不影响登录流程
-                e.printStackTrace();
+                log.warn("操作失败", e);
             }
         }).start();
     }
@@ -339,7 +337,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                         imageUtils.deleteImage(user.getAvatar());
                     } catch (Exception e) {
                         // 旧头像删除失败不影响新头像上传
-                        e.printStackTrace();
+                        log.warn("操作失败", e);
                     }
                 }
                 user.setAvatar(avatarUrl);
@@ -348,7 +346,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             
             return avatarUrl;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             throw new BusinessException("头像上传失败: " + e.getMessage());
         }
     }
@@ -364,7 +362,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                     imageUtils.deleteImage(user.getAvatar());
                 } catch (Exception e) {
                     // 头像删除失败不影响用户删除
-                    e.printStackTrace();
+                    log.warn("操作失败", e);
                 }
             }
             // 删除用户
@@ -373,8 +371,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public List<User> getAllUsers() {
-        return list();
+    public List<User> getAllUsers(Integer limit) {
+        // 默认最多 1000 条，避免用户量增长后一次查询整表
+        int safeLimit = limit == null ? 1000 : Math.max(1, Math.min(limit, 1000));
+        return lambdaQuery().orderByDesc(User::getId).last("LIMIT " + safeLimit).list();
     }
 
     @Override
@@ -430,20 +430,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             // 从在线用户表中删除该用户
             try {
                 onlineUserMapper.deleteOnlineUser(userId);
-                System.out.println("强制下线用户: " + userId + "，从在线用户表中删除成功");
+                log.debug("强制下线用户 {}：在线用户表删除成功", userId);
             } catch (Exception e) {
-                System.out.println("强制下线用户: " + userId + "，从在线用户表中删除失败: " + e.getMessage());
-                e.printStackTrace();
+                log.warn("强制下线用户 {}：在线用户表删除失败: {}", userId, e.getMessage());
             }
             
             // 清除用户的登录缓存
             String cacheKey = "login:user:" + user.getAccount();
             try {
                 redisUtil.delete(cacheKey);
-                System.out.println("强制下线用户: " + userId + "，清除登录缓存成功");
+                log.debug("强制下线用户 {}：登录缓存清理成功", userId);
             } catch (Exception e) {
-                System.out.println("强制下线用户: " + userId + "，清除登录缓存失败: " + e.getMessage());
-                e.printStackTrace();
+                log.warn("强制下线用户 {}：登录缓存清理失败: {}", userId, e.getMessage());
             }
         }
     }
@@ -576,7 +574,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             OnlineUserVO onlineUser = OnlineUserUtil.createOnlineUserVO(user, httpRequest);
             onlineUserMapper.addOnlineUser(onlineUser);
         } catch (Exception e) {
-            System.out.println("添加在线用户记录失败: " + e.getMessage());
+            log.warn("添加在线用户记录失败: {}", e.getMessage());
         }
         
         return response;

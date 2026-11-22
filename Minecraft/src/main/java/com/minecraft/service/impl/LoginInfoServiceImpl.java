@@ -12,11 +12,13 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 登录信息服务实现
  */
 @Service
+@Slf4j
 public class LoginInfoServiceImpl extends ServiceImpl<LoginInfoMapper, LoginInfo> implements LoginInfoService {
     
     @Autowired
@@ -41,7 +43,7 @@ public class LoginInfoServiceImpl extends ServiceImpl<LoginInfoMapper, LoginInfo
             }
         } catch (Exception e) {
             // 缓存读取失败，继续从数据库获取
-            e.printStackTrace();
+            log.warn("操作失败", e);
         }
         
         // 从数据库获取
@@ -54,7 +56,7 @@ public class LoginInfoServiceImpl extends ServiceImpl<LoginInfoMapper, LoginInfo
             redisUtil.set(cacheKey, jsonData, CACHE_EXPIRE_TIME, TimeUnit.MINUTES);
         } catch (Exception e) {
             // 缓存写入失败，不影响业务
-            e.printStackTrace();
+            log.warn("操作失败", e);
         }
         
         return result;

@@ -3,7 +3,9 @@ package com.minecraft.handler;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.minecraft.constant.CacheConstants;
+import com.minecraft.entity.GroupMember;
 import com.minecraft.entity.User;
+import com.minecraft.mapper.GroupMemberMapper;
 import com.minecraft.service.UserService;
 import com.minecraft.utils.JwtUtil;
 import com.minecraft.utils.RedisUtil;
@@ -14,6 +16,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -31,11 +34,14 @@ public class WebSocketHandler extends TextWebSocketHandler {
     private final RedisUtil redisUtil;
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final GroupMemberMapper groupMemberMapper;
 
-    public WebSocketHandler(RedisUtil redisUtil, UserService userService, JwtUtil jwtUtil) {
+    public WebSocketHandler(RedisUtil redisUtil, UserService userService, JwtUtil jwtUtil,
+                            GroupMemberMapper groupMemberMapper) {
         this.redisUtil = redisUtil;
         this.userService = userService;
         this.jwtUtil = jwtUtil;
+        this.groupMemberMapper = groupMemberMapper;
     }
 
     @Override
@@ -183,6 +189,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
         String content = json.getString("content");
         Long senderId = json.getLong("senderId");
         String messageType = json.getString("messageType");
+        if (groupId == null || senderId == null) {
+            return;
+        }
 
         JSONObject message = new JSONObject();
         message.put("type", "GROUP_MESSAGE");
@@ -198,11 +207,18 @@ public class WebSocketHandler extends TextWebSocketHandler {
             message.put("senderAvatar", sender.getAvatar());
         }
 
-        SESSIONS.forEach((userId, session) -> {
-            if (!userId.equals(senderId)) {
-                sendMessageToSession(session, message.toJSONString());
+        // 仅推送给群成员，避免全站在线用户广播（隐私与扇出成本）
+        String payload = message.toJSONString();
+        List<GroupMember> members = groupMemberMapper.selectByGroupId(groupId);
+        for (GroupMember member : members) {
+            if (member.getUserId() == null || member.getUserId().equals(senderId)) {
+                continue;
             }
-        });
+            WebSocketSession target = SESSIONS.get(member.getUserId());
+            if (target != null && target.isOpen()) {
+                sendMessageToSession(target, payload);
+            }
+        }
     }
 
     /**
@@ -283,13 +299,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     public static boolean isOnline(Long userId) {
         return SESSIONS.containsKey(userId);
-    }
-
-    public static void sendGroupMessage(Long groupId, JSONObject message) {
-        String messageStr = message.toJSONString();
-        SESSIONS.forEach((userId, session) -> {
-            sendMessageToSession(session, messageStr);
-        });
     }
 
     private void handleCallMessage(JSONObject json) {

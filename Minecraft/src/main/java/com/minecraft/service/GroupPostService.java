@@ -10,7 +10,7 @@ import java.util.List;
 public interface GroupPostService extends IService<GroupPost> {
     GroupPost createPost(GroupPostDTO dto, Long userId);
     void deletePost(Long postId, Long userId);
-    List<GroupPostVO> getPostList(Long groupId, Long userId);
+    List<GroupPostVO> getPostList(Long groupId, Long userId, Integer limit);
     void toggleLike(Long postId, Long userId);
     boolean isLiked(Long postId, Long userId);
 }

@@ -14,11 +14,16 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> implements CommentService {
+
+    /** 单次评论树最多加载条数，避免热门内容评论无限增长 */
+    private static final int MAX_TREE_COMMENTS = 1000;
 
     @Override
     public void addComment(CommentRequest request, Long userId) {
@@ -63,33 +68,45 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
         LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Comment::getItemType, itemType)
                 .eq(Comment::getItemId, itemId)
-                .orderByDesc(Comment::getCreateTime);
+                .orderByDesc(Comment::getCreateTime)
+                .last("LIMIT " + MAX_TREE_COMMENTS);
 
         List<Comment> allComments = list(wrapper);
-        List<CommentVO> rootComments = new ArrayList<>();
-
+        Map<Long, List<Comment>> childrenByParent = new HashMap<>();
+        List<Comment> rootComments = new ArrayList<>();
         for (Comment comment : allComments) {
             if (comment.getParentId() == null) {
-                CommentVO vo = new CommentVO();
-                BeanUtils.copyProperties(comment, vo);
-                vo.setReplies(new ArrayList<>());
-                buildCommentTree(vo, allComments);
-                rootComments.add(vo);
+                rootComments.add(comment);
+            } else {
+                childrenByParent.computeIfAbsent(comment.getParentId(), key -> new ArrayList<>()).add(comment);
             }
         }
 
-        return rootComments;
+        List<CommentVO> result = new ArrayList<>(rootComments.size());
+        for (Comment root : rootComments) {
+            CommentVO vo = toVO(root);
+            vo.setReplies(new ArrayList<>());
+            appendChildren(vo, childrenByParent);
+            result.add(vo);
+        }
+        return result;
     }
 
-    private void buildCommentTree(CommentVO parent, List<Comment> allComments) {
-        for (Comment comment : allComments) {
-            if (parent.getId().equals(comment.getParentId())) {
-                CommentVO child = new CommentVO();
-                BeanUtils.copyProperties(comment, child);
-                child.setReplies(new ArrayList<>());
-                parent.getReplies().add(child);
-                buildCommentTree(child, allComments);
-            }
+    /**
+     * 基于 parentId 分组挂载子评论，整体 O(n)，替代原先对全量列表的 O(n²) 递归扫描。
+     */
+    private void appendChildren(CommentVO parent, Map<Long, List<Comment>> childrenByParent) {
+        for (Comment child : childrenByParent.getOrDefault(parent.getId(), List.of())) {
+            CommentVO childVO = toVO(child);
+            childVO.setReplies(new ArrayList<>());
+            parent.getReplies().add(childVO);
+            appendChildren(childVO, childrenByParent);
         }
+    }
+
+    private CommentVO toVO(Comment comment) {
+        CommentVO vo = new CommentVO();
+        BeanUtils.copyProperties(comment, vo);
+        return vo;
     }
 }

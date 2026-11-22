@@ -44,6 +44,10 @@ public class GroupPostServiceImpl extends ServiceImpl<GroupPostMapper, GroupPost
     @Autowired
     private ObjectMapper objectMapper;
 
+    /** 默认返回最近 100 条，最多 500 条，避免群动态无限增长拖垮内存 */
+    private static final int DEFAULT_POST_LIMIT = 100;
+    private static final int MAX_POST_LIMIT = 500;
+
     @Override
     @Transactional
     public GroupPost createPost(GroupPostDTO dto, Long userId) {
@@ -78,8 +82,9 @@ public class GroupPostServiceImpl extends ServiceImpl<GroupPostMapper, GroupPost
     }
 
     @Override
-    public List<GroupPostVO> getPostList(Long groupId, Long userId) {
-        List<GroupPost> posts = baseMapper.selectByGroupId(groupId);
+    public List<GroupPostVO> getPostList(Long groupId, Long userId, Integer limit) {
+        int safeLimit = limit == null ? DEFAULT_POST_LIMIT : Math.max(1, Math.min(limit, MAX_POST_LIMIT));
+        List<GroupPost> posts = baseMapper.selectByGroupId(groupId, safeLimit);
         if (posts.isEmpty()) {
             return new ArrayList<>();
         }

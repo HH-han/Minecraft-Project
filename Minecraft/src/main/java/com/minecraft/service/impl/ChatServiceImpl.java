@@ -16,8 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class ChatServiceImpl extends ServiceImpl<ChatMessageMapper, ChatMessage> implements ChatService {
 
     @Autowired
@@ -45,7 +47,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMessageMapper, ChatMessage>
                 String processedImage = imageUtils.processBase64Image(message.getContent());
                 message.setContent(processedImage);
             } catch (Exception e) {
-                e.printStackTrace();
+                log.warn("操作失败", e);
             }
         }
         

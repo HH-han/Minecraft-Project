@@ -27,8 +27,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class AttractionServiceImpl extends ServiceImpl<AttractionMapper, Attraction> implements AttractionService {
 
     @Autowired
@@ -319,7 +321,7 @@ public class AttractionServiceImpl extends ServiceImpl<AttractionMapper, Attract
                     attractionTicketMapper.insert(ticket);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                log.warn("操作失败", e);
             }
         }
         
@@ -404,7 +406,7 @@ public class AttractionServiceImpl extends ServiceImpl<AttractionMapper, Attract
                     attractionTicketMapper.insert(ticket);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                log.warn("操作失败", e);
             }
         }
         

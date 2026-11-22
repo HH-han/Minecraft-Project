@@ -89,8 +89,8 @@ public class UserController {
 
     @Operation(summary ="获取所有用户")
     @GetMapping("/list")
-    public ApiResponse<List<UserVO>> getAllUsers() {
-        List<UserVO> users = userService.getAllUsers().stream()
+    public ApiResponse<List<UserVO>> getAllUsers(@RequestParam(required = false) Integer limit) {
+        List<UserVO> users = userService.getAllUsers(limit).stream()
                 .map(this::toUserVO)
                 .collect(Collectors.toList());
         return ApiResponse.success(users);

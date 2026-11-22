@@ -3,7 +3,7 @@
 <mapper namespace="com.minecraft.mapper.GroupCommentMapper">
     
     <select id="selectByPostId" resultType="com.minecraft.entity.GroupComment">
-        SELECT * FROM group_comment WHERE post_id = #{postId} AND deleted = 0 ORDER BY created_at ASC
+        SELECT * FROM group_comment WHERE post_id = #{postId} AND deleted = 0 ORDER BY created_at ASC LIMIT 500
     </select>
     
     <select id="selectByParentId" resultType="com.minecraft.entity.GroupComment">

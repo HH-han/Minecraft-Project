@@ -11,11 +11,13 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 在线用户监控服务实现类
  */
 @Service
+@Slf4j
 public class OnlineUserServiceImpl implements OnlineUserService {
     
     @Autowired
@@ -82,7 +84,7 @@ public class OnlineUserServiceImpl implements OnlineUserService {
             userService.forceLogout(userId);
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }

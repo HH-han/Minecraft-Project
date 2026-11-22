@@ -10,8 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class SafetyTipsServiceImpl extends ServiceImpl<SafetyTipsMapper, SafetyTips> implements SafetyTipsService {
     @Autowired
     private ImageUtils imageUtils;
@@ -45,7 +47,7 @@ public class SafetyTipsServiceImpl extends ServiceImpl<SafetyTipsMapper, SafetyT
             }
             return super.save(safetyTips);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }
@@ -60,7 +62,7 @@ public class SafetyTipsServiceImpl extends ServiceImpl<SafetyTipsMapper, SafetyT
             }
             return super.updateById(safetyTips);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }

@@ -14,8 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup> implements ChatGroupService {
 
     @Autowired
@@ -57,7 +59,7 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
                 String processedAvatar = imageUtils.processBase64Image(group.getAvatar());
                 group.setAvatar(processedAvatar);
             } catch (Exception e) {
-                e.printStackTrace();
+                log.warn("操作失败", e);
             }
         }
 
@@ -90,7 +92,7 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
                 String processedAvatar = imageUtils.processBase64Image(request.getAvatar());
                 group.setAvatar(processedAvatar);
             } catch (Exception e) {
-                e.printStackTrace();
+                log.warn("操作失败", e);
             }
         } else {
             group.setAvatar(request.getAvatar());
@@ -128,7 +130,7 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
                 String processedAvatar = imageUtils.processBase64Image(group.getAvatar());
                 group.setAvatar(processedAvatar);
             } catch (Exception e) {
-                e.printStackTrace();
+                log.warn("操作失败", e);
             }
         }
         return baseMapper.updateById(group) > 0;
@@ -227,7 +229,7 @@ public class ChatGroupServiceImpl extends ServiceImpl<ChatGroupMapper, ChatGroup
 
             return baseMapper.updateById(group) > 0;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }

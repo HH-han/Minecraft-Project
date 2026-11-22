@@ -10,11 +10,13 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
 import java.util.Random;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 邮件发送工具类
  */
 @Component
+@Slf4j
 public class EmailUtil {
 
     private final JavaMailSender javaMailSender;
@@ -59,8 +61,7 @@ public class EmailUtil {
 
             javaMailSender.send(mimeMessage);
         } catch (Exception e) {
-            System.err.println("发送邮件失败: " + e.getMessage());
-            e.printStackTrace();
+            log.warn("发送邮件失败: {}", e.getMessage());
             throw new RuntimeException("发送验证码邮件失败: " + e.getMessage());
         }
     }

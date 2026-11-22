@@ -20,8 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class GroupChatServiceImpl extends ServiceImpl<GroupChatMessageMapper, GroupChatMessage> implements GroupChatService {
 
     @Autowired
@@ -50,7 +52,7 @@ public class GroupChatServiceImpl extends ServiceImpl<GroupChatMessageMapper, Gr
             try {
                 processedContent = imageUtils.processBase64Image(content);
             } catch (Exception e) {
-                e.printStackTrace();
+                log.warn("操作失败", e);
             }
         }
         

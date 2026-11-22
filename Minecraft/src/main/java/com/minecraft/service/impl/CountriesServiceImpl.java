@@ -7,8 +7,10 @@ import com.minecraft.service.CountriesService;
 import com.minecraft.utils.ImageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class CountriesServiceImpl extends ServiceImpl<CountriesMapper, Countries> implements CountriesService {
 
     @Autowired
@@ -45,7 +47,7 @@ public class CountriesServiceImpl extends ServiceImpl<CountriesMapper, Countries
             
             return super.save(country);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }
@@ -61,7 +63,7 @@ public class CountriesServiceImpl extends ServiceImpl<CountriesMapper, Countries
             
             return super.updateById(country);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }

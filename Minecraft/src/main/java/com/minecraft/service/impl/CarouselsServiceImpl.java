@@ -12,8 +12,10 @@ import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class CarouselsServiceImpl extends ServiceImpl<CarouselsMapper, Carousels> implements CarouselsService {
     @Resource
     private CarouselGroupsServiceImpl carouselGroupsService;
@@ -114,7 +116,7 @@ public class CarouselsServiceImpl extends ServiceImpl<CarouselsMapper, Carousels
             
             return super.save(carousel);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }
@@ -142,7 +144,7 @@ public class CarouselsServiceImpl extends ServiceImpl<CarouselsMapper, Carousels
             
             return super.updateById(carousel);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }

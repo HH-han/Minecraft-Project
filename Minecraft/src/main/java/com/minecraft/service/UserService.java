@@ -18,7 +18,7 @@ public interface UserService extends IService<User> {
     void updateOnlineStatus(Long userId, boolean online);
     String uploadAvatar(Long userId, MultipartFile file);
     void deleteUser(Long userId);
-    List<User> getAllUsers();
+    List<User> getAllUsers(Integer limit);
     long getUserCount();
     User getUserByAccount(String account);
     User getUserByPhone(String phone);

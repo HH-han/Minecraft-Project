@@ -10,7 +10,7 @@ import java.util.List;
 @Mapper
 public interface GroupPostMapper extends BaseMapper<GroupPost> {
     
-    List<GroupPost> selectByGroupId(@Param("groupId") Long groupId);
+    List<GroupPost> selectByGroupId(@Param("groupId") Long groupId, @Param("limit") int limit);
     
     int incrementLikeCount(@Param("postId") Long postId);
     

@@ -13,8 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> implements ProductService {
 
     @Autowired
@@ -104,13 +106,13 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
                     product.setImages(processedImages.toString());
                 } catch (Exception e) {
                     // 如果解析失败，保持原数据
-                    e.printStackTrace();
+                    log.warn("操作失败", e);
                 }
             }
             
             return super.save(product);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }
@@ -147,13 +149,13 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
                     product.setImages(processedImages.toString());
                 } catch (Exception e) {
                     // 如果解析失败，保持原数据
-                    e.printStackTrace();
+                    log.warn("操作失败", e);
                 }
             }
             
             return super.updateById(product);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }

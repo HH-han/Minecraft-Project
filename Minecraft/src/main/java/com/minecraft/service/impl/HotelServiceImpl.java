@@ -26,8 +26,10 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class HotelServiceImpl extends ServiceImpl<HotelMapper, Hotel> implements HotelService {
     @Autowired
     private ImageUtils imageUtils;
@@ -259,7 +261,7 @@ public class HotelServiceImpl extends ServiceImpl<HotelMapper, Hotel> implements
                     hotelRoomMapper.insert(room);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                log.warn("操作失败", e);
             }
         }
         
@@ -333,7 +335,7 @@ public class HotelServiceImpl extends ServiceImpl<HotelMapper, Hotel> implements
                         hotelRoomMapper.insert(room);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    log.warn("操作失败", e);
                 }
             }
         }

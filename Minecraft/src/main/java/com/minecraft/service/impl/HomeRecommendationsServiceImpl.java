@@ -13,8 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class HomeRecommendationsServiceImpl extends ServiceImpl<HomeRecommendationsMapper, HomeRecommendations> implements HomeRecommendationsService {
 
     @Autowired
@@ -142,7 +144,7 @@ public class HomeRecommendationsServiceImpl extends ServiceImpl<HomeRecommendati
 
             return super.save(homeRecommendations);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }
@@ -164,7 +166,7 @@ public class HomeRecommendationsServiceImpl extends ServiceImpl<HomeRecommendati
 
             return super.updateById(homeRecommendations);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }

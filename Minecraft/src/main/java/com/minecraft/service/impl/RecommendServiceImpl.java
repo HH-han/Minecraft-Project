@@ -9,8 +9,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class RecommendServiceImpl extends ServiceImpl<RecommendMapper, Recommend> implements RecommendService {
 
     @Autowired
@@ -60,7 +62,7 @@ public class RecommendServiceImpl extends ServiceImpl<RecommendMapper, Recommend
             
             return super.save(recommend);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }
@@ -76,7 +78,7 @@ public class RecommendServiceImpl extends ServiceImpl<RecommendMapper, Recommend
             
             return super.updateById(recommend);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }

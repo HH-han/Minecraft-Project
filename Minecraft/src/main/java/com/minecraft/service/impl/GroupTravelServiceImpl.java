@@ -11,8 +11,10 @@ import com.minecraft.service.GroupTravelService;
 import com.minecraft.utils.ImageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class GroupTravelServiceImpl extends ServiceImpl<GroupTravelMapper, GroupTravel> implements GroupTravelService {
 
     @Autowired
@@ -97,13 +99,13 @@ public class GroupTravelServiceImpl extends ServiceImpl<GroupTravelMapper, Group
                     group.setImages(processedImages.toString());
                 } catch (Exception e) {
                     // 如果解析失败，保持原数据
-                    e.printStackTrace();
+                    log.warn("操作失败", e);
                 }
             }
             
             return super.save(group);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }
@@ -139,13 +141,13 @@ public class GroupTravelServiceImpl extends ServiceImpl<GroupTravelMapper, Group
                     group.setImages(processedImages.toString());
                 } catch (Exception e) {
                     // 如果解析失败，保持原数据
-                    e.printStackTrace();
+                    log.warn("操作失败", e);
                 }
             }
             
             return super.updateById(group);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }

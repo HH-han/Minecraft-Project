@@ -13,8 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class FoodServiceImpl extends ServiceImpl<FoodMapper, Food> implements FoodService {
     @Autowired
     private ImageUtils imageUtils;
@@ -103,13 +105,13 @@ public class FoodServiceImpl extends ServiceImpl<FoodMapper, Food> implements Fo
                     food.setImages(processedImages.toString());
                 } catch (Exception e) {
                     // 如果解析失败，保持原数据
-                    e.printStackTrace();
+                    log.warn("操作失败", e);
                 }
             }
             
             return super.save(food);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }
@@ -146,13 +148,13 @@ public class FoodServiceImpl extends ServiceImpl<FoodMapper, Food> implements Fo
                     food.setImages(processedImages.toString());
                 } catch (Exception e) {
                     // 如果解析失败，保持原数据
-                    e.printStackTrace();
+                    log.warn("操作失败", e);
                 }
             }
             
             return super.updateById(food);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("操作失败", e);
             return false;
         }
     }
