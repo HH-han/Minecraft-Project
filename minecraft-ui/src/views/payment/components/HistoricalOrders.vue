@@ -2,113 +2,200 @@
   <div class="historical-orders">
     <div class="orders-header">
       <h2>{{ $t('payment.history.title') }}</h2>
-      <div class="order-filters">
-        <button 
-          v-for="filter in filters" 
-          :key="filter.value"
-          :class="['filter-btn', { active: activeFilter === filter.value }]"
-          @click="activeFilter = filter.value"
-        >
-          {{ filter.label }}
-        </button>
+      <div class="orders-toolbar">
+        <div class="order-filters">
+          <button 
+            v-for="filter in filters" 
+            :key="filter.value"
+            :class="['filter-btn', { active: activeFilter === filter.value }]"
+            @click="activeFilter = filter.value"
+          >
+            {{ filter.label }}
+          </button>
+        </div>
+        <ViewSwitch
+          v-model="viewMode"
+          :aria-label="$t('payment.history.view.label')"
+          :card-label="$t('payment.history.view.card')"
+          :list-label="$t('payment.history.view.list')"
+        />
       </div>
     </div>
     
-    <div class="orders-list">
-      <div v-if="orders.length === 0" class="empty-orders">
-        <div class="empty-icon">
-          <svg t="1773668737283" class="icon" viewBox="0 0 1024 1024" version="1.1"
-                xmlns="http://www.w3.org/2000/svg" width="128" height="128">
-                <path d="M758.723 194.016c27.266 0 49.345-21.366 49.345-47.699V50.92c0-26.35-22.08-47.714-49.345-47.714-27.267 0-49.347 21.365-49.347 47.714v95.398c0.002 26.333 22.082 47.699 49.347 47.699z m-493.448 0c27.267 0 49.346-21.366 49.346-47.699V50.92c0-26.35-22.079-47.714-49.346-47.714-27.266 0-49.344 21.365-49.344 47.714v95.398c0.001 26.333 22.08 47.699 49.344 49.344z" fill="currentColor"></path>
-                <path d="M939.642 98.617h-82.23v47.698c0 52.668-44.188 95.4-98.688 95.4s-98.687-42.732-98.687-95.4V98.617H607.4c0-1.117-40.9 0-95.4 0s-95.398 0.496-95.398 0h-52.639v47.698c0 52.668-44.156 95.4-98.688 95.4-54.499 0-98.688-42.732-98.688-95.4V98.617h-82.23c-27.266 0-49.346 21.367-49.346 47.698v826.78c0 26.333 22.08 47.699 49.346 47.699h855.287c27.266 0 49.345-21.366 49.345-47.7V146.316c-0.002-26.331-22.082-47.698-49.347-47.698zM725.817 861.795H298.181c-19.683 0-35.644-15.962-35.644-35.634 0-19.684 15.961-35.646 35.644-35.646h427.635c19.685 0 35.646 15.962 35.646 35.646 0.001 19.672-15.96 35.634-35.645 35.634z m0-184.195H298.181c-19.683 0-35.644-15.962-35.644-35.634 0-19.684 15.961-35.646 35.644-35.646h427.635c19.685 0 35.646 15.962 35.646 35.646 0.001 19.672-15.96 35.634-35.645 35.634z m0-184.196H298.181c-19.683 0-35.644-15.962-35.644-35.634 0-19.683 15.961-35.644 35.644-35.644h427.635c19.685 0 35.646 15.96 35.646 35.644 0.001 19.673-15.96 35.634-35.645 35.634z" fill="currentColor"></path>
-              </svg>
-        </div>
-        <div class="empty-text">{{ $t('payment.history.empty') }}</div>
-        <router-link to="/payment" class="btn btn-primary">{{ $t('payment.history.goShopping') }}</router-link>
+    <div v-if="orders.length === 0" class="empty-orders">
+      <div class="empty-icon">
+        <svg t="1773668737283" class="icon" viewBox="0 0 1024 1024" version="1.1"
+              xmlns="http://www.w3.org/2000/svg" width="128" height="128">
+              <path d="M758.723 194.016c27.266 0 49.345-21.366 49.345-47.699V50.92c0-26.35-22.08-47.714-49.345-47.714-27.267 0-49.347 21.365-49.347 47.714v95.398c0.002 26.333 22.082 47.699 49.347 47.699z m-493.448 0c27.267 0 49.346-21.366 49.346-47.699V50.92c0-26.35-22.079-47.714-49.346-47.714-27.266 0-49.344 21.365-49.344 47.714v95.398c0.001 26.333 22.08 47.699 49.344 49.344z" fill="currentColor"></path>
+              <path d="M939.642 98.617h-82.23v47.698c0 52.668-44.188 95.4-98.688 95.4s-98.687-42.732-98.687-95.4V98.617H607.4c0-1.117-40.9 0-95.4 0s-95.398 0.496-95.398 0h-52.639v47.698c0 52.668-44.156 95.4-98.688 95.4-54.499 0-98.688-42.732-98.688-95.4V98.617h-82.23c-27.266 0-49.346 21.367-49.346 47.698v826.78c0 26.333 22.08 47.699 49.346 47.699h855.287c27.266 0 49.345-21.366 49.345-47.7V146.316c-0.002-26.331-22.082-47.698-49.347-47.698zM725.817 861.795H298.181c-19.683 0-35.644-15.962-35.644-35.634 0-19.684 15.961-35.646 35.644-35.646h427.635c19.685 0 35.646 15.962 35.646 35.646 0.001 19.672-15.96 35.634-35.645 35.634z m0-184.195H298.181c-19.683 0-35.644-15.962-35.644-35.634 0-19.684 15.961-35.646 35.644-35.646h427.635c19.685 0 35.646 15.962 35.646 35.646 0.001 19.672-15.96 35.634-35.645 35.634z m0-184.196H298.181c-19.683 0-35.644-15.962-35.644-35.634 0-19.683 15.961-35.644 35.644-35.644h427.635c19.685 0 35.646 15.96 35.646 35.644 0.001 19.673-15.96 35.634-35.645 35.634z" fill="currentColor"></path>
+            </svg>
       </div>
-      <div v-else class="order-item" v-for="order in pagedOrders" :key="order.key">
-        <div class="order-header">
-          <div class="order-id">{{ $t('payment.history.orderNo', { orderNo: order.orderId }) }}</div>
-          <div class="order-status" :class="getStatusClass(order.status)">
-            {{ getStatusText(order.status) }}
-          </div>
-        </div>
-        <div class="order-content">
-          <div class="order-info">
-            <div class="info-item">
-              <span class="label">{{ $t('payment.history.createTime') }}</span>
-              <span class="value">{{ order.createTime }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">{{ $t('payment.history.payTime') }}</span>
-              <span class="value">{{ getPayTimeText(order) || $t('payment.history.unpaid') }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">{{ $t('payment.history.amount') }}</span>
-              <span class="value price">¥{{ formatMoney(order.totalPrice) }}</span>
-            </div>
-            <div class="info-item">
-              <span class="label">{{ isShippableOrder(order) ? $t('payment.history.logisticsStatus') : $t('payment.history.orderType') }}</span>
-              <span class="value">{{ isShippableOrder(order) ? order.statusDesc : getItemTypeText(order.itemType) }}</span>
+      <div class="empty-text">{{ $t('payment.history.empty') }}</div>
+      <router-link to="/payment" class="btn btn-primary">{{ $t('payment.history.goShopping') }}</router-link>
+    </div>
+
+    <template v-else>
+      <!-- 卡片视图 -->
+      <div v-show="viewMode === 'card'" class="orders-list">
+        <div class="order-item" v-for="order in pagedOrders" :key="order.key">
+          <div class="order-header">
+            <div class="order-id">{{ $t('payment.history.orderNo', { orderNo: order.orderId }) }}</div>
+            <div class="order-status" :class="getStatusClass(order.status)">
+              {{ getStatusText(order.status) }}
             </div>
           </div>
-          <!-- 已执行的支付行为（商城取聚合支付单，会员/车票取业务订单） -->
-          <div class="payment-record" v-if="order.payNo || order.source !== 'mall'">
-            <div class="payment-record__head">
-              <span class="payment-record__title">{{ $t('payment.history.paymentRecord') }}</span>
-              <span
-                v-if="getPaymentView(order)"
-                class="payment-status"
-                :class="getPayStatusClass(getPaymentView(order)?.status)"
-              >
-                {{ getPayStatusText(getPaymentView(order)) }}
-              </span>
-            </div>
-            <div class="payment-record__grid">
+          <div class="order-content">
+            <div class="order-info">
               <div class="info-item">
-                <span class="label">{{ $t('payment.orderDetail.channel') }}</span>
-                <span class="value">{{ getChannelText(getPaymentView(order)?.channelCode) }}</span>
+                <span class="label">{{ $t('payment.history.createTime') }}</span>
+                <span class="value">{{ order.createTime }}</span>
               </div>
               <div class="info-item">
-                <span class="label">{{ $t('payment.orderDetail.payAmount') }}</span>
-                <span class="value price">{{ payAmountText(order) }}</span>
+                <span class="label">{{ $t('payment.history.payTime') }}</span>
+                <span class="value">{{ getPayTimeText(order) || $t('payment.history.unpaid') }}</span>
               </div>
               <div class="info-item">
-                <span class="label">{{ $t('payment.orderDetail.payTime') }}</span>
-                <span class="value">{{ getPayTimeText(order) || '-' }}</span>
+                <span class="label">{{ $t('payment.history.amount') }}</span>
+                <span class="value price">¥{{ formatMoney(order.totalPrice) }}</span>
               </div>
-              <div class="info-item" v-if="order.payNo">
-                <span class="label">{{ $t('payment.orderDetail.payNo') }}</span>
-                <span class="value mono">{{ order.payNo }}</span>
-              </div>
-              <div class="info-item" v-if="Number(getPaymentView(order)?.refundedAmount) > 0">
-                <span class="label">{{ $t('payment.orderDetail.refundedAmount') }}</span>
-                <span class="value">¥{{ formatMoney(getPaymentView(order)?.refundedAmount) }}</span>
+              <div class="info-item">
+                <span class="label">{{ isShippableOrder(order) ? $t('payment.history.logisticsStatus') : $t('payment.history.orderType') }}</span>
+                <span class="value">{{ isShippableOrder(order) ? order.statusDesc : getItemTypeText(order.itemType) }}</span>
               </div>
             </div>
-          </div>
-          <div class="order-products">
-            <div class="product-item" v-for="(item, index) in order.items" :key="index">
-              <div class="product-image">
-                <img v-if="item.image" :src="item.image" :alt="item.name">
-                <span v-else class="product-image__fallback">{{ getItemFallbackText(order) }}</span>
+            <!-- 已执行的支付行为（商城取聚合支付单，会员/车票取业务订单） -->
+            <div class="payment-record" v-if="order.payNo || order.source !== 'mall'">
+              <div class="payment-record__head">
+                <span class="payment-record__title">{{ $t('payment.history.paymentRecord') }}</span>
+                <span
+                  v-if="getPaymentView(order)"
+                  class="payment-status"
+                  :class="getPayStatusClass(getPaymentView(order)?.status)"
+                >
+                  {{ getPayStatusText(getPaymentView(order)) }}
+                </span>
               </div>
-              <div class="product-info">
-                <div class="product-name">{{ item.name }}</div>
-                <div class="product-price">
-                  <span class="price">¥{{ formatMoney(item.price) }}</span>
-                  <span class="quantity">x{{ item.quantity }}</span>
+              <div class="payment-record__grid">
+                <div class="info-item">
+                  <span class="label">{{ $t('payment.orderDetail.channel') }}</span>
+                  <span class="value">{{ getChannelText(getPaymentView(order)?.channelCode) }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">{{ $t('payment.orderDetail.payAmount') }}</span>
+                  <span class="value price">{{ payAmountText(order) }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">{{ $t('payment.orderDetail.payTime') }}</span>
+                  <span class="value">{{ getPayTimeText(order) || '-' }}</span>
+                </div>
+                <div class="info-item" v-if="order.payNo">
+                  <span class="label">{{ $t('payment.orderDetail.payNo') }}</span>
+                  <span class="value mono">{{ order.payNo }}</span>
+                </div>
+                <div class="info-item" v-if="Number(getPaymentView(order)?.refundedAmount) > 0">
+                  <span class="label">{{ $t('payment.orderDetail.refundedAmount') }}</span>
+                  <span class="value">¥{{ formatMoney(getPaymentView(order)?.refundedAmount) }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="order-products">
+              <div class="product-item" v-for="(item, index) in order.items" :key="index">
+                <div class="product-image">
+                  <img v-if="item.image" :src="item.image" :alt="item.name">
+                  <span v-else class="product-image__fallback">{{ getItemFallbackText(order) }}</span>
+                </div>
+                <div class="product-info">
+                  <div class="product-name">{{ item.name }}</div>
+                  <div class="product-price">
+                    <span class="price">¥{{ formatMoney(item.price) }}</span>
+                    <span class="quantity">x{{ item.quantity }}</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="order-footer">
-          <div class="order-total">
-            {{ $t('payment.history.totalItems', { count: order.quantity }) }}
-            <span class="total-price">¥{{ formatMoney(order.totalPrice) }}</span>
+          <div class="order-footer">
+            <div class="order-total">
+              {{ $t('payment.history.totalItems', { count: order.quantity }) }}
+              <span class="total-price">¥{{ formatMoney(order.totalPrice) }}</span>
+            </div>
+            <div class="order-actions">
+              <template v-if="order.source === 'mall'">
+                <button v-if="order.status === '0'" class="btn btn-primary" @click="goToPay(order)">
+                  {{ $t('payment.history.payNow') }}
+                </button>
+                <button v-if="order.status === '0'" class="btn btn-secondary" @click="handleCancelOrder(order.id)">
+                  {{ $t('payment.history.cancelOrder') }}
+                </button>
+                <button v-if="order.status === '3'" class="btn btn-secondary" @click="reviewOrder(order.id)">
+                  {{ $t('payment.history.reviewOrder') }}
+                </button>
+                <button class="btn btn-link" @click="viewOrderDetail(order.id)">
+                  {{ $t('payment.history.viewDetail') }}
+                </button>
+                <button v-if="canViewLogistics(order)" class="btn btn-secondary" @click="viewLogistics(order)">
+                  {{ $t('payment.history.viewLogistics') }}
+                </button>
+                <button class="btn btn-delete" @click="handleDeleteOrder(order.id)">
+                  {{ $t('payment.history.deleteOrder') }}
+                </button>
+              </template>
+              <template v-else>
+                <button v-if="order.status === '0'" class="btn btn-primary" @click="goToPay(order)">
+                  {{ $t('payment.history.payNow') }}
+                </button>
+                <button class="btn btn-link" @click="openSourceOrder(order)">
+                  {{ order.source === 'member' ? $t('payment.history.memberCenter') : $t('payment.history.myTickets') }}
+                </button>
+              </template>
+            </div>
           </div>
-          <div class="order-actions">
+        </div>
+      </div>
+
+      <!-- 列表视图 -->
+      <div v-show="viewMode === 'list'" class="orders-table">
+        <div class="orders-table__head">
+          <span>{{ $t('payment.history.column.orderNo') }}</span>
+          <span>{{ $t('payment.history.column.item') }}</span>
+          <span>{{ $t('payment.history.createTime') }}</span>
+          <span>{{ $t('payment.history.amount') }}</span>
+          <span>{{ $t('payment.history.column.status') }}</span>
+          <span>{{ $t('payment.history.column.actions') }}</span>
+        </div>
+        <div class="orders-table__row" v-for="order in pagedOrders" :key="order.key">
+          <div class="orders-table__cell" :data-label="$t('payment.history.column.orderNo')">
+            <span class="order-id">{{ order.orderId }}</span>
+          </div>
+          <div class="orders-table__cell" :data-label="$t('payment.history.column.item')">
+            <div class="orders-table__item">
+              <div class="product-image orders-table__thumb">
+                <img v-if="order.items[0]?.image" :src="order.items[0].image" :alt="order.items[0].name">
+                <span v-else class="product-image__fallback">{{ getItemFallbackText(order) }}</span>
+              </div>
+              <div class="orders-table__item-info">
+                <span class="orders-table__name">{{ order.items[0]?.name || '-' }}</span>
+                <span class="orders-table__meta">
+                  {{ getItemTypeText(order.itemType) }} · x{{ order.quantity }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="orders-table__cell orders-table__time" :data-label="$t('payment.history.createTime')">
+            {{ order.createTime }}
+          </div>
+          <div class="orders-table__cell" :data-label="$t('payment.history.amount')">
+            <span class="total-price orders-table__price">¥{{ formatMoney(order.totalPrice) }}</span>
+          </div>
+          <div class="orders-table__cell" :data-label="$t('payment.history.column.status')">
+            <span class="order-status" :class="getStatusClass(order.status)">
+              {{ getStatusText(order.status) }}
+            </span>
+          </div>
+          <div
+            class="orders-table__cell orders-table__actions"
+            :data-label="$t('payment.history.column.actions')"
+          >
             <template v-if="order.source === 'mall'">
               <button v-if="order.status === '0'" class="btn btn-primary" @click="goToPay(order)">
                 {{ $t('payment.history.payNow') }}
@@ -140,23 +227,16 @@
           </div>
         </div>
       </div>
-    </div>
+    </template>
     
-    <div class="orders-pagination" v-if="totalPages > 1">
-      <button 
-        class="page-btn" 
-        :disabled="currentPage === 1"
-        @click="currentPage--"
-      >{{ $t('payment.history.prevPage') }}</button>
-      <span class="page-info">
-        {{ currentPage }} / {{ totalPages }}
-      </span>
-      <button 
-        class="page-btn" 
-        :disabled="currentPage === totalPages"
-        @click="currentPage++"
-      >{{ $t('payment.history.nextPage') }}</button>
-    </div>
+    <Paging
+      v-if="totalPages > 1"
+      :total-pages="totalPages"
+      :current-page="currentPage"
+      :loading="loading"
+      :auto-load="false"
+      @update:current-page="currentPage = $event"
+    />
   </div>
 </template>
 
@@ -170,6 +250,8 @@ import { queryPayment } from '@/api/payment.js'
 import { getMyMemberOrders } from '@/api/member.js'
 import { getRailwayOrders } from '@/api/railway.js'
 import { useAutoRefresh } from '@/hooks/useAutoRefresh'
+import ViewSwitch from '@/components/ViewSwitch/index.vue'
+import Paging from '@/components/paging/index.vue'
 
 const router = useRouter()
 const emit = defineEmits(['view-detail', 'pay'])
@@ -197,6 +279,8 @@ const filters = computed(() => [
 const activeFilter = ref('all')
 const currentPage = ref(1)
 const pageSize = ref(10)
+// 展示模式：card 卡片 / list 列表（默认卡片，保持原有展示）
+const viewMode = ref('card')
 
 // 筛选订单
 const filteredOrders = computed(() => {
@@ -644,9 +728,15 @@ watch(totalPages, (pages) => {
 .historical-orders {
   font-family: 'Inter', 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
   color: var(--theme-text-1);
+  /* 限制容器高度，数据在容器内滚动，避免底部内容溢出 */
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: calc(100vh - 180px);
 }
 
 .orders-header {
+  flex: none;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -669,6 +759,15 @@ watch(totalPages, (pages) => {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+/* 右侧工具条：筛选 + 展示方式切换 */
+.orders-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .filter-btn {
@@ -733,6 +832,13 @@ watch(totalPages, (pages) => {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
   gap: 16px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--theme-scrollbar-thumb) transparent;
 }
 
 .order-item {
@@ -1112,56 +1218,216 @@ watch(totalPages, (pages) => {
   color: var(--theme-primary-text);
 }
 
-/* 分页 */
-.orders-pagination {
+/* 列表视图 */
+.orders-table {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--theme-scrollbar-thumb) transparent;
+}
+
+/* 容器内滚动条样式 */
+.orders-list::-webkit-scrollbar,
+.orders-table::-webkit-scrollbar {
+  width: 6px;
+}
+
+.orders-list::-webkit-scrollbar-thumb,
+.orders-table::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: var(--theme-scrollbar-thumb);
+}
+
+.orders-table__head,
+.orders-table__row {
+  display: grid;
+  /* 使用可收缩的弹性列，避免固定最小宽超出容器导致行内容溢出 */
+  grid-template-columns: 1.1fr 1.7fr 1fr 0.75fr 0.85fr 1.5fr;
   align-items: center;
-  gap: 20px;
-  margin-top: 28px;
-  padding-top: 24px;
+  gap: 12px 16px;
+  min-width: 0;
+}
+
+.orders-table__head {
+  padding: 0 18px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--theme-text-3);
+  letter-spacing: 0.02em;
+}
+
+.orders-table__row {
+  padding: 14px 18px;
+  background: var(--theme-bg-surface);
+  border: 1px solid var(--theme-hairline);
+  border-radius: 14px;
+  box-shadow: var(--theme-shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.orders-table__row:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--theme-shadow-md);
+  border-color: var(--theme-border);
+}
+
+.orders-table__cell {
+  min-width: 0;
+  font-size: 13px;
+  color: var(--theme-text-2);
+}
+
+/* 订单号超长时省略，避免撑破列宽 */
+.orders-table__cell .order-id {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.orders-table__time {
+  font-size: 12.5px;
+  color: var(--theme-text-3);
+}
+
+.orders-table__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.orders-table__thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+}
+
+.orders-table__item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.orders-table__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--theme-text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.orders-table__meta {
+  font-size: 12px;
+  color: var(--theme-text-3);
+}
+
+.orders-table__price {
+  font-size: 15px;
+}
+
+.orders-table__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.orders-table__actions .btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+/* 分页固定在容器底部，不参与列表滚动 */
+.pager {
+  flex: none;
+  margin-top: 16px;
   border-top: 1px solid var(--theme-hairline);
 }
 
-.page-btn {
-  padding: 9px 20px;
-  border: 1px solid var(--theme-border);
-  border-radius: 10px;
-  background: var(--theme-bg-surface);
-  color: var(--theme-text-1);
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  font-family: inherit;
-}
-
-.page-btn:hover:not(:disabled) {
-  border-color: var(--theme-primary);
-  color: var(--theme-primary);
-}
-
-.page-btn:disabled {
-  color: var(--theme-text-3);
-  cursor: not-allowed;
-  border-color: var(--theme-hairline);
-  background: var(--theme-bg-surface-2);
-}
-
-.page-info {
-  font-size: 14px;
-  color: var(--theme-text-2);
-  font-weight: 500;
-}
-
 /* 响应式 */
+@media (max-width: 1279px) {
+  /* 内容区放不下六列时，列表视图改为纵向信息行 */
+  .orders-table__head {
+    display: none;
+  }
+
+  .orders-table__row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .orders-table__cell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .orders-table__cell::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--theme-text-3);
+  }
+
+  /* 纵向行内订单号可收缩省略 */
+  .orders-table__cell .order-id {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: right;
+  }
+
+  .orders-table__item {
+    flex: 1;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
+  .orders-table__actions {
+    justify-content: flex-start;
+    padding-top: 10px;
+    border-top: 1px dashed var(--theme-hairline);
+  }
+
+  .orders-table__actions::before {
+    content: none;
+  }
+}
+
 @media (max-width: 767px) {
+  /* 移动端恢复整页滚动，避免容器内二次滚动 */
+  .historical-orders {
+    max-height: none;
+  }
+
+  .orders-list,
+  .orders-table {
+    overflow: visible;
+    padding-right: 0;
+  }
+
   .orders-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 14px;
   }
   .orders-header h2 { font-size: 22px; }
+  .orders-toolbar { width: 100%; justify-content: space-between; }
   .order-filters { width: 100%; }
   .filter-btn { flex: 1; text-align: center; padding: 7px 12px; font-size: 12px; }
 
@@ -1171,9 +1437,6 @@ watch(totalPages, (pages) => {
 
   .order-footer { flex-direction: column; align-items: flex-start; gap: 12px; }
   .order-actions { width: 100%; flex-wrap: wrap; }
-
-  .orders-pagination { gap: 14px; }
-  .page-btn { padding: 8px 16px; }
 }
 
 @media (max-width: 480px) {

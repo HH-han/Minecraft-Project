@@ -68,6 +68,17 @@
       "payNow": "Pay Now",
       "loadFailed": "Failed to load orders, please try again",
       "title": "Order History",
+      "view": {
+        "label": "Switch display mode",
+        "card": "Cards",
+        "list": "List"
+      },
+      "column": {
+        "orderNo": "Order No.",
+        "item": "Item",
+        "status": "Status",
+        "actions": "Actions"
+      },
       "all": "All",
       "empty": "No order history",
       "goShopping": "Go Shopping",

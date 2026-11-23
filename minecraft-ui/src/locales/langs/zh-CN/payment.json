@@ -68,6 +68,17 @@
       "payNow": "立即支付",
       "loadFailed": "获取订单列表失败，请重试",
       "title": "历史订单",
+      "view": {
+        "label": "切换展示方式",
+        "card": "卡片",
+        "list": "列表"
+      },
+      "column": {
+        "orderNo": "订单编号",
+        "item": "商品",
+        "status": "状态",
+        "actions": "操作"
+      },
       "all": "全部",
       "empty": "暂无历史订单",
       "goShopping": "去购物",

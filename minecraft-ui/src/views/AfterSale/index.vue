@@ -7,14 +7,26 @@
         <p class="as-hero__sub">{{ $t('afterSale.subtitle') }}</p>
       </div>
       <div class="as-hero__actions">
-        <el-button round @click="fetchList">
-          <el-icon class="as-mr"><Refresh /></el-icon>
-          {{ $t('afterSale.refresh') }}
-        </el-button>
+        <ViewSwitch
+          v-model="viewMode"
+          :aria-label="$t('afterSale.view.label')"
+          :card-label="$t('afterSale.view.card')"
+          :list-label="$t('afterSale.view.list')"
+        />
+        <RefreshButton
+          :text="$t('afterSale.refresh')"
+          :loading="refreshing"
+          @click="handleRefreshAll"
+        />
       </div>
     </header>
 
-    <ApplyPanel :order-id="route.query.orderId" @success="onApplySuccess" />
+    <ApplyPanel
+      ref="applyPanelRef"
+      :order-id="route.query.orderId"
+      :view-mode="viewMode"
+      @success="onApplySuccess"
+    />
 
     <section class="as-card as-records">
       <div class="as-records__head">
@@ -24,7 +36,7 @@
         </h2>
       </div>
       <el-table
-        v-show="loading || list.length > 0"
+        v-show="viewMode === 'list' && (loading || list.length > 0)"
         v-loading="loading"
         :data="list"
         style="width: 100%"
@@ -83,6 +95,47 @@
         </el-table-column>
       </el-table>
 
+      <!-- 卡片视图 -->
+      <div
+        v-show="viewMode === 'card' && (loading || list.length > 0)"
+        v-loading="loading"
+        class="as-records__cards"
+      >
+        <article v-for="row in list" :key="row.id" class="as-record">
+          <div class="as-record__head">
+            <span class="as-mono">{{ row.afterSaleNo }}</span>
+            <span class="as-chip" :class="`as-chip--${statusKey(row.status)}`">
+              {{ statusText(row) }}
+            </span>
+          </div>
+
+          <h3 class="as-record__item">{{ row.itemName || '-' }}</h3>
+
+          <div class="as-record__meta">
+            <span class="as-chip as-chip--type">{{ typeText(row) }}</span>
+            <span class="as-record__qty">{{ $t('afterSale.table.quantity') }} × {{ row.quantity ?? 1 }}</span>
+            <span class="as-amount">¥{{ row.actualAmount ?? row.refundAmount ?? '-' }}</span>
+          </div>
+
+          <div class="as-record__foot">
+            <span class="as-time">{{ formatTime(row.createTime) }}</span>
+            <div class="as-record__actions">
+              <el-button link type="primary" @click="openDetail(row.id)">
+                {{ $t('afterSale.table.detail') }}
+              </el-button>
+              <el-button
+                v-if="row.status === 0 || row.status === 1"
+                link
+                type="danger"
+                @click="handleCancel(row)"
+              >
+                {{ $t('afterSale.table.cancel') }}
+              </el-button>
+            </div>
+          </div>
+        </article>
+      </div>
+
       <div v-if="!loading && list.length === 0" class="as-empty">
         <span class="as-empty__icon">
           <el-icon :size="26"><Tickets /></el-icon>
@@ -112,11 +165,13 @@ import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Refresh, Tickets } from '@element-plus/icons-vue'
+import { Tickets } from '@element-plus/icons-vue'
 import { cancelAfterSale, getAfterSalePage } from '@/api/afterSale.js'
 import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 import ApplyPanel from './components/ApplyPanel.vue'
 import DetailDialog from './components/DetailDialog.vue'
+import RefreshButton from './components/RefreshButton.vue'
+import ViewSwitch from '@/components/ViewSwitch/index.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -127,6 +182,22 @@ const list = ref([])
 const total = ref(0)
 const pageNum = ref(1)
 const pageSize = ref(10)
+
+// 展示模式：list 列表 / card 卡片（窄屏默认卡片，避免表格横向滚动），顶部统一切换
+const viewMode = ref(window.matchMedia('(max-width: 720px)').matches ? 'card' : 'list')
+
+// 顶部刷新：同时刷新「我的订单」与「售后记录」
+const refreshing = ref(false)
+const applyPanelRef = ref(null)
+
+const handleRefreshAll = async () => {
+  refreshing.value = true
+  try {
+    await Promise.all([fetchList(), applyPanelRef.value?.refresh()])
+  } finally {
+    refreshing.value = false
+  }
+}
 
 const detailVisible = ref(false)
 const detailId = ref(null)
@@ -296,11 +367,9 @@ onMounted(fetchList)
 
 .as-hero__actions {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
-}
-
-.as-mr {
-  margin-right: 4px;
 }
 
 /* Card */
@@ -331,6 +400,11 @@ onMounted(fetchList)
 }
 
 .as-records__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
   padding: 12px 12px 14px;
 }
 
@@ -359,6 +433,88 @@ onMounted(fetchList)
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
+}
+
+/* 视图切换 */
+/* 卡片视图 */
+.as-records__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  min-height: 120px;
+  padding: 0 6px 6px;
+}
+
+.as-record {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--theme-bg-surface-2);
+  border: 1px solid var(--theme-hairline);
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.as-record:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--theme-primary) 30%, var(--theme-hairline));
+  box-shadow: var(--theme-shadow-md);
+}
+
+.as-record__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.as-record__item {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--tn-ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.as-record__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--tn-ink-2);
+}
+
+.as-record__qty {
+  color: var(--tn-ink-3);
+}
+
+.as-record__meta .as-amount {
+  margin-left: auto;
+}
+
+.as-record__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--theme-hairline);
+}
+
+.as-record__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.as-record__actions :deep(.el-button) {
+  margin-left: 0;
 }
 
 .as-card :deep(.el-table) {
@@ -526,6 +682,14 @@ onMounted(fetchList)
   }
   .as-hero__actions {
     width: 100%;
+  }
+  .as-records__head {
+    padding: 10px 8px 12px;
+  }
+  .as-records__cards {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 0 2px 4px;
   }
 }
 </style>

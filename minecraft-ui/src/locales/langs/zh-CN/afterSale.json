@@ -4,6 +4,11 @@
     "subtitle": "申请退款、退货与换货，跟踪处理进度",
     "refresh": "刷新",
     "recordsTitle": "售后记录",
+    "view": {
+      "label": "切换展示方式",
+      "card": "卡片",
+      "list": "列表"
+    },
     "emptyTitle": "暂无售后记录",
     "emptyDesc": "如对订单有疑问，可发起售后申请",
     "table": {

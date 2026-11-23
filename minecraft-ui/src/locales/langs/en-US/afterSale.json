@@ -4,6 +4,11 @@
     "subtitle": "Request refunds, returns or exchanges and track progress",
     "refresh": "Refresh",
     "recordsTitle": "After-Sales Records",
+    "view": {
+      "label": "Switch display mode",
+      "card": "Cards",
+      "list": "List"
+    },
     "emptyTitle": "No after-sales records",
     "emptyDesc": "Submit an after-sales request if you have an issue with an order",
     "table": {

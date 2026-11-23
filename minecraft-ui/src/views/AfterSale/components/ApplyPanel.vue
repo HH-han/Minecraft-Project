@@ -6,13 +6,10 @@
           <h2 class="as-section-head__title">{{ $t('afterSale.applyPanel.orderListTitle') }}</h2>
           <p class="as-section-head__sub">{{ $t('afterSale.applyPanel.orderListSubtitle') }}</p>
         </div>
-        <el-button round size="small" :loading="ordersLoading" @click="fetchOrders">
-          <el-icon class="as-mr"><Refresh /></el-icon>
-          {{ $t('afterSale.applyPanel.refresh') }}
-        </el-button>
       </div>
 
       <el-table
+        v-show="viewMode === 'list'"
         v-loading="ordersLoading"
         :data="orders"
         style="width: 100%"
@@ -82,6 +79,54 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <!-- 卡片视图 -->
+      <div v-show="viewMode === 'card'" v-loading="ordersLoading" class="as-order-cards">
+        <article v-for="row in orders" :key="row.id" class="as-order-card">
+          <div class="as-order-card__head">
+            <div class="as-order-cell">
+              <el-image v-if="row.image" :src="row.image" fit="cover" class="as-order-cell__img" />
+              <span v-else class="as-order-cell__img as-order-cell__img--empty">
+                <el-icon :size="18"><Goods /></el-icon>
+              </span>
+              <div class="as-order-cell__info">
+                <div class="as-order-cell__name">{{ row.itemName || '-' }}</div>
+                <div class="as-order-cell__meta">×{{ row.quantity ?? 1 }}</div>
+              </div>
+            </div>
+            <span class="as-chip" :class="`as-chip--${orderStatusKey(row.status)}`">
+              {{ orderStatusText(row) }}
+            </span>
+          </div>
+
+          <div class="as-order-card__meta">
+            <span class="as-mono">{{ row.orderNo }}</span>
+            <span class="as-amount">¥{{ row.amount ?? '-' }}</span>
+          </div>
+
+          <div class="as-order-card__foot">
+            <span class="as-time">
+              {{ formatTime(row.createTime) }} ·
+              {{ $t('afterSale.applyPanel.afterSaleStatus') }}: {{ afterSaleStatusText(row) }}
+            </span>
+            <el-button
+              v-if="canApply(row)"
+              type="primary"
+              size="small"
+              round
+              class="as-apply-btn"
+              @click="openApply(row)"
+            >
+              {{ $t('afterSale.applyPanel.applyAction') }}
+            </el-button>
+            <span v-else class="as-order-cell__reason">{{ disabledReason(row) }}</span>
+          </div>
+        </article>
+
+        <p v-if="!ordersLoading && orders.length === 0" class="as-order-cards__empty">
+          {{ $t('afterSale.applyPanel.noOrders') }}
+        </p>
+      </div>
     </section>
 
     <ApplyFormDialog v-model="applyVisible" :order="currentOrder" @success="onApplied" />
@@ -91,12 +136,14 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Goods, Refresh } from '@element-plus/icons-vue'
+import { Goods } from '@element-plus/icons-vue'
 import { getOrderDetail, getOrderList } from '@/api/order.js'
 import ApplyFormDialog from './ApplyFormDialog.vue'
 
 const props = defineProps({
-  orderId: { type: [Number, String], default: undefined }
+  orderId: { type: [Number, String], default: undefined },
+  // 展示模式由页面顶部统一切换：list / card
+  viewMode: { type: String, default: 'list' }
 })
 const emit = defineEmits(['success'])
 
@@ -209,6 +256,9 @@ watch(
 )
 
 onMounted(fetchOrders)
+
+// 暴露给页面顶部的统一刷新按钮调用
+defineExpose({ refresh: fetchOrders })
 </script>
 
 <style scoped>
@@ -218,10 +268,6 @@ onMounted(fetchOrders)
   --tn-ink-3: var(--theme-text-3);
   --tn-accent: var(--theme-primary);
   --tn-line: var(--theme-hairline);
-}
-
-.as-mr {
-  margin-right: 4px;
 }
 
 /* Card */
@@ -417,6 +463,80 @@ onMounted(fetchOrders)
   background: var(--theme-success-soft);
   border-color: color-mix(in srgb, var(--theme-success) 24%, transparent);
   color: var(--theme-success);
+}
+
+/* 订单卡片视图 */
+.as-order-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+  min-height: 120px;
+  padding: 0 6px 6px;
+}
+
+.as-order-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--theme-bg-surface-2);
+  border: 1px solid var(--tn-line);
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.as-order-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--theme-primary) 30%, var(--tn-line));
+  box-shadow: var(--theme-shadow-md);
+}
+
+.as-order-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.as-order-card__head .as-order-cell {
+  min-width: 0;
+}
+
+.as-order-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.as-order-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--tn-line);
+}
+
+.as-order-cards__empty {
+  grid-column: 1 / -1;
+  margin: 24px 0;
+  text-align: center;
+  color: var(--tn-ink-3);
+  font-size: 13px;
+}
+
+@media (max-width: 720px) {
+  .as-order-cards {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 0 2px 4px;
+  }
+
+  .as-order-card__foot {
+    flex-wrap: wrap;
+  }
 }
 
 @keyframes as-rise {
