@@ -149,11 +149,11 @@ onBeforeUnmount(() => {
 /* 主视觉 Hero */
 .hero-section {
   width: 100%;
+  min-height: 100vh;
   position: relative;
   overflow: hidden;
-  min-height: 60vh;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
 }
 
@@ -226,6 +226,12 @@ onBeforeUnmount(() => {
 
 /* ============ 响应式 ============ */
 @media (max-width: 992px) {
+  /* 窄屏轮播与文案上下排布：高度随内容，不拉伸也不留整屏空白 */
+  .hero-section {
+    min-height: 0;
+    align-items: flex-start;
+  }
+
   .insight-grid {
     grid-template-columns: 1fr;
     gap: 64px;

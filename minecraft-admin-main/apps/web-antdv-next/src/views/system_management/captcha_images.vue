@@ -20,7 +20,6 @@ import {
   Skeleton,
   Table,
   Tag,
-  Upload,
 } from 'antdv-next';
 
 import {
@@ -28,6 +27,7 @@ import {
   getCaptchaImageList,
   uploadCaptchaImage,
 } from '#/api/management/system/captcha';
+import ImageUploadField from '#/components/ImageUploadField.vue';
 
 defineOptions({ name: 'CaptchaImages' });
 
@@ -286,7 +286,7 @@ async function handleDelete(record: any) {
               :placeholder="$t('system.captcha_image_page.search_placeholder')"
               allow-clear
               class="w-60"
-              @pressEnter="handleFilterChange"
+              @press-enter="handleFilterChange"
             >
               <template #prefix>
                 <Search class="size-4 text-muted-foreground" />
@@ -301,16 +301,15 @@ async function handleDelete(record: any) {
             <span class="text-xs text-muted-foreground">
               {{ $t('system.captcha_image_page.upload_hint') }}
             </span>
-            <Upload
+            <ImageUploadField
+              variant="button"
               accept=".jpg,.jpeg,.png"
-              :show-upload-list="false"
-              :before-upload="handleBeforeUpload"
+              :upload-text="$t('system.captcha_image_page.upload')"
+              :change-text="$t('system.captcha_image_page.upload')"
+              :loading="uploading"
               :disabled="uploading"
-            >
-              <Button type="primary" :loading="uploading">
-                {{ $t('system.captcha_image_page.upload') }}
-              </Button>
-            </Upload>
+              :before-upload="handleBeforeUpload"
+            />
           </div>
         </div>
 
@@ -323,10 +322,10 @@ async function handleDelete(record: any) {
               ? { pageSize: 12, showSizeChanger: false }
               : {
                   current: pageNum,
-                  pageSize: pageSize,
+                  pageSize,
                   showSizeChanger: true,
                   pageSizeOptions: ['12', '24', '48'],
-                  total: total,
+                  total,
                   showTotal: (t: number) =>
                     `${t} ${$t('system.captcha_image_page.total_suffix')}`,
                   onChange: handlePageChange,

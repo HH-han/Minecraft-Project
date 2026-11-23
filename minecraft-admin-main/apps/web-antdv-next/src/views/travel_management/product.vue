@@ -7,7 +7,6 @@ import { Page } from '@vben/common-ui';
 import {
   Bookmark,
   Heart,
-  ImageIcon,
   ImageOff,
   MapPin,
   MessageCircle,
@@ -35,7 +34,6 @@ import {
   Space,
   Table,
   Tag,
-  Upload,
 } from 'antdv-next';
 
 import {
@@ -45,6 +43,7 @@ import {
   updateProduct,
 } from '#/api/management/travel/product';
 import { uploadFile } from '#/api/management/user/upload';
+import ImageUploadField from '#/components/ImageUploadField.vue';
 
 defineOptions({ name: 'ProductManagement' });
 
@@ -1061,43 +1060,15 @@ async function handleDelete(record: any) {
                 prop="coverImage"
                 style="display: block; width: 100%; margin-bottom: 16px;"
               >
-                <Upload
-                  :max-count="1"
-                  :show-upload-list="false"
-                  accept="image/*"
-                  :before-upload="() => false"
+                <ImageUploadField
+                  :src="formCoverDisplayUrl"
+                  :upload-text="$t('travel.product_list.form.cover_upload')"
+                  :change-text="$t('travel.product_list.form.cover_change')"
+                  :tip="$t('travel.product_list.form.cover_tip')"
+                  :alt="$t('travel.product_list.form.cover_label')"
+                  :loading="coverUploading"
                   @change="handleCoverChange"
-                >
-                  <Button
-                    class="cover-upload-trigger flex w-full items-center gap-3 border-dashed"
-                    :loading="coverUploading"
-                    style="height: auto; padding: 8px 12px;"
-                  >
-                    <img
-                      v-if="formCoverDisplayUrl"
-                      :src="formCoverDisplayUrl"
-                      :alt="$t('travel.product_list.form.cover_label')"
-                      class="size-12 rounded-full border border-border flex-shrink-0 object-cover"
-                      @error="hideBrokenImage"
-                    />
-                    <ImageIcon
-                      v-else
-                      class="size-12 flex-shrink-0 text-muted-foreground"
-                    />
-                    <div class="flex flex-col text-left">
-                      <span class="text-sm font-medium">
-                        {{
-                          formData.coverImage
-                            ? $t('travel.product_list.form.cover_change')
-                            : $t('travel.product_list.form.cover_upload')
-                        }}
-                      </span>
-                      <span class="text-xs text-muted-foreground">
-                        {{ $t('travel.product_list.form.cover_tip') }}
-                      </span>
-                    </div>
-                  </Button>
-                </Upload>
+                />
               </FormItem>
             </div>
 
@@ -1160,7 +1131,4 @@ async function handleDelete(record: any) {
   flex-shrink: 0;
 }
 
-.cover-upload-trigger {
-  text-align: left;
-}
 </style>

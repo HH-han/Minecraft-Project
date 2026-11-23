@@ -65,6 +65,17 @@
             </div>
         </div>
 
+        <!-- 备案信息 -->
+        <div class="footer-filing">
+            <a class="filing-item" :href="filing.icpUrl" target="_blank" rel="noopener noreferrer">
+                <i class="fas fa-id-badge"></i> {{ $t('website.footer.filing.icp') }} {{ filing.icp }}
+            </a>
+            <a v-if="filing.police" class="filing-item" :href="filing.policeUrl" target="_blank"
+                rel="noopener noreferrer">
+                <i class="fas fa-shield-alt"></i> {{ $t('website.footer.filing.police') }} {{ filing.police }}
+            </a>
+        </div>
+
         <!-- 版权 -->
         <div class="footer-bottom">
             <span>© 2026 <strong style="color: var(--theme-text-1);">{{ $t('common.brand') }}</strong> · {{
@@ -80,7 +91,18 @@
 </template>
 <script>
 export default {
-    name: 'BottomPage'
+    name: 'BottomPage',
+    data() {
+        return {
+            filing: {
+                icp: '滇ICP备2026023737号',
+                icpUrl: 'https://beian.miit.gov.cn/',
+                // 公安联网备案号，格式：滇公网安备 53010202000123号（备案完成后填入即可展示）
+                police: '',
+                policeUrl: ''
+            }
+        }
+    }
 }
 </script>
 <style scoped>
@@ -332,11 +354,46 @@ export default {
     box-shadow: var(--theme-shadow-md);
 }
 
+/* 备案信息 */
+.footer-filing {
+    position: relative;
+    z-index: 2;
+    max-width: 1400px;
+    margin: 2rem auto 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    font-size: 0.78rem;
+    color: var(--theme-text-3);
+}
+
+.footer-filing .filing-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--theme-text-3);
+    text-decoration: none;
+    letter-spacing: 0.3px;
+    transition: color 0.2s ease;
+}
+
+.footer-filing .filing-item i {
+    font-size: 0.85rem;
+    color: var(--theme-primary);
+}
+
+.footer-filing .filing-item:hover {
+    color: var(--theme-primary);
+    text-decoration: underline;
+}
+
 /* 底部版权 */
 .footer-bottom {
     position: relative;
     z-index: 2;
-    margin-top: 2.5rem;
+    margin-top: 1.6rem;
     padding-top: 1.8rem;
     border-top: 1px solid var(--theme-hairline);
     display: flex;

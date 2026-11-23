@@ -210,7 +210,7 @@ const loadTACScript = () => {
     }
 
     const script = document.createElement('script');
-    script.src = '/tac/js/tac.min.js';
+    script.src = '/assets/tac/js/tac.min.js';
     script.onload = resolve;
     script.onerror = () => reject(new Error('TAC script load failed'));
     document.head.appendChild(script);

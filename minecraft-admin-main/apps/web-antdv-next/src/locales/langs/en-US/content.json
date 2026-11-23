@@ -222,6 +222,7 @@
     "delete_success": "Deleted successfully",
     "delete_failed": "Failed to delete",
     "image_upload": "Upload",
+    "image_change": "Change Image",
     "image_upload_success": "Image uploaded successfully",
     "image_upload_failed": "Image upload failed",
     "image_invalid_image": "Please select an image file",
@@ -279,6 +280,8 @@
     "price_invalid": "Points price must be a number greater than or equal to 0",
     "stock_invalid": "Stock must be an integer greater than or equal to 0",
     "image_placeholder": "Image URL (optional)",
+    "image_upload": "Upload Image",
+    "image_change": "Change Image",
     "fields": {
       "id": "ID",
       "name": "Name",

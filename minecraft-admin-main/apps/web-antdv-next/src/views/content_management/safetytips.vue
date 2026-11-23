@@ -23,11 +23,11 @@ import {
   Skeleton,
   Table,
   Tag,
-  Upload,
 } from 'antdv-next';
 
 import safetyTipsApi from '#/api/management/content/safetytips';
 import { uploadFile } from '#/api/management/user/upload';
+import ImageUploadField from '#/components/ImageUploadField.vue';
 
 defineOptions({ name: 'SafetyTipsManagement' });
 
@@ -588,17 +588,14 @@ async function handleDelete(record: any) {
                 class="w-full"
                 :placeholder="$t('content.safety_page.fields.imageUrl')"
               />
-              <Upload
-                :max-count="1"
-                :show-upload-list="false"
-                accept="image/*"
-                :before-upload="() => false"
+              <ImageUploadField
+                variant="button"
+                :upload-text="$t('content.safety_page.image_upload')"
+                :change-text="$t('content.safety_page.image_change')"
+                :src="normalizeImageUrl(formRecord.imageUrl)"
+                :loading="imageUploading"
                 @change="handleImageChange"
-              >
-                <Button :loading="imageUploading">
-                  {{ $t('content.safety_page.image_upload') }}
-                </Button>
-              </Upload>
+              />
             </div>
             <img
               v-if="formRecord.imageUrl"

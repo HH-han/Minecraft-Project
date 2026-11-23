@@ -1,31 +1,15 @@
 <template>
     <div class="recommendation">
-        <header class="header">
-
-            <div class="bg"></div>
-            <div class="blob"></div>
-
-            <div class="header-content">
-                <h1>美食探索</h1>
-                <p class="subtitle">发现城市中最受欢迎的美食</p>
-                <div class="search-container">
-                    <div class="search-bar">
-                        <input type="text" placeholder="输入地点、餐厅或美食..." v-model="searchQuery">
-                        <button @click="searchFood">
-                            <i class="search-icon">🔍</i>
-                            搜索
-                        </button>
-                    </div>
-                    <div class="quick-filters">
-                        <button v-for="filter in quickFilters" :key="filter.id"
-                            :class="{ active: activeFilter === filter.id }" @click="activeFilter = filter.id">
-                            {{ filter.label }}
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-        </header>
+        <PageHero :title="$t('recommendHero.food.title')" :subtitle="$t('recommendHero.food.subtitle')"
+            @search="searchFood">
+            <input type="text" :placeholder="$t('recommendHero.food.keyword')" v-model="searchQuery" />
+            <template #chips>
+                <button v-for="filter in quickFilters" :key="filter.id"
+                    :class="{ active: activeFilter === filter.id }" @click="activeFilter = filter.id">
+                    {{ filter.label }}
+                </button>
+            </template>
+        </PageHero>
 
         <section class="cuisine-types">
             <h2>美食分类</h2>
@@ -96,6 +80,7 @@ import { ElMessage } from 'element-plus'
 import { getClientRecommendations } from '@/api/clientRecommendation'
 import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 import SortSelect from '@/components/SortSelect/index.vue'
+import PageHero from '@/components/PageHero/index.vue'
 
 // 搜索相关
 const searchQuery = ref('')
@@ -265,194 +250,6 @@ onMounted(loadRecommendations)
     padding: 0 15px;
     font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
     color: var(--theme-text-1);
-}
-
-/* 头部样式 */
-.header {
-    position: relative;
-    height: auto;
-    min-height: 210px;
-    border-radius: 14px;
-    margin: 24px 0 24px 0;
-    padding: 32px 24px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.header h1 {
-    font-size: 2.4rem;
-    margin-bottom: 8px;
-    font-weight: 700;
-    background: var(--theme-gradient);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    text-align: center;
-}
-
-.bg {
-    position: absolute;
-    inset: 5px;
-    width: auto;
-    height: auto;
-    z-index: 2;
-    background: var(--theme-bg-glass-strong);
-    backdrop-filter: blur(24px);
-    border-radius: 10px;
-    overflow: hidden;
-    outline: 2px solid var(--theme-border);
-}
-
-.blob {
-    position: absolute;
-    z-index: 1;
-    top: 50%;
-    left: 50%;
-    width: 110%;
-    height: 220px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #ff6b6b, #ff9a44);
-    opacity: 0.55;
-    filter: blur(48px);
-    animation: blob-bounce 5s infinite ease;
-}
-
-@keyframes blob-bounce {
-    0% {
-        transform: translate(-100%, -100%) translate3d(0, 0, 0);
-    }
-
-    25% {
-        transform: translate(-100%, -100%) translate3d(100%, 0, 0);
-    }
-
-    50% {
-        transform: translate(-100%, -100%) translate3d(100%, 100%, 0);
-    }
-
-    75% {
-        transform: translate(-100%, -100%) translate3d(0, 100%, 0);
-    }
-
-    100% {
-        transform: translate(-100%, -100%) translate3d(0, 0, 0);
-    }
-}
-
-.header-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    max-width: 760px;
-    position: relative;
-    z-index: 3;
-}
-
-.subtitle {
-    font-size: 1rem;
-    color: var(--theme-text-2);
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.search-container {
-    width: 100%;
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 0;
-}
-
-.search-bar {
-    display: flex;
-    align-items: stretch;
-    gap: 8px;
-    padding: 6px;
-    margin-bottom: 14px;
-    background: var(--theme-bg-surface);
-    border: 1px solid var(--theme-border);
-    border-radius: 999px;
-    box-shadow: var(--theme-shadow-sm);
-}
-
-.search-bar input {
-    flex: 1;
-    min-width: 0;
-    padding: 12px 18px;
-    border: none;
-    border-radius: 999px;
-    background: transparent;
-    color: var(--theme-text-1);
-    font-size: 15px;
-    outline: none;
-    box-shadow: none;
-    transition: none;
-}
-
-.search-bar input:focus {
-    box-shadow: none;
-}
-
-.search-bar button {
-    flex-shrink: 0;
-    padding: 0 22px;
-    background: var(--theme-gradient);
-    color: var(--theme-primary-text);
-    border: none;
-    border-radius: 999px;
-    font-size: 15px;
-    font-weight: 600;
-    white-space: nowrap;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    transition: all 0.3s ease;
-}
-
-.search-bar button:hover {
-    background: var(--theme-gradient);
-    transform: translateY(-1px);
-    box-shadow: var(--theme-shadow-sm);
-}
-
-.search-icon {
-    margin-right: 6px;
-    font-size: 14px;
-}
-
-.quick-filters {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.quick-filters button {
-    padding: 7px 16px;
-    background: var(--theme-bg-surface);
-    color: var(--theme-text-2);
-    border: 1px solid var(--theme-border);
-    border-radius: 999px;
-    box-shadow: var(--theme-shadow-sm);
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.quick-filters button:hover {
-    color: var(--theme-primary);
-    transform: translateY(-1px);
-}
-
-.quick-filters button.active {
-    background: var(--theme-gradient);
-    color: var(--theme-primary-text);
-    border-color: transparent;
-    font-weight: 600;
-    box-shadow: var(--theme-shadow-sm);
 }
 
 /* 美食分类 */
@@ -773,62 +570,6 @@ onMounted(loadRecommendations)
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-    .header {
-        min-height: 0;
-        margin: 14px 0 18px;
-        padding: 22px 12px 18px;
-    }
-
-    .header h1 {
-        font-size: 1.6rem;
-    }
-
-    .subtitle {
-        font-size: 0.85rem;
-        margin-bottom: 16px;
-    }
-
-    .search-container {
-        max-width: 100%;
-    }
-
-    /* 搜索框保持一行：输入框自适应 + 按钮紧凑 */
-    .search-bar {
-        padding: 5px;
-        gap: 6px;
-        margin-bottom: 12px;
-    }
-
-    .search-bar input {
-        padding: 10px 14px;
-        font-size: 14px;
-    }
-
-    .search-bar button {
-        padding: 0 14px;
-        font-size: 14px;
-    }
-
-    .search-icon {
-        margin-right: 4px;
-        font-size: 13px;
-    }
-
-    /* 快捷筛选横向滚动，不换行 */
-    .quick-filters {
-        flex-wrap: nowrap;
-        justify-content: flex-start;
-        overflow-x: auto;
-        padding-bottom: 2px;
-    }
-
-    .quick-filters button {
-        flex: 0 0 auto;
-        white-space: nowrap;
-        padding: 6px 14px;
-        font-size: 12px;
-    }
-
     .cuisine-grid {
         grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     }

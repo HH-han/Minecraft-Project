@@ -1,28 +1,10 @@
 <template>
     <div class="container">
         <!-- 顶部搜索区 -->
-        <header class="header">
-
-            <div class="bg"></div>
-            <div class="blob"></div>
-
-            <div class="header-content">
-                <h1>特色旅游纪念品</h1>
-                <p class="subtitle">带一份独特的记忆回家</p>
-
-                <div class="search-section">
-                    <div class="search-bar">
-                        <input type="text" placeholder="搜索纪念品、城市或特色..." v-model="searchQuery"
-                            @keyup.enter="searchSouvenirs">
-                        <button @click="searchSouvenirs">
-                            <i class="search-icon">🔍</i>
-                            搜索
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-        </header>
+        <PageHero :title="$t('recommendHero.souvenir.title')" :subtitle="$t('recommendHero.souvenir.subtitle')"
+            @search="searchSouvenirs">
+            <input type="text" :placeholder="$t('recommendHero.souvenir.keyword')" v-model="searchQuery" />
+        </PageHero>
 
         <!-- 分类导航 -->
         <nav class="category-nav">
@@ -95,6 +77,7 @@ import { ElMessage } from 'element-plus'
 import { getClientRecommendations } from '@/api/clientRecommendation'
 import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 import SortSelect from '@/components/SortSelect/index.vue'
+import PageHero from '@/components/PageHero/index.vue'
 
 // 搜索相关
 const searchQuery = ref('')
@@ -261,168 +244,6 @@ onMounted(loadRecommendations)
     padding: 0 15px;
     font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
     color: var(--theme-text-1);
-}
-
-/* 顶部区域 */
-.header {
-    position: relative;
-    height: 250px;
-    border-radius: 14px;
-    margin: 24px 0 24px 0;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.header h1 {
-    font-size: 2.2rem;
-    margin-bottom: 10px;
-    background: var(--theme-gradient);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    display: inline-block;
-}
-
-.bg {
-    position: absolute;
-    top: 5px;
-    left: 5px;
-    width: calc(100% - 10px);
-    height: 240px;
-    z-index: 2;
-    background: var(--theme-bg-glass-strong);
-    backdrop-filter: blur(24px);
-    border-radius: 10px;
-    overflow: hidden;
-    outline: 2px solid var(--theme-border);
-}
-
-.blob {
-    position: absolute;
-    z-index: 1;
-    top: 50%;
-    left: 50%;
-    width: 110%;
-    height: 220px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #ff6b6b, #ff9a44);
-    opacity: 0.55;
-    filter: blur(48px);
-    animation: blob-bounce 5s infinite ease;
-}
-
-@keyframes blob-bounce {
-    0% {
-        transform: translate(-100%, -100%) translate3d(0, 0, 0);
-    }
-
-    25% {
-        transform: translate(-100%, -100%) translate3d(100%, 0, 0);
-    }
-
-    50% {
-        transform: translate(-100%, -100%) translate3d(100%, 100%, 0);
-    }
-
-    75% {
-        transform: translate(-100%, -100%) translate3d(0, 100%, 0);
-    }
-
-    100% {
-        transform: translate(-100%, -100%) translate3d(0, 0, 0);
-    }
-}
-
-.header-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    z-index: 3;
-}
-
-.subtitle {
-    font-size: 1.1rem;
-    color: var(--theme-text-2);
-    margin-bottom: 25px;
-}
-
-.search-section {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-.search-bar {
-    display: flex;
-    margin-bottom: 20px;
-}
-
-.search-bar input {
-    flex: 1;
-    padding: 14px 20px;
-    border: none;
-    border-radius: 30px 0 0 30px;
-    font-size: 16px;
-    outline: none;
-    box-shadow: var(--theme-shadow-sm);
-    transition: box-shadow 0.3s ease;
-}
-
-.search-bar input:focus {
-    box-shadow: var(--theme-ring);
-}
-
-.search-bar button {
-    padding: 0 25px;
-    background: var(--theme-gradient);
-    color: var(--theme-primary-text);
-    border: none;
-    border-radius: 0 30px 30px 0;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    box-shadow: var(--theme-shadow-sm);
-    transition: all 0.3s ease;
-}
-
-.search-bar button:hover {
-    background: var(--theme-gradient);
-    transform: translateY(-1px);
-    box-shadow: var(--theme-shadow-sm);
-}
-
-.search-icon {
-    margin-right: 8px;
-}
-
-.region-filter {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.region-filter button {
-    padding: 8px 16px;
-    background: var(--theme-bg-glass);
-    color: var(--theme-text-1);
-    border: none;
-    border-radius: 20px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.region-filter button.active {
-    background: var(--theme-primary);
-    color: var(--theme-primary-text);
-    font-weight: 600;
 }
 
 /* 分类导航 */
@@ -701,24 +522,6 @@ onMounted(loadRecommendations)
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-    .header h1 {
-        font-size: 1.8rem;
-    }
-
-    .search-bar {
-        flex-direction: column;
-    }
-
-    .search-bar input {
-        border-radius: 30px;
-        margin-bottom: 10px;
-    }
-
-    .search-bar button {
-        border-radius: 30px;
-        justify-content: center;
-    }
-
     .category-nav {
         overflow-x: auto;
         justify-content: flex-start;

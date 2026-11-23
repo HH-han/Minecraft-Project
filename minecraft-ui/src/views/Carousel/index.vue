@@ -2,9 +2,7 @@
     <!-- 轮播图 -->
     <div class="banner">
       <div class="banner-content-SeamlessCarousel">
-        <transition-group>
-          <SeamlessCarousel :items="items" :interval="5000" :transitionDuration="700" aspectRatio="16/9" />
-        </transition-group>
+        <SeamlessCarousel :items="items" :interval="5000" :transitionDuration="700" aspectRatio="16/9" />
       </div>
       <!-- 搜索栏 -->
       <div class="homeview-hero-content">
@@ -381,8 +379,95 @@ watch(searchKeyword, () => {
     color 0.32s ease, text-shadow 0.32s ease;
 }
 
-/* ---------- 响应式 ---------- */
+/* ---------- 桌面端：轮播撑满 Hero 全屏高度 ---------- */
+@media (min-width: 993px) {
+  .banner {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .banner-content-SeamlessCarousel {
+    flex: 1 1 auto;
+    display: flex;
+    min-height: 0;
+  }
+
+  :deep(.modern-carousel) {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    aspect-ratio: auto;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* ---------- 响应式（防止移动端横向溢出 / 联想被遮挡） ---------- */
+@media (max-width: 992px) {
+  /* 轮播与文案改为上下排布，避免绝对定位被祖先 overflow:hidden 裁切 */
+  .banner {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 1rem;
+  }
+
+  .banner-content-SeamlessCarousel {
+    flex: none;
+    width: 100%;
+    /* 覆盖全局 height:100%，否则轮播下方会留出大片空白并把文案卡片挤下去 */
+    height: auto;
+  }
+
+  .homeview-hero-content {
+    position: static;
+    order: 2;
+    width: calc(100% - 8%);
+    max-width: none;
+    margin: 1rem auto 0;
+    padding: 16px;
+    align-items: stretch;
+    border-radius: 14px;
+  }
+
+  .homeview-hero-title {
+    font-size: clamp(26px, 4.6vw, 40px);
+    margin-bottom: 10px;
+  }
+
+  .homeview-hero-subtitle {
+    font-size: 15px;
+    margin-bottom: 18px;
+    max-width: none;
+  }
+
+  .hero-search {
+    width: 100%;
+  }
+
+  /* 联想面板进入文档流，由卡片撑高，不再被 banner / hero-section 裁剪 */
+  .hero-search__panel {
+    position: static;
+    margin-top: 10px;
+    max-height: min(320px, 45vh);
+  }
+}
+
 @media (max-width: 768px) {
+  .homeview-hero-content {
+    width: calc(100% - 2rem);
+  }
+
+  .homeview-hero-title {
+    font-size: clamp(24px, 7.2vw, 32px);
+    line-height: 1.25;
+  }
+
+  .homeview-hero-subtitle {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
   .hero-search__bar {
     height: 52px;
     padding-left: 18px;

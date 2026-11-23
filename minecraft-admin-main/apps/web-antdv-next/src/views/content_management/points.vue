@@ -24,6 +24,7 @@ import {
   Image,
   Input,
   InputNumber,
+  message,
   Modal,
   Popconfirm,
   Result,
@@ -31,8 +32,6 @@ import {
   Skeleton,
   Table,
   Tag,
-  Upload,
-  message,
 } from 'antdv-next';
 
 import {
@@ -42,6 +41,7 @@ import {
   updateProduct,
   uploadProductImage,
 } from '#/api/management/content/points';
+import ImageUploadField from '#/components/ImageUploadField.vue';
 
 defineOptions({ name: 'PointsProductsManagement' });
 
@@ -784,15 +784,14 @@ function hideBrokenImage(e: Event) {
                 class="min-w-0 flex-1"
                 :placeholder="$t('content.points_page.image_placeholder')"
               />
-              <Upload
-                :max-count="1"
-                :show-upload-list="false"
-                accept="image/*"
-                :before-upload="() => false"
+              <ImageUploadField
+                variant="button"
+                :upload-text="$t('content.points_page.image_upload')"
+                :change-text="$t('content.points_page.image_change')"
+                :src="normalizeImageUrl(formRecord.imageUrl)"
+                :loading="imageUploading"
                 @change="handleImageChange"
-              >
-                <Button :loading="imageUploading">上传图片</Button>
-              </Upload>
+              />
             </div>
             <!-- 图片预览（单图），点击缩略图打开 AntD Preview 大图 -->
             <div

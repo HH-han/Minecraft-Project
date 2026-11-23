@@ -4,7 +4,7 @@ import type { TableColumnsType } from 'antdv-next';
 import { computed, onMounted, reactive, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
-import { Bookmark, Heart, ImagePlus, MessageCircle, Plus } from '@vben/icons';
+import { Bookmark, Heart, MessageCircle, Plus } from '@vben/icons';
 import { $t } from '@vben/locales';
 
 import {
@@ -24,7 +24,6 @@ import {
   Space,
   Table,
   Tag,
-  Upload,
 } from 'antdv-next';
 
 import {
@@ -34,6 +33,7 @@ import {
   updatePost,
 } from '#/api/management/travel/community';
 import { uploadFile } from '#/api/management/user/upload';
+import ImageUploadField from '#/components/ImageUploadField.vue';
 
 defineOptions({ name: 'CommunityManagement' });
 
@@ -898,26 +898,14 @@ async function handleDelete(record: any) {
                     </button>
                   </div>
                 </div>
-                <Upload
-                  :max-count="1"
-                  :show-upload-list="false"
-                  accept="image/*"
-                  :before-upload="() => false"
+                <ImageUploadField
+                  variant="button"
+                  class="mt-2"
+                  :upload-text="$t('travel.community_list.form.images_upload')"
+                  :change-text="$t('travel.community_list.form.images_upload')"
+                  :loading="imagesUploading"
                   @change="handleImagesChange"
-                >
-                  <Button
-                    class="mt-2"
-                    size="small"
-                    :loading="imagesUploading"
-                  >
-                    <template #icon>
-                      <ImagePlus
-                        class="mr-1 size-4 align-middle"
-                      />
-                    </template>
-                    {{ $t('travel.community_list.form.images_upload') }}
-                  </Button>
-                </Upload>
+                />
               </FormItem>
             </div>
           </div>

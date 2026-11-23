@@ -73,6 +73,10 @@
       "privacyPolicy": "隐私政策",
       "terms": "使用条款",
       "cookieSettings": "Cookie 设置",
+      "filing": {
+        "icp": "ICP 备案号",
+        "police": "公安联网备案号"
+      },
       "crafted": "匠心旅行"
     }
   }

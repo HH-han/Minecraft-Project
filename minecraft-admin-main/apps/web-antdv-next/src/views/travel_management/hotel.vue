@@ -8,7 +8,6 @@ import {
   Bed,
   Bookmark,
   Heart,
-  ImageIcon,
   ImageOff,
   MapPin,
   MessageCircle,
@@ -35,7 +34,6 @@ import {
   Space,
   Table,
   Tag,
-  Upload,
 } from 'antdv-next';
 import dayjs from 'dayjs';
 
@@ -46,6 +44,7 @@ import {
   updateHotel,
 } from '#/api/management/travel/hotel';
 import { uploadFile } from '#/api/management/user/upload';
+import ImageUploadField from '#/components/ImageUploadField.vue';
 
 defineOptions({ name: 'HotelList' });
 
@@ -454,16 +453,6 @@ async function handleCoverUpload(file: File) {
 function handleCoverChange(event: any) {
   const file = event?.fileList?.[0]?.originFileObj;
   if (file) handleCoverUpload(file as File);
-}
-
-function hideBrokenImage(e: Event) {
-  const target = e.target as HTMLImageElement;
-  if (!target) return;
-  target.style.display = 'none';
-  // 图片地址更新并重新加载成功后自动恢复显示，避免更换封面后预览一直被隐藏
-  target.onload = () => {
-    target.style.display = '';
-  };
 }
 
 // =========================
@@ -968,43 +957,15 @@ async function handleDelete(record: any) {
                 prop="coverImage"
                 style="display: block; width: 100%; margin-bottom: 16px;"
               >
-                <Upload
-                  :max-count="1"
-                  :show-upload-list="false"
-                  accept="image/*"
-                  :before-upload="() => false"
+                <ImageUploadField
+                  :src="formCoverDisplayUrl"
+                  :upload-text="$t('travel.hotel_list.form.cover_upload')"
+                  :change-text="$t('travel.hotel_list.form.cover_change')"
+                  :tip="$t('travel.hotel_list.form.cover_tip')"
+                  :alt="$t('travel.hotel_list.form.cover_image_label')"
+                  :loading="coverUploading"
                   @change="handleCoverChange"
-                >
-                  <Button
-                    class="cover-upload-trigger flex w-full items-center gap-3 border-dashed"
-                    :loading="coverUploading"
-                    style="height: auto; padding: 8px 12px;"
-                  >
-                    <img
-                      v-if="formCoverDisplayUrl"
-                      :src="formCoverDisplayUrl"
-                      :alt="$t('travel.hotel_list.form.cover_image_label')"
-                      class="size-12 rounded-full border border-border flex-shrink-0 object-cover"
-                      @error="hideBrokenImage"
-                    />
-                    <ImageIcon
-                      v-else
-                      class="size-12 flex-shrink-0 text-muted-foreground"
-                    />
-                    <div class="flex flex-col text-left">
-                      <span class="text-sm font-medium">
-                        {{
-                          formData.coverImage
-                            ? $t('travel.hotel_list.form.cover_change')
-                            : $t('travel.hotel_list.form.cover_upload')
-                        }}
-                      </span>
-                      <span class="text-xs text-muted-foreground">
-                        {{ $t('travel.hotel_list.form.cover_tip') }}
-                      </span>
-                    </div>
-                  </Button>
-                </Upload>
+                />
               </FormItem>
             </div>
 
@@ -1067,9 +1028,6 @@ async function handleDelete(record: any) {
   flex-shrink: 0;
 }
 
-.cover-upload-trigger {
-  text-align: left;
-}
 
 .room-detail-card {
   padding: 10px 12px;

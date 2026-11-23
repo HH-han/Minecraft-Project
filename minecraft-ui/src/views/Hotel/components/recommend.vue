@@ -1,20 +1,14 @@
 <template>
     <div class="booking">
-        <header class="header">
-            <div class="bg"></div>
-            <div class="blob"></div>
-            <div class="header-content">
-                <h1>订酒店</h1>
-                <div class="search-bar">
-                    <input type="text" placeholder="出行目的地" v-model="search.destination" />
-                    <CalendarPicker v-model="search.checkIn" placeholder="入住日期" :min="todayKey" />
-                    <CalendarPicker v-model="search.checkOut" placeholder="离店日期" :min="search.checkIn || todayKey" />
-                    <input type="number" placeholder="人数" v-model="search.numberOfPeople" />
-                    <button @click="searchHotels">搜索</button>
-                </div>
-            </div>
-
-        </header>
+        <PageHero :title="$t('recommendHero.hotel.title')" :subtitle="$t('recommendHero.hotel.subtitle')"
+            @search="searchHotels">
+            <input type="text" :placeholder="$t('recommendHero.hotel.destination')" v-model="search.destination" />
+            <CalendarPicker v-model="search.checkIn" :placeholder="$t('recommendHero.hotel.checkIn')" :min="todayKey" />
+            <CalendarPicker v-model="search.checkOut" :placeholder="$t('recommendHero.hotel.checkOut')"
+                :min="search.checkIn || todayKey" />
+            <input type="number" min="1" :placeholder="$t('recommendHero.hotel.guests')"
+                v-model="search.numberOfPeople" />
+        </PageHero>
         <section class="features">
             <div class="feature" v-for="feature in features" :key="feature.title">
                 <h2>{{ feature.title }}</h2>
@@ -66,6 +60,7 @@ import { ElMessage } from 'element-plus';
 import { getClientRecommendations } from '@/api/clientRecommendation';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import CalendarPicker from '@/components/PromptComponent/CalendarPicker.vue';
+import PageHero from '@/components/PageHero/index.vue';
 
 // 今天（本地时区 YYYY-MM-DD），作为日期选择下限
 const todayKey = (() => {
@@ -204,136 +199,6 @@ onMounted(loadRecommendations)
     padding: 0 15px;
     font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
     color: var(--theme-text-1);
-}
-
-/* 头部样式 */
-.header {
-    position: relative;
-    height: 300px;
-    border-radius: 14px;
-    margin: 24px 0 24px 0;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 1.5rem;
-    background: var(--theme-gradient);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    display: inline-block;
-}
-
-.bg {
-    position: absolute;
-    top: 5px;
-    left: 5px;
-    width: calc(100% - 10px);
-    height: 290px;
-    z-index: 2;
-    background: var(--theme-bg-glass-strong);
-    backdrop-filter: blur(24px);
-    border-radius: 10px;
-    overflow: hidden;
-    outline: 2px solid var(--theme-border);
-}
-
-.blob {
-    position: absolute;
-    z-index: 1;
-    top: 50%;
-    left: 50%;
-    width: 110%;
-    height: 220px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #377ec9, #7b5cff);
-    opacity: 0.55;
-    filter: blur(48px);
-    animation: blob-bounce 5s infinite ease;
-}
-
-@keyframes blob-bounce {
-    0% {
-        transform: translate(-100%, -100%) translate3d(0, 0, 0);
-    }
-
-    25% {
-        transform: translate(-100%, -100%) translate3d(100%, 0, 0);
-    }
-
-    50% {
-        transform: translate(-100%, -100%) translate3d(100%, 100%, 0);
-    }
-
-    75% {
-        transform: translate(-100%, -100%) translate3d(0, 100%, 0);
-    }
-
-    100% {
-        transform: translate(-100%, -100%) translate3d(0, 0, 0);
-    }
-}
-
-.header-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    z-index: 3;
-}
-
-/* 搜索栏样式 */
-.search-bar {
-    flex-wrap: wrap;
-    display: flex;
-    flex-direction: row;
-    gap: 1rem;
-    max-width: 100%;
-    box-sizing: border-box;
-    background: var(--theme-bg-surface);
-    padding: 1.5rem;
-    margin: 1rem;
-    border-radius: 16px;
-    box-shadow: var(--theme-shadow-sm);
-}
-
-.search-bar input {
-    box-sizing: border-box;
-    min-width: 0;
-    padding: 0.8rem 1.2rem;
-    border: 1px solid var(--theme-border);
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-
-.search-bar input:focus {
-    outline: none;
-    border-color: var(--theme-primary);
-    box-shadow: var(--theme-ring);
-}
-
-.search-bar button {
-    background: var(--theme-gradient);
-    color: var(--theme-primary-text);
-    border: none;
-    border-radius: 8px;
-    padding: 0.8rem;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.search-bar button:hover {
-    background: var(--theme-gradient);
-    transform: translateY(-2px);
-    box-shadow: var(--theme-shadow-sm);
 }
 
 /* 特色服务样式 */
@@ -599,60 +464,6 @@ onMounted(loadRecommendations)
 @media (max-width: 768px) {
     .booking {
         padding: 0 10px;
-    }
-
-    /* 头部高度自适应，避免搜索栏被固定高度裁切 */
-    .header {
-        height: auto;
-        margin: 12px 0 16px;
-        padding: 20px 12px 16px;
-        justify-content: flex-start;
-    }
-
-    .bg {
-        inset: 5px;
-        width: auto;
-        height: auto;
-    }
-
-    .header-content {
-        width: 100%;
-    }
-
-    header h1 {
-        font-size: 1.35rem;
-        margin-bottom: 0.85rem;
-    }
-
-    /* 搜索栏两列布局：目的地占满一行，日期与人数/搜索各占两列 */
-    .search-bar {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        align-items: stretch;
-        width: 100%;
-        margin: 0;
-        padding: 12px;
-        gap: 8px;
-    }
-
-    .search-bar > * {
-        width: 100%;
-        min-width: 0;
-        box-sizing: border-box;
-    }
-
-    .search-bar > :first-child {
-        grid-column: 1 / -1;
-    }
-
-    .search-bar input {
-        padding: 0.65rem 0.85rem;
-        font-size: 0.9rem;
-    }
-
-    .search-bar button {
-        padding: 0 0.75rem;
-        font-size: 0.95rem;
     }
 
     /* 特色服务卡片：横向三列紧凑排列 */

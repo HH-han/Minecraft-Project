@@ -6,7 +6,7 @@ import type { UserDetail } from '#/api/management/user/user';
 import { computed, onMounted, reactive, ref } from 'vue';
 
 import { Page, VCropper } from '@vben/common-ui';
-import { ImagePlus, Plus } from '@vben/icons';
+import { Plus } from '@vben/icons';
 import { $t } from '@vben/locales';
 import { preferences } from '@vben/preferences';
 
@@ -31,7 +31,6 @@ import {
   Switch,
   Table,
   Tag,
-  Upload,
 } from 'antdv-next';
 import dayjs from 'dayjs';
 
@@ -42,6 +41,7 @@ import {
   getAllUsers,
   updateUserInfo,
 } from '#/api/management/user/user';
+import ImageUploadField from '#/components/ImageUploadField.vue';
 
 defineOptions({ name: 'UserList' });
 
@@ -1286,42 +1286,14 @@ async function confirmCropperAvatar() {
                 style="display: block; width: 100%; margin-bottom: 16px;"
               >
                 <!-- 点击上传图片区域 -->
-                <Upload
-                  class="avatar-upload w-full"
-                  :max-count="1"
-                  :show-upload-list="false"
-                  accept="image/*"
-                  :before-upload="() => false"
+                <ImageUploadField
+                  :src="formData.avatar ? formAvatarDisplayUrl : ''"
+                  :upload-text="$t('user.form.avatar_upload')"
+                  :change-text="$t('user.form.avatar_change')"
+                  :tip="$t('user.form.avatar_tip')"
+                  :alt="$t('user.form.field_avatar')"
                   @change="handleAvatarSelect"
-                >
-                  <div class="avatar-upload-zone">
-                    <div class="avatar-upload-preview">
-                      <Avatar
-                        :src="formAvatarDisplayUrl"
-                        :size="56"
-                        class="avatar-upload-avatar"
-                      />
-                      <span class="avatar-upload-mask">
-                        <ImagePlus class="size-6" />
-                      </span>
-                    </div>
-                    <div class="avatar-upload-body">
-                      <span class="avatar-upload-title">
-                        {{
-                          formData.avatar
-                            ? $t('user.form.avatar_change')
-                            : $t('user.form.avatar_upload')
-                        }}
-                      </span>
-                      <span class="avatar-upload-desc">
-                        {{ $t('user.form.avatar_tip') }}
-                      </span>
-                    </div>
-                    <span class="avatar-upload-action">
-                      <ImagePlus class="size-4" />
-                    </span>
-                  </div>
-                </Upload>
+                />
               </FormItem>
             </div>
 

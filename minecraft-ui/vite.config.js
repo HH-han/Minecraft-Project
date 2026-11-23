@@ -58,10 +58,16 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: 2000,
       rollupOptions: {
         output: {
-          // 产物目录规范：入口 jse/、异步 chunk js/、样式与静态资源按扩展名归档
+          // 产物目录规范：入口 jse/、异步 chunk js/、样式 css/、静态资源 assets/
           entryFileNames: 'jse/index-[name]-[hash].js',
           chunkFileNames: 'js/[name]-[hash].js',
-          assetFileNames: '[ext]/[name]-[hash][extname]',
+          // 产物目录规范：样式归入 css/，图片/字体等静态资源统一归入 assets/
+          assetFileNames: (assetInfo) => {
+            const name = assetInfo.names?.[0] || assetInfo.name || ''
+            return name.endsWith('.css')
+              ? 'css/[name]-[hash][extname]'
+              : 'assets/[name]-[hash][extname]'
+          },
           manualChunks: (id) => {
             if (id.includes('node_modules')) {
               if (id.includes('three') || id.includes('globe.gl') || id.includes('amap')) {

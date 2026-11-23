@@ -21,7 +21,6 @@ import {
   Skeleton,
   Table,
   Tag,
-  Upload,
 } from 'antdv-next';
 
 import {
@@ -32,6 +31,7 @@ import {
   updateCard,
 } from '#/api/management/content/cards';
 import { uploadFile } from '#/api/management/user/upload';
+import ImageUploadField from '#/components/ImageUploadField.vue';
 
 defineOptions({ name: 'CardsManagement' });
 
@@ -866,18 +866,14 @@ async function handleDelete(record: CardRecord) {
             name="images"
             class="md:col-span-2"
           >
-            <div class="flex items-center gap-2">
-              <Upload
-                :max-count="1"
-                :show-upload-list="false"
-                accept="image/*"
-                :before-upload="() => false"
+            <div class="flex flex-wrap items-center gap-2">
+              <ImageUploadField
+                variant="button"
+                :upload-text="$t('content.cards_page.image_upload')"
+                :change-text="$t('content.cards_page.image_upload')"
+                :loading="imageUploading"
                 @change="handleImageChange"
-              >
-                <Button :loading="imageUploading">
-                  {{ $t('content.cards_page.image_upload') }}
-                </Button>
-              </Upload>
+              />
               <span class="text-xs text-muted-foreground">
                 {{ $t('content.cards_page.image_hint') }}
               </span>

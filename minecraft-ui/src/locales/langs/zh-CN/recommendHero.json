@@ -1,0 +1,31 @@
+{
+  "recommendHero": {
+    "search": "搜索",
+    "hotel": {
+      "title": "订酒店",
+      "subtitle": "精选优质住宿，安心入住每一晚",
+      "destination": "出行目的地",
+      "checkIn": "入住日期",
+      "checkOut": "离店日期",
+      "guests": "人数"
+    },
+    "scenic": {
+      "title": "景点推荐",
+      "subtitle": "发现值得专程前往的风景",
+      "destination": "输入目的地",
+      "startDate": "开始日期",
+      "endDate": "结束日期",
+      "travelers": "人数"
+    },
+    "souvenir": {
+      "title": "特色旅游纪念品",
+      "subtitle": "带一份独特的记忆回家",
+      "keyword": "搜索纪念品、城市或特色..."
+    },
+    "food": {
+      "title": "美食探索",
+      "subtitle": "发现城市中最受欢迎的美食",
+      "keyword": "输入地点、餐厅或美食..."
+    }
+  }
+}

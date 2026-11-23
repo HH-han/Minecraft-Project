@@ -4,7 +4,7 @@ import type { TableColumnsType } from 'antdv-next';
 import { computed, onMounted, reactive, ref } from 'vue';
 
 import { Page } from '@vben/common-ui';
-import { ImageIcon, ImageOff, Plus } from '@vben/icons';
+import { ImageOff, Plus } from '@vben/icons';
 import { $t } from '@vben/locales';
 
 import {
@@ -26,7 +26,6 @@ import {
   Space,
   Table,
   Tag,
-  Upload,
 } from 'antdv-next';
 
 import {
@@ -36,6 +35,7 @@ import {
   updateCountries,
 } from '#/api/management/travel/countries';
 import { uploadFile } from '#/api/management/user/upload';
+import ImageUploadField from '#/components/ImageUploadField.vue';
 
 defineOptions({ name: 'CountryManagement' });
 
@@ -433,16 +433,6 @@ async function handleImageUpload(file: File) {
 function handleImageChange(event: any) {
   const file = event?.fileList?.[0]?.originFileObj;
   if (file) handleImageUpload(file as File);
-}
-
-function hideBrokenImage(e: Event) {
-  const target = e.target as HTMLImageElement;
-  if (!target) return;
-  target.style.display = 'none';
-  // 图片地址更新并重新加载成功后自动恢复显示，避免更换封面后预览一直被隐藏
-  target.onload = () => {
-    target.style.display = '';
-  };
 }
 
 // =========================
@@ -974,43 +964,15 @@ async function handleDelete(record: any) {
                 prop="image"
                 style="display: block; width: 100%; margin-bottom: 16px;"
               >
-                <Upload
-                  :max-count="1"
-                  :show-upload-list="false"
-                  accept="image/*"
-                  :before-upload="() => false"
+                <ImageUploadField
+                  :src="formImageDisplayUrl"
+                  :upload-text="$t('travel.country_list.form.image_upload')"
+                  :change-text="$t('travel.country_list.form.image_change')"
+                  :tip="$t('travel.country_list.form.image_tip')"
+                  :alt="$t('travel.country_list.form.image_label')"
+                  :loading="imageUploading"
                   @change="handleImageChange"
-                >
-                  <Button
-                    class="image-upload-trigger flex w-full items-center gap-3 border-dashed"
-                    :loading="imageUploading"
-                    style="height: auto; padding: 8px 12px;"
-                  >
-                    <img
-                      v-if="formImageDisplayUrl"
-                      :src="formImageDisplayUrl"
-                      :alt="$t('travel.country_list.form.image_label')"
-                      class="size-12 rounded-full border border-border flex-shrink-0 object-cover"
-                      @error="hideBrokenImage"
-                    />
-                    <ImageIcon
-                      v-else
-                      class="size-12 flex-shrink-0 text-muted-foreground"
-                    />
-                    <div class="flex flex-col text-left">
-                      <span class="text-sm font-medium">
-                        {{
-                          formData.image
-                            ? $t('travel.country_list.form.image_change')
-                            : $t('travel.country_list.form.image_upload')
-                        }}
-                      </span>
-                      <span class="text-xs text-muted-foreground">
-                        {{ $t('travel.country_list.form.image_tip') }}
-                      </span>
-                    </div>
-                  </Button>
-                </Upload>
+                />
               </FormItem>
             </div>
 
@@ -1071,9 +1033,5 @@ async function handleDelete(record: any) {
   border-radius: 50%;
   background-color: var(--app-fill-color, rgb(0 0 0 / 4%));
   flex-shrink: 0;
-}
-
-.image-upload-trigger {
-  text-align: left;
 }
 </style>

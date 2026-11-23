@@ -1,0 +1,31 @@
+{
+  "recommendHero": {
+    "search": "Search",
+    "hotel": {
+      "title": "Book a Hotel",
+      "subtitle": "Handpicked stays for a restful night",
+      "destination": "Destination",
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
+      "guests": "Guests"
+    },
+    "scenic": {
+      "title": "Attraction Picks",
+      "subtitle": "Scenery worth traveling for",
+      "destination": "Destination",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "travelers": "Travelers"
+    },
+    "souvenir": {
+      "title": "Travel Souvenirs",
+      "subtitle": "Bring a unique memory home",
+      "keyword": "Search souvenirs, cities or crafts..."
+    },
+    "food": {
+      "title": "Food Explorer",
+      "subtitle": "Discover the city's most loved flavors",
+      "keyword": "Search places, restaurants or dishes..."
+    }
+  }
+}

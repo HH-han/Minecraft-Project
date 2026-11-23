@@ -73,6 +73,10 @@
       "privacyPolicy": "Privacy Policy",
       "terms": "Terms of Use",
       "cookieSettings": "Cookie Settings",
+      "filing": {
+        "icp": "ICP Filing No.",
+        "police": "Public Security Filing No."
+      },
       "crafted": "Crafted with Heart"
     }
   }

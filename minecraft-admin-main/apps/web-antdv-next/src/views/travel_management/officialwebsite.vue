@@ -21,11 +21,11 @@ import {
   Select,
   Skeleton,
   Tag,
-  Upload,
 } from 'antdv-next';
 
 import officialwebsiteApi from '#/api/management/travel/officialwebsite';
 import { uploadFile } from '#/api/management/user/upload';
+import ImageUploadField from '#/components/ImageUploadField.vue';
 
 defineOptions({ name: 'OfficialWebsiteManagement' });
 
@@ -844,17 +844,13 @@ async function handleDelete(record: any) {
                   class="w-full"
                   :placeholder="fieldLabel(f.key)"
                 />
-                <Upload
-                  :max-count="1"
-                  :show-upload-list="false"
-                  accept="image/*"
-                  :before-upload="() => false"
+                <ImageUploadField
+                  variant="button"
+                  :upload-text="$t('travel.official_site.image_upload')"
+                  :change-text="$t('travel.official_site.image_upload')"
+                  :loading="imageUploading && uploadingField === f.key"
                   @change="uploadingField = f.key; handleFieldImageChange($event)"
-                >
-                  <Button :loading="imageUploading && uploadingField === f.key">
-                    {{ $t('travel.official_site.image_upload') }}
-                  </Button>
-                </Upload>
+                />
               </div>
             </FormItem>
           </div>
