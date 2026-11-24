@@ -36,7 +36,7 @@ public class SysUserController {
 
     @Operation(summary = "用户已有角色ID集合")
     @GetMapping("/{userId}/roles")
-    @PreAuthorize("@perm.hasAny('sys:user:query','sys:user:edit','sys:user:assign')")
+    @PreAuthorize("@perm.hasAny('sys:user:list','sys:user:query','sys:user:edit','sys:user:assign')")
     public ApiResponse<List<Long>> roles(@PathVariable Long userId) {
         return ApiResponse.success(sysUserService.getRoleIds(userId));
     }

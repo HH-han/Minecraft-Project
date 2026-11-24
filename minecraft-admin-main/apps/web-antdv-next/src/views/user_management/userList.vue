@@ -215,11 +215,56 @@ async function fetchData() {
   errorMsg.value = '';
   try {
     const res = await getAllUsers();
-    dataSource.value = normalizeList(res);
+    const list = normalizeList(res);
+    dataSource.value = list;
+    // 后端列表接口若未携带角色信息，则回退到 RBAC 接口逐个补齐
+    await enrichRolesWithRbac(list);
   } catch (error: any) {
     errorMsg.value = error?.message || $t('user.list.error_desc');
   } finally {
     loading.value = false;
+  }
+}
+
+/**
+ * 用 RBAC 接口补齐列表中的角色信息。
+ * 仅对「后端未返回 roleNames 且非超管」的行发起请求，正常情况下不会产生额外请求。
+ */
+async function enrichRolesWithRbac(list: UserDetail[]) {
+  // 兼容历史数据：permissions='0' 视为超级管理员
+  list.forEach((row: any) => {
+    if (String(row.permissions ?? '') === '0') {
+      row.superAdmin = true;
+    }
+  });
+  const targets = list.filter(
+    (row: any) => !row.superAdmin && !(row.roleNames && row.roleNames.length),
+  );
+  if (!targets.length) return;
+  await loadRoleOptions();
+  if (!roleOptions.value.length) return;
+  // 分批并发，避免用户量大时瞬间打出过多请求
+  const batchSize = 8;
+  for (let i = 0; i < targets.length; i += batchSize) {
+    const batch = targets.slice(i, i + batchSize);
+    // eslint-disable-next-line no-await-in-loop
+    await Promise.all(
+      batch.map(async (row: any) => {
+        try {
+          const ids: any = await getUserRoles(row.id);
+          if (Array.isArray(ids) && ids.length) {
+            const idSet = new Set(ids.map((id: any) => Number(id)));
+            const matched = roleOptions.value.filter((role) =>
+              idSet.has(Number(role.id)),
+            );
+            row.roleNames = matched.map((role) => role.name);
+            row.roles = matched.map((role) => role.code);
+          }
+        } catch {
+          // 单个用户角色加载失败不影响列表展示
+        }
+      }),
+    );
   }
 }
 
