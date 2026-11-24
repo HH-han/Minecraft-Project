@@ -9,6 +9,7 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import router from './router'
 import { initTheme } from './utils/theme'
 import { setupI18n } from './locales'
+import { perm } from './directives/permission'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 
 async function bootstrap() {
@@ -30,6 +31,9 @@ async function bootstrap() {
   for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
     app.component(key, component)
   }
+
+  // 权限指令 v-perm
+  app.directive('perm', perm)
 
   // 初始化主题
   initTheme()

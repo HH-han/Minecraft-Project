@@ -60,6 +60,16 @@ const routes: RouteRecordRaw[] = [
       },
       {
         meta: {
+          authority: ['super_admin'],
+          icon: 'lucide:shield',
+          title: $t('system.rbac.title'),
+        },
+        name: 'SystemRbac',
+        path: 'rbac',
+        component: () => import('#/views/system_management/rbac.vue'),
+      },
+      {
+        meta: {
           icon: 'lucide:plug',
           title: $t('system.SwaggerUI'),
         },

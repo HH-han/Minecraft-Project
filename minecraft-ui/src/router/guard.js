@@ -5,6 +5,7 @@ import {
   removeUsername,
 } from '@/utils/storage';
 
+import { usePermissionStore } from '@/stores/permissionStore';
 import {
   APP_TITLE,
   CHUNK_RELOAD_KEY,
@@ -68,8 +69,9 @@ function setupCommonGuard(router) {
  * @param {import('vue-router').Router} router
  */
 function setupAccessGuard(router) {
-  router.beforeEach((to) => {
+  router.beforeEach(async (to) => {
     const isLoggedIn = hasValidToken();
+    const permissionStore = usePermissionStore();
 
     // 核心路由不进入权限拦截
     if (coreRouteNames.includes(to.name)) {
@@ -84,6 +86,7 @@ function setupAccessGuard(router) {
 
     // 需要登录的页面对未登录用户跳转登录页
     if (to.meta.requiresAuth && !isLoggedIn) {
+      permissionStore.reset();
       return {
         path: LOGIN_PATH,
         query:
@@ -92,6 +95,20 @@ function setupAccessGuard(router) {
             : { redirect: encodeURIComponent(to.fullPath) },
         replace: true,
       };
+    }
+
+    // 已登录：加载权限码并做页面级权限校验
+    if (isLoggedIn) {
+      if (!permissionStore.loaded) {
+        try {
+          await permissionStore.load();
+        } catch {
+          // 权限接口异常时仍允许进入页面，由接口层返回 401/403 兜底
+        }
+      }
+      if (to.meta.permission && !permissionStore.hasPerm(to.meta.permission)) {
+        return { path: '/403', replace: true };
+      }
     }
 
     return true;

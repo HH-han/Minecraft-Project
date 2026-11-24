@@ -67,7 +67,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
     public ApiResponse<?> handleAccessDeniedException(
             org.springframework.security.access.AccessDeniedException e,
-            jakarta.servlet.http.HttpServletRequest request) {
+            jakarta.servlet.http.HttpServletRequest request,
+            HttpServletResponse response) {
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         com.minecraft.security.core.LoginUser loginUser = com.minecraft.utils.SecurityUtils.getLoginUser();
         String who = loginUser == null ? "匿名用户" : loginUser.getUsername() + "(" + loginUser.getUserId() + ")";
         systemLogService.recordError("安全", "越权访问",
@@ -77,7 +79,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
     public ApiResponse<?> handleAuthenticationException(
-            org.springframework.security.core.AuthenticationException e) {
+            org.springframework.security.core.AuthenticationException e,
+            HttpServletResponse response) {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         return ApiResponse.error(401, "登录状态已失效，请重新登录");
     }
 

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { getToken, setToken, removeToken, getUsername, setUsername, removeUsername, getUserInfo, setUserInfo, removeUserInfo } from '@/utils/storage'
 import request from '@/utils/request'
+import { usePermissionStore } from '@/stores/permissionStore'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -53,6 +54,9 @@ export const useAuthStore = defineStore('auth', {
       removeToken()
       removeUsername()
       removeUserInfo()
+
+      // 清空权限缓存，避免切换账号后沿用上一账号权限
+      usePermissionStore().reset()
     },
     
     // 更新用户信息
