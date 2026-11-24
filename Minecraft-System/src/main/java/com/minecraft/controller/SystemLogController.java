@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -27,12 +28,14 @@ public class SystemLogController {
 
     @Operation(summary = "获取系统日志列表(分页)")
     @GetMapping("/list")
+    @PreAuthorize("@perm.has('sys:system-log:list')")
     public ApiResponse<PageResponse<SystemLogVO>> getSystemLogList(SystemLogQueryDTO queryDTO) {
         return ApiResponse.success(systemLogService.getSystemLogList(queryDTO));
     }
 
     @Operation(summary = "获取系统日志详情")
     @GetMapping("/{id}")
+    @PreAuthorize("@perm.has('sys:system-log:list')")
     public ApiResponse<SystemLogVO> getSystemLogDetail(@PathVariable Long id) {
         return ApiResponse.success(systemLogService.getSystemLogDetail(id));
     }
@@ -46,6 +49,7 @@ public class SystemLogController {
 
     @Operation(summary = "删除系统日志")
     @DeleteMapping("/{id}")
+    @PreAuthorize("@perm.has('sys:system-log:list')")
     public ApiResponse<Void> deleteSystemLog(@PathVariable Long id) {
         systemLogService.deleteSystemLog(id);
         return ApiResponse.success("删除成功", null);
@@ -53,6 +57,7 @@ public class SystemLogController {
 
     @Operation(summary = "删除指定时间之前的系统日志")
     @DeleteMapping("/before")
+    @PreAuthorize("@perm.has('sys:system-log:list')")
     public ApiResponse<Void> deleteLogsBeforeTime(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime time) {
         systemLogService.deleteLogsBeforeTime(time);

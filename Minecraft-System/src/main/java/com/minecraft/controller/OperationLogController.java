@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -25,18 +26,21 @@ public class OperationLogController {
 
     @Operation(summary = "获取操作日志列表(分页)")
     @GetMapping("/list")
+    @PreAuthorize("@perm.has('sys:operation-log:list')")
     public ApiResponse<PageResponse<OperationLogVO>> getOperationLogList(OperationLogQueryDTO queryDTO) {
         return ApiResponse.success(operationLogService.getOperationLogList(queryDTO));
     }
 
     @Operation(summary = "获取操作日志详情")
     @GetMapping("/{id}")
+    @PreAuthorize("@perm.has('sys:operation-log:list')")
     public ApiResponse<OperationLogVO> getOperationLogDetail(@PathVariable Long id) {
         return ApiResponse.success(operationLogService.getOperationLogDetail(id));
     }
 
     @Operation(summary = "根据用户ID获取操作日志")
     @GetMapping("/user/{userId}")
+    @PreAuthorize("@perm.has('sys:operation-log:list')")
     public ApiResponse<List<OperationLogVO>> getLogsByUserId(@PathVariable Integer userId) {
         return ApiResponse.success(operationLogService.getLogsByUserId(userId));
     }
@@ -50,6 +54,7 @@ public class OperationLogController {
 
     @Operation(summary = "删除操作日志")
     @DeleteMapping("/{id}")
+    @PreAuthorize("@perm.has('sys:operation-log:delete')")
     public ApiResponse<Void> deleteOperationLog(@PathVariable Long id) {
         operationLogService.deleteOperationLog(id);
         return ApiResponse.success("删除成功", null);
@@ -57,6 +62,7 @@ public class OperationLogController {
 
     @Operation(summary = "删除指定时间之前的操作日志")
     @DeleteMapping("/before")
+    @PreAuthorize("@perm.has('sys:operation-log:delete')")
     public ApiResponse<Void> deleteLogsBeforeTime(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime time) {
         operationLogService.deleteLogsBeforeTime(time);

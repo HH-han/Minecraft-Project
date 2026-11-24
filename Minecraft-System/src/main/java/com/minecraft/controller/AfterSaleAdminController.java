@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -32,6 +33,7 @@ public class AfterSaleAdminController {
 
     @Operation(summary = "售后列表")
     @GetMapping("/page")
+    @PreAuthorize("@perm.has('travel:after-sale:list')")
     public ApiResponse<PageResponse<?>> page(PageRequest request) {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success(afterSaleService.pageForAdmin(request));
@@ -39,6 +41,7 @@ public class AfterSaleAdminController {
 
     @Operation(summary = "售后详情")
     @GetMapping("/{id}")
+    @PreAuthorize("@perm.has('travel:after-sale:query')")
     public ApiResponse<AfterSaleVO> detail(@PathVariable Long id) {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success(afterSaleService.detail(id, null));
@@ -50,6 +53,7 @@ public class AfterSaleAdminController {
             detail = "'审核结果：' + (#request.approved ? '通过' : '驳回')"
                     + " + (#request.auditRemark != null ? '，备注：' + #request.auditRemark : '')")
     @PostMapping("/{id}/audit")
+    @PreAuthorize("@perm.has('travel:after-sale:audit')")
     public ApiResponse<Void> audit(@PathVariable Long id, @Valid @RequestBody AfterSaleAuditRequest request) {
         Long adminId = adminAuthorizationService.requireAdmin();
         afterSaleService.audit(id, request, adminId);
@@ -59,6 +63,7 @@ public class AfterSaleAdminController {
     @Operation(summary = "确认收货")
     @OperationLog(module = "AFTER_SALE", action = "确认收货", type = OperationType.UPDATE, bizId = "#id")
     @PostMapping("/{id}/receive")
+    @PreAuthorize("@perm.has('travel:after-sale:edit')")
     public ApiResponse<Void> receive(@PathVariable Long id) {
         Long adminId = adminAuthorizationService.requireAdmin();
         afterSaleService.receive(id, adminId);
@@ -68,6 +73,7 @@ public class AfterSaleAdminController {
     @Operation(summary = "发起退款")
     @OperationLog(module = "AFTER_SALE", action = "发起退款", type = OperationType.ADD, bizId = "#id")
     @PostMapping("/{id}/refund")
+    @PreAuthorize("@perm.has('travel:after-sale:refund')")
     public ApiResponse<PayRefund> refund(@PathVariable Long id) {
         Long adminId = adminAuthorizationService.requireAdmin();
         return ApiResponse.success("退款已发起", refundService.createRefund(id, adminId));
@@ -77,6 +83,7 @@ public class AfterSaleAdminController {
     @OperationLog(module = "AFTER_SALE", action = "关闭售后", type = OperationType.UPDATE,
             bizId = "#id", detail = "(#reason != null ? '关闭原因：' + #reason : '关闭售后')")
     @PostMapping("/{id}/close")
+    @PreAuthorize("@perm.has('travel:after-sale:edit')")
     public ApiResponse<Void> close(@PathVariable Long id, @RequestParam(required = false) String reason) {
         Long adminId = adminAuthorizationService.requireAdmin();
         afterSaleService.close(id, reason, adminId);

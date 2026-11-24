@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -33,6 +34,7 @@ public class TravelNoteAdminController {
 
     @Operation(summary = "全量分页（含草稿/待审/驳回/下架）")
     @GetMapping("/page")
+    @PreAuthorize("@perm.has('content:travel-note:list')")
     public ApiResponse<PageResponse<TravelNoteVO>> page(Integer status, String keyword, PageRequest request) {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success(travelNoteService.adminPage(status, keyword, request));
@@ -40,6 +42,7 @@ public class TravelNoteAdminController {
 
     @Operation(summary = "笔记详情（管理端，含未发布）")
     @GetMapping("/{id}")
+    @PreAuthorize("@perm.has('content:travel-note:query')")
     public ApiResponse<TravelNoteDetailVO> detail(@PathVariable Long id) {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success(travelNoteService.getDetail(id, null, null, true));
@@ -47,6 +50,7 @@ public class TravelNoteAdminController {
 
     @Operation(summary = "审核：通过→已发布，驳回→已驳回")
     @PostMapping("/{id}/audit")
+    @PreAuthorize("@perm.has('content:travel-note:audit')")
     public ApiResponse<Void> audit(@PathVariable Long id, @Valid @RequestBody TravelNoteAuditDTO dto) {
         adminAuthorizationService.requireAdmin();
         travelNoteService.audit(id, dto.getApproved(), dto.getReason());
@@ -55,6 +59,7 @@ public class TravelNoteAdminController {
 
     @Operation(summary = "置顶/取消置顶")
     @PostMapping("/{id}/top")
+    @PreAuthorize("@perm.has('content:travel-note:edit')")
     public ApiResponse<Void> top(@PathVariable Long id) {
         adminAuthorizationService.requireAdmin();
         travelNoteService.toggleTop(id);
@@ -63,6 +68,7 @@ public class TravelNoteAdminController {
 
     @Operation(summary = "加精/取消加精")
     @PostMapping("/{id}/feature")
+    @PreAuthorize("@perm.has('content:travel-note:edit')")
     public ApiResponse<Void> feature(@PathVariable Long id) {
         adminAuthorizationService.requireAdmin();
         travelNoteService.toggleFeatured(id);
@@ -71,6 +77,7 @@ public class TravelNoteAdminController {
 
     @Operation(summary = "下架")
     @PostMapping("/{id}/offline")
+    @PreAuthorize("@perm.has('content:travel-note:edit')")
     public ApiResponse<Void> offline(@PathVariable Long id) {
         adminAuthorizationService.requireAdmin();
         travelNoteService.offline(id);
@@ -79,6 +86,7 @@ public class TravelNoteAdminController {
 
     @Operation(summary = "数据看板")
     @GetMapping("/stat/overview")
+    @PreAuthorize("@perm.has('content:travel-note:query')")
     public ApiResponse<TravelNoteStatVO> statOverview() {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success(travelNoteService.statOverview());
@@ -88,6 +96,7 @@ public class TravelNoteAdminController {
 
     @Operation(summary = "举报分页")
     @GetMapping("/report/page")
+    @PreAuthorize("@perm.has('content:travel-note-report:list')")
     public ApiResponse<PageResponse<TravelNoteReportVO>> reportPage(Integer status, PageRequest request) {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success(travelNoteService.reportPage(status, request));
@@ -95,6 +104,7 @@ public class TravelNoteAdminController {
 
     @Operation(summary = "处理举报（1-处理并下架笔记 2-驳回举报）")
     @PostMapping("/report/{id}/handle")
+    @PreAuthorize("@perm.has('content:travel-note-report:edit')")
     public ApiResponse<Void> handleReport(@PathVariable Long id, @RequestParam Integer status) {
         Long adminId = adminAuthorizationService.requireAdmin();
         travelNoteService.handleReport(id, status, adminId);
@@ -105,6 +115,7 @@ public class TravelNoteAdminController {
 
     @Operation(summary = "标签分页")
     @GetMapping("/tag/page")
+    @PreAuthorize("@perm.has('content:travel-note-tag:list')")
     public ApiResponse<PageResponse<TravelNoteTag>> tagPage(String keyword, PageRequest request) {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success(travelNoteService.tagPage(keyword, request));
@@ -112,6 +123,7 @@ public class TravelNoteAdminController {
 
     @Operation(summary = "新建标签")
     @PostMapping("/tag")
+    @PreAuthorize("@perm.has('content:travel-note-tag:add')")
     public ApiResponse<Void> createTag(@RequestBody TravelNoteTag tag) {
         adminAuthorizationService.requireAdmin();
         travelNoteService.saveTag(tag);
@@ -120,6 +132,7 @@ public class TravelNoteAdminController {
 
     @Operation(summary = "更新标签")
     @PutMapping("/tag/{id}")
+    @PreAuthorize("@perm.has('content:travel-note-tag:edit')")
     public ApiResponse<Void> updateTag(@PathVariable Long id, @RequestBody TravelNoteTag tag) {
         adminAuthorizationService.requireAdmin();
         tag.setId(id);
@@ -129,6 +142,7 @@ public class TravelNoteAdminController {
 
     @Operation(summary = "删除标签")
     @DeleteMapping("/tag/{id}")
+    @PreAuthorize("@perm.has('content:travel-note-tag:delete')")
     public ApiResponse<Void> deleteTag(@PathVariable Long id) {
         adminAuthorizationService.requireAdmin();
         travelNoteService.deleteTag(id);

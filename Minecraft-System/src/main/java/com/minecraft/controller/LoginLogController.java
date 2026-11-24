@@ -7,6 +7,7 @@ import com.minecraft.service.LoginLogService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -21,6 +22,7 @@ public class LoginLogController {
 
     @Operation(summary ="获取登录日志列表")
     @GetMapping("/list")
+    @PreAuthorize("@perm.has('sys:login-log:list')")
     public ApiResponse<Map<String, Object>> getLoginLogs(
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "20") Integer pageSize,
@@ -38,6 +40,7 @@ public class LoginLogController {
 
     @Operation(summary ="获取登录日志详情")
     @GetMapping("/{id}")
+    @PreAuthorize("@perm.has('sys:login-log:list')")
     public ApiResponse<LoginLog> getLoginLogDetail(@PathVariable Long id) {
         LoginLog loginLog = loginLogService.getLoginLogById(id);
         return ApiResponse.success(loginLog);
@@ -45,6 +48,7 @@ public class LoginLogController {
 
     @Operation(summary ="封禁IP地址")
     @PostMapping("/block-ip")
+    @PreAuthorize("@perm.has('sys:login-log:delete')")
     public ApiResponse<Void> blockIPAddress(
             @RequestParam String ip,
             @RequestParam Integer duration,

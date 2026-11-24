@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -45,6 +46,7 @@ public class LogisticsAdminController {
 
     @Operation(summary = "发货单分页列表（仅纪念品等实物商品）")
     @GetMapping("/shipping/page")
+    @PreAuthorize("@perm.has('travel:logistics:list')")
     public ApiResponse<PageResponse<?>> shippingPage(PageRequest request) {
         adminAuthorizationService.requireAdmin();
         Page<OrderShipping> page = new Page<>(request.getPageNum(), request.getPageSize());
@@ -58,6 +60,7 @@ public class LogisticsAdminController {
 
     @Operation(summary = "待发货订单分页列表（仅纪念品等实物商品，已支付未发货）")
     @GetMapping("/shipping/pending")
+    @PreAuthorize("@perm.has('travel:logistics:list')")
     public ApiResponse<PageResponse<?>> pendingShippingPage(PageRequest request) {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success(orderShippingService.listPendingOrders(request));
@@ -65,6 +68,7 @@ public class LogisticsAdminController {
 
     @Operation(summary = "创建发货单（录入收货信息与运单）")
     @PostMapping("/shipping")
+    @PreAuthorize("@perm.has('travel:logistics:add')")
     public ApiResponse<OrderShipping> createShipping(@Valid @RequestBody ShippingCreateRequest request) {
         Long adminId = adminAuthorizationService.requireAdmin();
         return ApiResponse.success("发货成功", orderShippingService.createShipping(request, adminId));
@@ -72,6 +76,7 @@ public class LogisticsAdminController {
 
     @Operation(summary = "批量发货")
     @PostMapping("/shipping/batch")
+    @PreAuthorize("@perm.has('travel:logistics:add')")
     public ApiResponse<Void> batchShipping(@Valid @RequestBody ShippingBatchRequest request) {
         Long adminId = adminAuthorizationService.requireAdmin();
         orderShippingService.batchCreateShipping(request, adminId);
@@ -80,6 +85,7 @@ public class LogisticsAdminController {
 
     @Operation(summary = "查询发货单轨迹")
     @GetMapping("/shipping/{id}/track")
+    @PreAuthorize("@perm.has('travel:logistics:query')")
     public ApiResponse<List<LogisticsTrackDTO>> shippingTrack(@PathVariable Long id) {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success(logisticsTrackService.listByShipping(id));
@@ -89,6 +95,7 @@ public class LogisticsAdminController {
 
     @Operation(summary = "承运商列表")
     @GetMapping("/carrier/list")
+    @PreAuthorize("@perm.has('travel:logistics:list')")
     public ApiResponse<List<LogisticsCarrier>> carrierList() {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success(carrierMapper.selectList(
@@ -97,6 +104,7 @@ public class LogisticsAdminController {
 
     @Operation(summary = "新增/编辑承运商")
     @PostMapping("/carrier")
+    @PreAuthorize("@perm.has('travel:logistics:add')")
     public ApiResponse<LogisticsCarrier> saveCarrier(@Valid @RequestBody CarrierSaveRequest request) {
         adminAuthorizationService.requireAdmin();
         LogisticsCarrier carrier = new LogisticsCarrier();
@@ -122,6 +130,7 @@ public class LogisticsAdminController {
 
     @Operation(summary = "删除承运商")
     @DeleteMapping("/carrier/{id}")
+    @PreAuthorize("@perm.has('travel:logistics:delete')")
     public ApiResponse<Void> deleteCarrier(@PathVariable Long id) {
         adminAuthorizationService.requireAdmin();
         carrierMapper.deleteById(id);
@@ -132,6 +141,7 @@ public class LogisticsAdminController {
 
     @Operation(summary = "运费模板列表")
     @GetMapping("/freight/list")
+    @PreAuthorize("@perm.has('travel:logistics:list')")
     public ApiResponse<List<FreightTemplate>> freightList() {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success(freightTemplateMapper.selectList(null));
@@ -139,6 +149,7 @@ public class LogisticsAdminController {
 
     @Operation(summary = "新增/编辑运费模板")
     @PostMapping("/freight")
+    @PreAuthorize("@perm.has('travel:logistics:add')")
     public ApiResponse<FreightTemplate> saveFreight(@Valid @RequestBody FreightSaveRequest request) {
         adminAuthorizationService.requireAdmin();
         FreightTemplate template = new FreightTemplate();
@@ -162,6 +173,7 @@ public class LogisticsAdminController {
 
     @Operation(summary = "删除运费模板")
     @DeleteMapping("/freight/{id}")
+    @PreAuthorize("@perm.has('travel:logistics:delete')")
     public ApiResponse<Void> deleteFreight(@PathVariable Long id) {
         adminAuthorizationService.requireAdmin();
         freightTemplateMapper.deleteById(id);

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,6 +36,7 @@ public class AdminInterventionRuleController {
 
     @Operation(summary = "业务干预规则列表（范围/状态/类型可选过滤）")
     @GetMapping
+    @PreAuthorize("@perm.has('reco:intervention:list')")
     public ApiResponse<List<AdminInterventionRuleVO>> list(
             @Parameter(description = "作用范围：attraction/hotel/food/product/ALL，空=全部")
             @RequestParam(required = false) String scopeCategory,
@@ -48,6 +50,7 @@ public class AdminInterventionRuleController {
 
     @Operation(summary = "新建业务干预规则（规则编码全局唯一）")
     @PostMapping
+    @PreAuthorize("@perm.has('reco:intervention:add')")
     public ApiResponse<AdminInterventionRuleVO> create(@RequestBody InterventionRuleParam param) {
         Long operatorId = authorizationService.requireAdmin();
         return ApiResponse.success("规则创建成功（操作人 " + operatorId + "）",
@@ -56,6 +59,7 @@ public class AdminInterventionRuleController {
 
     @Operation(summary = "更新业务干预规则")
     @PutMapping("/{id}")
+    @PreAuthorize("@perm.has('reco:intervention:edit')")
     public ApiResponse<AdminInterventionRuleVO> update(
             @PathVariable Long id,
             @RequestBody InterventionRuleParam param) {
@@ -66,6 +70,7 @@ public class AdminInterventionRuleController {
 
     @Operation(summary = "删除业务干预规则")
     @DeleteMapping("/{id}")
+    @PreAuthorize("@perm.has('reco:intervention:delete')")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         authorizationService.requireAdmin();
         ruleService.delete(id);

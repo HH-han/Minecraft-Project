@@ -18,6 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
@@ -54,7 +55,13 @@ public class UserController {
     @GetMapping("/info")
     public ApiResponse<UserVO> getUserInfo() {
         Long userId = SecurityUtils.getCurrentUserId();
-        return ApiResponse.success(toUserVO(userService.getUserInfo(userId)));
+        UserVO vo = toUserVO(userService.getUserInfo(userId));
+        com.minecraft.security.core.LoginUser loginUser = SecurityUtils.getLoginUser();
+        if (vo != null && loginUser != null) {
+            vo.setRoles(java.util.List.copyOf(loginUser.getRoleCodes()));
+            vo.setSuperAdmin(loginUser.isSuperAdmin());
+        }
+        return ApiResponse.success(vo);
     }
 
     @Operation(summary ="更新用户信息")
@@ -82,6 +89,7 @@ public class UserController {
 
     @Operation(summary ="删除用户")
     @DeleteMapping("/{id}")
+    @PreAuthorize("@perm.has('sys:user:delete')")
     public ApiResponse<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ApiResponse.success("删除成功", null);
@@ -89,6 +97,7 @@ public class UserController {
 
     @Operation(summary ="获取所有用户")
     @GetMapping("/list")
+    @PreAuthorize("@perm.has('sys:user:list')")
     public ApiResponse<List<UserVO>> getAllUsers(@RequestParam(required = false) Integer limit) {
         List<UserVO> users = userService.getAllUsers(limit).stream()
                 .map(this::toUserVO)
@@ -98,6 +107,7 @@ public class UserController {
 
     @Operation(summary ="根据账号获取用户信息")
     @GetMapping("/by-account")
+    @PreAuthorize("@perm.has('sys:user:query')")
     public ApiResponse<UserVO> getUserByAccount(@RequestParam String account) {
         return ApiResponse.success(toUserVO(userService.getUserByAccount(account)));
     }
@@ -111,6 +121,10 @@ public class UserController {
         }
         UserVO vo = new UserVO();
         BeanUtils.copyProperties(user, vo);
+        vo.setUserId(user.getId());
+        vo.setRealName(user.getNickname() != null && !user.getNickname().isBlank()
+                ? user.getNickname()
+                : user.getUsername());
         return vo;
     }
 
@@ -133,6 +147,7 @@ public class UserController {
 
     @Operation(summary ="获取用户总数")
     @GetMapping("/count")
+    @PreAuthorize("@perm.has('sys:user:list')")
     public ApiResponse<Long> getUserCount() {
         long count = userService.getUserCount();
         return ApiResponse.success(count);

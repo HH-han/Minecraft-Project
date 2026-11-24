@@ -4,6 +4,7 @@ import com.minecraft.common.Result;
 import com.minecraft.service.CacheService;
 import com.minecraft.vo.CacheStatsVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public class CacheController {
      * @return 缓存统计信息
      */
     @GetMapping("/stats")
+    @PreAuthorize("@perm.has('ops:cache:list')")
     public Result getCacheStats() {
         CacheStatsVO stats = cacheService.getCacheStats();
         return Result.success(stats);
@@ -34,6 +36,7 @@ public class CacheController {
      * @return 缓存键列表
      */
     @GetMapping("/keys")
+    @PreAuthorize("@perm.has('ops:cache:list')")
     public Result getCacheKeys(@RequestParam(required = false) String pattern) {
         List<String> keys = cacheService.getCacheKeys(pattern);
         return Result.success(keys);
@@ -45,6 +48,7 @@ public class CacheController {
      * @return 缓存值
      */
     @GetMapping("/keys/{key}")
+    @PreAuthorize("@perm.has('ops:cache:list')")
     public Result getCacheDetail(@PathVariable String key) {
         Object value = cacheService.getCacheValue(key);
         return Result.success(value);
@@ -56,6 +60,7 @@ public class CacheController {
      * @return 是否成功
      */
     @DeleteMapping("/keys/{key}")
+    @PreAuthorize("@perm.has('ops:cache:clear')")
     public Result clearCache(@PathVariable String key) {
         boolean success = cacheService.clearCache(key);
         return Result.success(success);
@@ -66,6 +71,7 @@ public class CacheController {
      * @return 是否成功
      */
     @DeleteMapping("/keys")
+    @PreAuthorize("@perm.has('ops:cache:clear')")
     public Result clearAllCache() {
         boolean success = cacheService.clearAllCache();
         return Result.success(success);

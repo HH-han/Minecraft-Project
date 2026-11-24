@@ -4,6 +4,7 @@ import com.minecraft.common.Result;
 import com.minecraft.service.MonitorService;
 import com.minecraft.vo.ServerMonitorVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,6 +24,7 @@ public class MonitorController {
      * @return 服务器监控数据
      */
     @GetMapping
+    @PreAuthorize("@perm.has('ops:monitor:query')")
     public Result getServerMonitor() {
         ServerMonitorVO data = monitorService.getServerMonitorData();
         return Result.success(data);
@@ -33,6 +35,7 @@ public class MonitorController {
      * @return 服务器状态
      */
     @GetMapping("/status")
+    @PreAuthorize("@perm.has('ops:monitor:query')")
     public Result getServerStatus() {
         String status = monitorService.getServerStatus();
         return Result.success(status);

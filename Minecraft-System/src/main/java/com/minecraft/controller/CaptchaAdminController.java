@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,6 +40,7 @@ public class CaptchaAdminController {
 
     @Operation(summary = "分页查询滑块验证记录")
     @GetMapping("/records")
+    @PreAuthorize("@perm.has('sys:captcha:list')")
     public ApiResponse<PageResponse<CaptchaRecordVO>> pageRecords(@Valid CaptchaRecordQuery query) {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success(captchaService.pageRecords(query));
@@ -46,6 +48,7 @@ public class CaptchaAdminController {
 
     @Operation(summary = "查询滑块验证数据概览")
     @GetMapping("/statistics")
+    @PreAuthorize("@perm.has('sys:captcha:list')")
     public ApiResponse<CaptchaStatisticsVO> statistics() {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success(captchaService.statistics());
@@ -53,6 +56,7 @@ public class CaptchaAdminController {
 
     @Operation(summary = "分页查询滑块验证码图片")
     @GetMapping("/images")
+    @PreAuthorize("@perm.has('sys:captcha:list')")
     public ApiResponse<PageResponse<CaptchaImageVO>> pageImages(@Valid CaptchaImageQuery query) {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success(captchaImageService.pageImages(query));
@@ -60,6 +64,7 @@ public class CaptchaAdminController {
 
     @Operation(summary = "上传滑块验证码图片（JPG/PNG，最大 5MB）")
     @PostMapping(value = "/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("@perm.has('sys:captcha:add')")
     public ApiResponse<CaptchaImageVO> uploadImage(@RequestParam("file") MultipartFile file) {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success("上传成功", captchaImageService.upload(file));
@@ -67,6 +72,7 @@ public class CaptchaAdminController {
 
     @Operation(summary = "删除滑块验证码图片")
     @DeleteMapping("/images/{id}")
+    @PreAuthorize("@perm.has('sys:captcha:delete')")
     public ApiResponse<Void> deleteImage(@PathVariable String id) {
         adminAuthorizationService.requireAdmin();
         captchaImageService.delete(id);

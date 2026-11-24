@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,6 +42,7 @@ public class MemberAdminController {
 
     @Operation(summary = "会员等级列表")
     @GetMapping("/levels")
+    @PreAuthorize("@perm.has('member:level:list')")
     public ApiResponse<List<MemberLevel>> levels() {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success(memberAdminService.listLevels());
@@ -50,6 +52,7 @@ public class MemberAdminController {
     @OperationLog(module = "MEMBER", action = "新增会员等级", type = OperationType.ADD,
             detail = "'新增会员等级：' + #level.name")
     @PostMapping("/levels")
+    @PreAuthorize("@perm.has('member:level:add')")
     public ApiResponse<MemberLevel> createLevel(@RequestBody MemberLevel level) {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success("创建成功", memberAdminService.saveLevel(level));
@@ -59,6 +62,7 @@ public class MemberAdminController {
     @OperationLog(module = "MEMBER", action = "更新会员等级", type = OperationType.UPDATE,
             bizId = "#id", detail = "'更新会员等级：' + #level.name")
     @PutMapping("/levels/{id}")
+    @PreAuthorize("@perm.has('member:level:edit')")
     public ApiResponse<MemberLevel> updateLevel(@PathVariable Long id, @RequestBody MemberLevel level) {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success("更新成功", memberAdminService.updateLevel(id, level));
@@ -67,6 +71,7 @@ public class MemberAdminController {
     @Operation(summary = "删除会员等级")
     @OperationLog(module = "MEMBER", action = "删除会员等级", type = OperationType.DELETE, bizId = "#id")
     @DeleteMapping("/levels/{id}")
+    @PreAuthorize("@perm.has('member:level:delete')")
     public ApiResponse<Void> deleteLevel(@PathVariable Long id) {
         adminAuthorizationService.requireAdmin();
         memberAdminService.deleteLevel(id);
@@ -77,6 +82,7 @@ public class MemberAdminController {
 
     @Operation(summary = "会员套餐列表")
     @GetMapping("/packages")
+    @PreAuthorize("@perm.has('member:package:list')")
     public ApiResponse<List<MemberPackage>> packages() {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success(memberAdminService.listPackages());
@@ -84,6 +90,7 @@ public class MemberAdminController {
 
     @Operation(summary = "新增会员套餐")
     @PostMapping("/packages")
+    @PreAuthorize("@perm.has('member:package:add')")
     public ApiResponse<MemberPackage> createPackage(@RequestBody MemberPackage pkg) {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success("创建成功", memberAdminService.savePackage(pkg));
@@ -91,6 +98,7 @@ public class MemberAdminController {
 
     @Operation(summary = "更新会员套餐")
     @PutMapping("/packages/{id}")
+    @PreAuthorize("@perm.has('member:package:edit')")
     public ApiResponse<MemberPackage> updatePackage(@PathVariable Long id, @RequestBody MemberPackage pkg) {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success("更新成功", memberAdminService.updatePackage(id, pkg));
@@ -98,6 +106,7 @@ public class MemberAdminController {
 
     @Operation(summary = "删除会员套餐")
     @DeleteMapping("/packages/{id}")
+    @PreAuthorize("@perm.has('member:package:delete')")
     public ApiResponse<Void> deletePackage(@PathVariable Long id) {
         adminAuthorizationService.requireAdmin();
         memberAdminService.deletePackage(id);
@@ -108,6 +117,7 @@ public class MemberAdminController {
 
     @Operation(summary = "会员订单分页")
     @GetMapping("/orders/page")
+    @PreAuthorize("@perm.has('member:order:list')")
     public ApiResponse<PageResponse<MemberOrderVO>> orderPage(
             PageRequest request,
             @RequestParam(required = false) Integer status,
@@ -120,6 +130,7 @@ public class MemberAdminController {
     @OperationLog(module = "MEMBER", action = "会员订单退款", type = OperationType.UPDATE,
             bizId = "#id", detail = "'会员订单退款'")
     @PostMapping("/orders/{id}/refund")
+    @PreAuthorize("@perm.has('member:order:edit')")
     public ApiResponse<Void> refundOrder(@PathVariable Long id) {
         adminAuthorizationService.requireAdmin();
         memberAdminService.refundOrder(id);
@@ -130,6 +141,7 @@ public class MemberAdminController {
 
     @Operation(summary = "会员用户分页")
     @GetMapping("/users/page")
+    @PreAuthorize("@perm.has('member:user:list')")
     public ApiResponse<PageResponse<MemberUserVO>> userPage(
             PageRequest request,
             @RequestParam(required = false) String keyword) {
@@ -142,6 +154,7 @@ public class MemberAdminController {
             bizId = "#userId",
             detail = "'成长值调整：' + #dto.changeValue + (#dto.remark != null ? '，备注：' + #dto.remark : '')")
     @PostMapping("/users/{userId}/growth")
+    @PreAuthorize("@perm.has('member:growth:edit')")
     public ApiResponse<Void> adjustGrowth(@PathVariable Long userId,
                                           @Valid @RequestBody MemberGrowthAdjustDTO dto) {
         adminAuthorizationService.requireAdmin();
@@ -153,6 +166,7 @@ public class MemberAdminController {
     @OperationLog(module = "MEMBER", action = "设置会员等级", type = OperationType.UPDATE,
             bizId = "#userId", detail = "'会员等级设置为：' + #dto.levelId")
     @PostMapping("/users/{userId}/level")
+    @PreAuthorize("@perm.has('member:user:edit')")
     public ApiResponse<Void> setLevel(@PathVariable Long userId,
                                       @Valid @RequestBody MemberLevelSetDTO dto) {
         adminAuthorizationService.requireAdmin();
@@ -165,6 +179,7 @@ public class MemberAdminController {
             bizId = "#userId",
             detail = "'发放会员权益：' + #dto.benefitType + (#dto.content != null ? '，内容：' + #dto.content : '')")
     @PostMapping("/users/{userId}/benefit")
+    @PreAuthorize("@perm.has('member:user:edit')")
     public ApiResponse<MemberBenefitRecord> grantBenefit(@PathVariable Long userId,
                                                          @Valid @RequestBody MemberBenefitGrantDTO dto) {
         adminAuthorizationService.requireAdmin();
@@ -176,6 +191,7 @@ public class MemberAdminController {
 
     @Operation(summary = "成长值流水分页")
     @GetMapping("/growth/page")
+    @PreAuthorize("@perm.has('member:growth:list')")
     public ApiResponse<PageResponse<MemberGrowthRecordVO>> growthPage(
             PageRequest request,
             @RequestParam(required = false) Long userId,
@@ -186,6 +202,7 @@ public class MemberAdminController {
 
     @Operation(summary = "签到记录分页")
     @GetMapping("/sign/page")
+    @PreAuthorize("@perm.has('member:sign:list')")
     public ApiResponse<PageResponse<MemberSignRecord>> signPage(
             PageRequest request,
             @RequestParam(required = false) Long userId) {

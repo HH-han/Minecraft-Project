@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -31,6 +32,7 @@ public class AnnouncementAdminController {
 
     @Operation(summary = "分页查询公告（含草稿/已下架）")
     @GetMapping
+    @PreAuthorize("@perm.has('content:announcement:list')")
     public ApiResponse<PageResponse<AnnouncementVO>> page(AnnouncementQueryRequest request) {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success(announcementService.pageForAdmin(request));
@@ -38,6 +40,7 @@ public class AnnouncementAdminController {
 
     @Operation(summary = "新建公告（status=1 立即发布，指定未来 publishTime 为定时发布）")
     @PostMapping
+    @PreAuthorize("@perm.has('content:announcement:add')")
     public ApiResponse<Long> save(@Valid @RequestBody AnnouncementSaveRequest request) {
         Long adminId = adminAuthorizationService.requireAdmin();
         return ApiResponse.success("创建成功",
@@ -46,6 +49,7 @@ public class AnnouncementAdminController {
 
     @Operation(summary = "修改公告")
     @PutMapping("/{id}")
+    @PreAuthorize("@perm.has('content:announcement:edit')")
     public ApiResponse<Void> update(@PathVariable Long id, @Valid @RequestBody AnnouncementSaveRequest request) {
         Long adminId = adminAuthorizationService.requireAdmin();
         request.setId(id);
@@ -55,6 +59,7 @@ public class AnnouncementAdminController {
 
     @Operation(summary = "删除公告（逻辑删除）")
     @DeleteMapping("/{id}")
+    @PreAuthorize("@perm.has('content:announcement:delete')")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         adminAuthorizationService.requireAdmin();
         announcementService.deleteAnnouncement(id);
@@ -63,6 +68,7 @@ public class AnnouncementAdminController {
 
     @Operation(summary = "发布公告")
     @PostMapping("/{id}/publish")
+    @PreAuthorize("@perm.has('content:announcement:publish')")
     public ApiResponse<Void> publish(@PathVariable Long id) {
         adminAuthorizationService.requireAdmin();
         announcementService.publish(id);
@@ -71,6 +77,7 @@ public class AnnouncementAdminController {
 
     @Operation(summary = "下架公告")
     @PostMapping("/{id}/offline")
+    @PreAuthorize("@perm.has('content:announcement:publish')")
     public ApiResponse<Void> offline(@PathVariable Long id) {
         adminAuthorizationService.requireAdmin();
         announcementService.offline(id);
@@ -79,6 +86,7 @@ public class AnnouncementAdminController {
 
     @Operation(summary = "置顶/取消置顶")
     @PostMapping("/{id}/top")
+    @PreAuthorize("@perm.has('content:announcement:edit')")
     public ApiResponse<Void> top(@PathVariable Long id, @RequestParam Integer isTop) {
         adminAuthorizationService.requireAdmin();
         announcementService.toggleTop(id, isTop);
@@ -87,6 +95,7 @@ public class AnnouncementAdminController {
 
     @Operation(summary = "阅读统计（浏览量/已读数/阅读率）")
     @GetMapping("/{id}/read-stat")
+    @PreAuthorize("@perm.has('content:announcement:query')")
     public ApiResponse<AnnouncementStatVO> readStat(@PathVariable Long id) {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success(announcementService.getReadStat(id));

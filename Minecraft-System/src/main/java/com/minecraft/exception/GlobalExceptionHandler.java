@@ -61,6 +61,28 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 已登录但缺少接口权限（@PreAuthorize 校验失败）。
+     * 记录越权日志，便于安全审计与告警。
+     */
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ApiResponse<?> handleAccessDeniedException(
+            org.springframework.security.access.AccessDeniedException e,
+            jakarta.servlet.http.HttpServletRequest request) {
+        com.minecraft.security.core.LoginUser loginUser = com.minecraft.utils.SecurityUtils.getLoginUser();
+        String who = loginUser == null ? "匿名用户" : loginUser.getUsername() + "(" + loginUser.getUserId() + ")";
+        systemLogService.recordError("安全", "越权访问",
+                "用户 " + who + " 访问 " + request.getMethod() + " " + request.getRequestURI() + " 被拒绝：" + e.getMessage(), e);
+        return ApiResponse.error(403, "没有权限访问该资源");
+    }
+
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    public ApiResponse<?> handleAuthenticationException(
+            org.springframework.security.core.AuthenticationException e) {
+        return ApiResponse.error(401, "登录状态已失效，请重新登录");
+    }
+
+
+    /**
      * SSE 长连接（如 /announcement/sse）30 分钟超时。
      * 此时响应 Content-Type 已预设为 text/event-stream，无法再序列化 ApiResponse JSON，
      * 若落入通用 handleException 会触发 HttpMessageNotWritableException 二次异常并产生垃圾错误日志。

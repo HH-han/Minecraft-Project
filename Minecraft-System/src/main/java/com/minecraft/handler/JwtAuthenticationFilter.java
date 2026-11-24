@@ -1,5 +1,7 @@
 package com.minecraft.handler;
 
+import com.minecraft.security.core.LoginUser;
+import com.minecraft.service.UserPermissionService;
 import com.minecraft.utils.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -14,16 +16,24 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
 
+/**
+ * JWT 认证过滤器。
+ *
+ * <p>Token 仅用于识别用户身份，权限由 {@link UserPermissionService} 从 Redis/数据库加载，
+ * 保证动态调权即时生效。</p>
+ */
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     private final JwtUtil jwtUtil;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
+    private final UserPermissionService userPermissionService;
+
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserPermissionService userPermissionService) {
         this.jwtUtil = jwtUtil;
+        this.userPermissionService = userPermissionService;
     }
 
     @Override
@@ -35,14 +45,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // 解析时会校验签名与过期时间，一次解析即可，避免重复 parse
                 Long userId = jwtUtil.getUserId(jwt);
 
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userId,
-                        null,
-                        Collections.emptyList()
-                );
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                LoginUser loginUser = userPermissionService.loadUserAuth(userId);
+                if (loginUser != null && loginUser.isEnabled()) {
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            loginUser,
+                            null,
+                            loginUser.getAuthorities()
+                    );
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
             }
         } catch (Exception e) {
             // 非法/过期 token 属于常态，降为 debug，避免刷日志

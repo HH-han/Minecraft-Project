@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,6 +36,7 @@ public class AdminRecommendationRuleController {
 
     @Operation(summary = "查看某分类的干预规则列表（附带物品名称/城市）")
     @GetMapping("/{category}")
+    @PreAuthorize("@perm.has('reco:rule:list')")
     public ApiResponse<List<AdminRecommendationRuleVO>> list(
             @PathVariable String category,
             @Parameter(description = "状态过滤：1启用 0停用，空=全部")
@@ -45,6 +47,7 @@ public class AdminRecommendationRuleController {
 
     @Operation(summary = "新建干预规则（同分类同物品仅允许一条）")
     @PostMapping
+    @PreAuthorize("@perm.has('reco:rule:add')")
     public ApiResponse<AdminRecommendationRuleVO> create(@RequestBody RecommendationRuleParam param) {
         Long operatorId = authorizationService.requireAdmin();
         return ApiResponse.success("规则创建成功（操作人 " + operatorId + "）",
@@ -53,6 +56,7 @@ public class AdminRecommendationRuleController {
 
     @Operation(summary = "更新干预规则")
     @PutMapping("/{id}")
+    @PreAuthorize("@perm.has('reco:rule:edit')")
     public ApiResponse<AdminRecommendationRuleVO> update(
             @PathVariable Long id,
             @RequestBody RecommendationRuleParam param) {
@@ -63,6 +67,7 @@ public class AdminRecommendationRuleController {
 
     @Operation(summary = "删除干预规则")
     @DeleteMapping("/{id}")
+    @PreAuthorize("@perm.has('reco:rule:delete')")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         authorizationService.requireAdmin();
         ruleService.delete(id);

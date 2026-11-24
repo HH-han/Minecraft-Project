@@ -19,6 +19,7 @@ import com.minecraft.service.RailwayStationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,6 +54,7 @@ public class RailwayAdminController {
 
     @Operation(summary = "车站列表")
     @GetMapping("/stations")
+    @PreAuthorize("@perm.has('travel:railway:list')")
     public ApiResponse<List<RailwayStation>> stations(
             @RequestParam(required = false) String keyword) {
         return ApiResponse.success(adminService.listStations(keyword));
@@ -60,12 +62,14 @@ public class RailwayAdminController {
 
     @Operation(summary = "全部车站字典")
     @GetMapping("/stations/all")
+    @PreAuthorize("@perm.has('travel:railway:list')")
     public ApiResponse<List<RailwayStation>> allStations() {
         return ApiResponse.success(stationService.listAll());
     }
 
     @Operation(summary = "新增车站")
     @PostMapping("/stations")
+    @PreAuthorize("@perm.has('travel:railway:add')")
     public ApiResponse<RailwayStation> addStation(@RequestBody RailwayStation station) {
         station.setId(null);
         return ApiResponse.success("新增成功", adminService.saveStation(station));
@@ -73,6 +77,7 @@ public class RailwayAdminController {
 
     @Operation(summary = "更新车站")
     @PutMapping("/stations/{id}")
+    @PreAuthorize("@perm.has('travel:railway:edit')")
     public ApiResponse<RailwayStation> updateStation(@PathVariable Long id,
                                                      @RequestBody RailwayStation station) {
         station.setId(id);
@@ -81,6 +86,7 @@ public class RailwayAdminController {
 
     @Operation(summary = "删除车站")
     @DeleteMapping("/stations/{id}")
+    @PreAuthorize("@perm.has('travel:railway:delete')")
     public ApiResponse<Void> deleteStation(@PathVariable Long id) {
         adminService.deleteStation(id);
         return ApiResponse.success("删除成功", null);
@@ -90,6 +96,7 @@ public class RailwayAdminController {
 
     @Operation(summary = "车次列表")
     @GetMapping("/trains")
+    @PreAuthorize("@perm.has('travel:railway:list')")
     public ApiResponse<List<RailwayTrainAdminVO>> trains(
             @RequestParam(required = false) String keyword) {
         return ApiResponse.success(adminService.listTrains(keyword));
@@ -97,6 +104,7 @@ public class RailwayAdminController {
 
     @Operation(summary = "新增车次")
     @PostMapping("/trains")
+    @PreAuthorize("@perm.has('travel:railway:add')")
     public ApiResponse<RailwayTrain> addTrain(@RequestBody RailwayTrain train) {
         train.setId(null);
         return ApiResponse.success("新增成功", adminService.saveTrain(train));
@@ -104,6 +112,7 @@ public class RailwayAdminController {
 
     @Operation(summary = "更新车次")
     @PutMapping("/trains/{id}")
+    @PreAuthorize("@perm.has('travel:railway:edit')")
     public ApiResponse<RailwayTrain> updateTrain(@PathVariable Long id,
                                                  @RequestBody RailwayTrain train) {
         train.setId(id);
@@ -112,6 +121,7 @@ public class RailwayAdminController {
 
     @Operation(summary = "删除车次")
     @DeleteMapping("/trains/{id}")
+    @PreAuthorize("@perm.has('travel:railway:delete')")
     public ApiResponse<Void> deleteTrain(@PathVariable Long id) {
         adminService.deleteTrain(id);
         return ApiResponse.success("删除成功", null);
@@ -119,12 +129,14 @@ public class RailwayAdminController {
 
     @Operation(summary = "车次经停站")
     @GetMapping("/trains/{id}/stops")
+    @PreAuthorize("@perm.has('travel:railway:query')")
     public ApiResponse<List<RailwayTrainStopAdminVO>> trainStops(@PathVariable Long id) {
         return ApiResponse.success(adminService.getTrainStops(id));
     }
 
     @Operation(summary = "保存车次经停站")
     @PutMapping("/trains/{id}/stops")
+    @PreAuthorize("@perm.has('travel:railway:edit')")
     public ApiResponse<Void> saveTrainStops(@PathVariable Long id,
                                             @RequestBody List<RailwayTrainStop> stops) {
         adminService.saveTrainStops(id, stops);
@@ -135,6 +147,7 @@ public class RailwayAdminController {
 
     @Operation(summary = "运行车次列表")
     @GetMapping("/services")
+    @PreAuthorize("@perm.has('travel:railway:list')")
     public ApiResponse<List<RailwayServiceAdminVO>> services(
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -146,6 +159,7 @@ public class RailwayAdminController {
 
     @Operation(summary = "批量生成排班与库存")
     @PostMapping("/services/generate")
+    @PreAuthorize("@perm.has('travel:railway:publish')")
     public ApiResponse<Integer> generateServices(
             @RequestBody(required = false) RailwayGenerateRequest request) {
         int created = adminService.generateServices(request == null ? new RailwayGenerateRequest() : request);
@@ -154,6 +168,7 @@ public class RailwayAdminController {
 
     @Operation(summary = "区间库存明细")
     @GetMapping("/inventory")
+    @PreAuthorize("@perm.has('travel:railway:query')")
     public ApiResponse<List<RailwayInventoryVO>> inventory(@RequestParam Long serviceId) {
         return ApiResponse.success(adminService.listInventory(serviceId));
     }
@@ -162,6 +177,7 @@ public class RailwayAdminController {
 
     @Operation(summary = "全部铁路订单")
     @GetMapping("/orders")
+    @PreAuthorize("@perm.has('travel:railway:list')")
     public ApiResponse<PageResponse<RailwayOrderVO>> orders(
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "10") Integer pageSize,
@@ -172,12 +188,14 @@ public class RailwayAdminController {
 
     @Operation(summary = "铁路经营统计")
     @GetMapping("/stats")
+    @PreAuthorize("@perm.has('travel:railway:query')")
     public ApiResponse<RailwayAdminStatsVO> stats() {
         return ApiResponse.success(adminService.stats());
     }
 
     @Operation(summary = "收入趋势")
     @GetMapping("/stats/trend")
+    @PreAuthorize("@perm.has('travel:railway:query')")
     public ApiResponse<List<RailwayTrendVO>> revenueTrend(
             @RequestParam(defaultValue = "7") Integer days) {
         return ApiResponse.success(adminService.revenueTrend(days));

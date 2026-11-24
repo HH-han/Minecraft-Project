@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,6 +43,7 @@ public class AdminRecommendationController {
 
     @Operation(summary = "查看全部推荐参数")
     @GetMapping("/config")
+    @PreAuthorize("@perm.has('reco:config:list')")
     public ApiResponse<List<RecommendationConfig>> listConfig() {
         authorizationService.requireAdmin();
         return ApiResponse.success(adminService.listConfig());
@@ -49,6 +51,7 @@ public class AdminRecommendationController {
 
     @Operation(summary = "批量更新推荐参数（整体校验，任一非法全部不落库）")
     @PutMapping("/config")
+    @PreAuthorize("@perm.has('reco:config:edit')")
     public ApiResponse<Void> updateConfig(@RequestBody List<ConfigUpdateParam> updates) {
         Long operatorId = authorizationService.requireAdmin();
         adminService.updateConfig(updates, operatorId);
@@ -57,6 +60,7 @@ public class AdminRecommendationController {
 
     @Operation(summary = "恢复参数默认值（category 为空时重置全局参数）")
     @PostMapping("/config/reset")
+    @PreAuthorize("@perm.has('reco:config:edit')")
     public ApiResponse<Void> resetConfig(
             @Parameter(description = "分类编码，空=全局")
             @RequestParam(required = false) String category) {
@@ -69,6 +73,7 @@ public class AdminRecommendationController {
 
     @Operation(summary = "分页查看推荐物品行")
     @GetMapping("/items/{category}")
+    @PreAuthorize("@perm.has('reco:item:list')")
     public ApiResponse<List<AdminRecommendationItemVO>> listItems(
             @PathVariable String category,
             @RequestParam(required = false, defaultValue = "1") Integer page,
@@ -79,6 +84,7 @@ public class AdminRecommendationController {
 
     @Operation(summary = "人工干预：置顶/加权/上下线")
     @PutMapping("/items/{category}/{itemId}/feature")
+    @PreAuthorize("@perm.has('reco:item:edit')")
     public ApiResponse<AdminRecommendationItemVO> featureItem(
             @PathVariable String category,
             @PathVariable Long itemId,
@@ -92,6 +98,7 @@ public class AdminRecommendationController {
 
     @Operation(summary = "触发推荐重算（category 为空时重算全部分类，同步返回结果）")
     @PostMapping("/recalc")
+    @PreAuthorize("@perm.has('reco:job:add')")
     public ApiResponse<RecalcResult> recalc(
             @Parameter(description = "分类编码，空=全量")
             @RequestParam(required = false) String category) {
@@ -101,6 +108,7 @@ public class AdminRecommendationController {
 
     @Operation(summary = "查看最近重算任务日志")
     @GetMapping("/jobs")
+    @PreAuthorize("@perm.has('reco:job:list')")
     public ApiResponse<List<RecommendationJobLog>> listJobs(
             @RequestParam(required = false) String category,
             @RequestParam(required = false, defaultValue = "20") Integer limit) {
@@ -112,6 +120,7 @@ public class AdminRecommendationController {
 
     @Operation(summary = "推荐效果分析看板")
     @GetMapping("/analytics")
+    @PreAuthorize("@perm.has('reco:analytics:list')")
     public ApiResponse<RecommendationAnalyticsVO> analytics(
             @RequestParam(required = false) String category,
             @RequestParam(required = false, defaultValue = "7") Integer windowDays) {
@@ -121,6 +130,7 @@ public class AdminRecommendationController {
 
     @Operation(summary = "查看定时重算任务状态")
     @GetMapping("/schedule")
+    @PreAuthorize("@perm.has('reco:job:list')")
     public ApiResponse<RecommendationScheduleStatusVO> scheduleStatus() {
         authorizationService.requireAdmin();
         return ApiResponse.success(adminService.scheduleStatus());

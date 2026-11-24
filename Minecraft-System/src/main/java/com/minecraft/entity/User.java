@@ -10,6 +10,15 @@ import java.time.LocalDateTime;
 public class User {
     @TableId(type = IdType.AUTO)
     private Long id;
+
+    /** 部门ID（数据权限用） */
+    private Long deptId;
+
+    /** 租户ID（预留） */
+    private Long tenantId;
+
+    /** 是否超级管理员 1是 */
+    private Integer superAdmin;
     
     private String account;
     

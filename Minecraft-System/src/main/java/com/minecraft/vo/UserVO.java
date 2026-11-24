@@ -3,10 +3,15 @@ package com.minecraft.vo;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class UserVO {
     private Long id;
+    /** 前端（Vben）使用的用户ID字段别名 */
+    private Long userId;
+    private Long deptId;
+    private Long tenantId;
     private String account;
     private String username;
     private String email;
@@ -27,5 +32,11 @@ public class UserVO {
     private Integer status;
     /** 积分余额 */
     private Integer points;
+    /** 角色编码（RBAC） */
+    private List<String> roles;
+    /** 是否超级管理员 */
+    private Boolean superAdmin;
+    /** 前端（Vben）展示名称 */
+    private String realName;
     private LocalDateTime createTime;
 }

@@ -63,6 +63,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Autowired
     private EmailUtil emailUtil;
 
+    @Autowired
+    private com.minecraft.service.UserPermissionService userPermissionService;
+
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
@@ -121,6 +124,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
 
         String token = jwtUtil.generateToken(user.getId(), username);
+
+        // 预热 RBAC 权限缓存，登录后前端立即可以拿到权限码
+        userPermissionService.loadUserAuth(user.getId());
 
         LoginResponse response = new LoginResponse();
         response.setToken(token);
@@ -325,6 +331,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 清除用户登录缓存
         String cacheKey = "login:user:" + user.getAccount();
         redisUtil.delete(cacheKey);
+        if (user.getId() != null) {
+            userPermissionService.evictUser(user.getId());
+        }
     }
 
     @Override
@@ -339,6 +348,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 清除用户登录缓存
         String cacheKey = "login:user:" + user.getAccount();
         redisUtil.delete(cacheKey);
+        userPermissionService.evictUser(userId);
     }
 
     @Override
@@ -389,6 +399,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             }
             // 删除用户
             removeById(userId);
+            userPermissionService.evictUser(userId);
         }
     }
 
@@ -465,6 +476,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             } catch (Exception e) {
                 log.warn("强制下线用户 {}：登录缓存清理失败: {}", userId, e.getMessage());
             }
+            userPermissionService.evictUser(userId);
         }
     }
 
@@ -574,7 +586,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         
         String token = jwtUtil.generateToken(user.getId(), username);
-        
+
+        userPermissionService.loadUserAuth(user.getId());
+
         LoginResponse response = new LoginResponse();
         response.setToken(token);
         response.setUserId(user.getId());

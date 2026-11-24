@@ -10,6 +10,7 @@ import com.minecraft.service.RefundService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -26,6 +27,7 @@ public class RefundAdminController {
 
     @Operation(summary = "退款单列表")
     @GetMapping("/page")
+    @PreAuthorize("@perm.has('travel:refund:list')")
     public ApiResponse<PageResponse<?>> page(PageRequest request) {
         adminAuthorizationService.requireAdmin();
         return ApiResponse.success(refundService.page(request));
@@ -36,6 +38,7 @@ public class RefundAdminController {
             bizId = "#id",
             detail = "'退款结果：' + (#success ? '成功' : '失败') + (#failReason != null ? '，原因：' + #failReason : '')")
     @PostMapping("/{id}/notify")
+    @PreAuthorize("@perm.has('travel:refund:edit')")
     public ApiResponse<Void> notify(@PathVariable Long id,
                                     @RequestParam boolean success,
                                     @RequestParam(required = false) String channelRefundNo,

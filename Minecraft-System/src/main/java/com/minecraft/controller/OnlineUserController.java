@@ -5,6 +5,7 @@ import com.minecraft.service.OnlineUserService;
 import com.minecraft.vo.OnlineUserVO;
 import com.minecraft.vo.UserStatsVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,6 +27,7 @@ public class OnlineUserController {
      * @return 在线用户列表
      */
     @GetMapping
+    @PreAuthorize("@perm.has('ops:online-user:list')")
     public Result getOnlineUsers(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -38,6 +40,7 @@ public class OnlineUserController {
      * @return 用户统计信息
      */
     @GetMapping("/stats")
+    @PreAuthorize("@perm.has('ops:online-user:list')")
     public Result getUserStats() {
         UserStatsVO stats = onlineUserService.getUserStats();
         return Result.success(stats);
@@ -49,6 +52,7 @@ public class OnlineUserController {
      * @return 是否成功
      */
     @PostMapping("/logout/{userId}")
+    @PreAuthorize("@perm.has('ops:online-user:delete')")
     public Result forceLogout(@PathVariable Long userId) {
         boolean success = onlineUserService.forceLogout(userId);
         return Result.success(success);
@@ -61,6 +65,7 @@ public class OnlineUserController {
      * @return 活动日志
      */
     @GetMapping("/activity")
+    @PreAuthorize("@perm.has('ops:online-user:list')")
     public Result getUserActivity(
             @RequestParam(required = false) Long userId,
             @RequestParam(defaultValue = "7") int days) {
