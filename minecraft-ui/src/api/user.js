@@ -46,6 +46,17 @@ export const getUserByAccount = (account) => {
     }
   })
 }
+
+// 根据账号查询头像（公开接口，仅返回头像，用于登录页未登录状态下的头像回显）
+export const getUserAvatar = (account) => {
+  return request.get('/user/avatar', {
+    params: {
+      account
+    },
+    // 安静请求：限流/异常时不弹全局提示，由调用方回退默认头像
+    silent: true
+  })
+}
 // 退出登录
 export const logout = () => {
   return request.post('/user/logout')

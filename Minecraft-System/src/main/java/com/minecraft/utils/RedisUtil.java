@@ -203,4 +203,12 @@ public class RedisUtil {
     public Boolean setIfAbsent(String key, Object value) {
         return redisTemplate.opsForValue().setIfAbsent(key, value);
     }
+
+    /**
+     * 自增计数（用于固定窗口限流）。
+     * 注意：底层使用 Redis INCR，要求键值为整数；首次自增后可配合 expire 设置窗口。
+     */
+    public Long increment(String key, long delta) {
+        return redisTemplate.opsForValue().increment(key, delta);
+    }
 }

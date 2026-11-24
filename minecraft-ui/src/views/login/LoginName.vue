@@ -90,7 +90,7 @@
                 <transition name="fade" mode="out-in">
                   <img :key="loginForm.hasInput ? 'user' : 'default'"
                     :src="loginForm.hasInput ? loginForm.image : defaultAvatar" alt="用户头像"
-                    class="loginpage-avatar-img" />
+                    class="loginpage-avatar-img" @error="loginForm.image = defaultAvatar" />
                 </transition>
               </div>
             </div>
@@ -354,7 +354,10 @@
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { login, register } from '@/api/auth.js';
-import { getUserByAccount } from '@/api/user.js';
+import { getUserAvatar } from '@/api/user.js';
+import { getUserInfo } from '@/utils/storage.js';
+import { normalizeImageUrl } from '@/utils/imageUrl.js';
+import { useDebounceFn } from '@/hooks/useDebounce.js';
 import Login_background from '@/components/LoginComponent/Login_background.vue';
 import LoginLayoutSwitching from '@/components/LoginComponent/LoginLayoutSwitching.vue';
 import LoginSucceeded from '@/components/PromptComponent/LoginSucceeded.vue';
@@ -524,31 +527,52 @@ const showForgotPassword = () => {
   router.push('/login/ForgotPassword');
 };
 
-// 用户名输入处理
-const handleUsernameInput = async () => {
+// 查询头像（公开接口）：未登录也可使用，后端会按 IP 限流且只返回头像字段
+const requestAvatar = async (account) => {
+  try {
+    const response = await getUserAvatar(account);
+    // 输入内容已变化时丢弃过期结果，避免头像错位
+    if (loginForm.value.username.trim() !== account) return;
+    if (response?.code === 200 && response.data?.avatar) {
+      loginForm.value.image = normalizeImageUrl(response.data.avatar, defaultAvatar);
+    }
+  } catch {
+    // 网络异常或触发限流时静默回退默认头像
+  }
+};
+const { debouncedFn: queryAvatar, cancel: cancelAvatarQuery } = useDebounceFn(
+  requestAvatar,
+  350
+);
+
+// 用户名输入处理：先用本地缓存快速回显，再防抖查询公开头像接口
+const handleUsernameInput = () => {
   const account = loginForm.value.username.trim();
   loginForm.value.hasInput = account !== '';
 
-  if (account) {
-    try {
-      // 调用后端API获取用户信息
-      const response = await getUserByAccount(account);
-      if (response.code === 200 && response.data) {
-        loginForm.value.image = response.data.avatar || defaultAvatar;
-      } else {
-        // 用户不存在，使用默认头像
-        loginForm.value.image = defaultAvatar;
-      }
-    } catch (error) {
-      // 网络错误或其他问题，使用默认头像
-      loginForm.value.image = defaultAvatar;
-      console.error('获取用户信息失败:', error);
-    }
-  } else {
-    // 输入为空，使用默认头像
+  if (!account) {
+    cancelAvatarQuery();
     loginForm.value.image = defaultAvatar;
+    return;
   }
+
+  const cachedUser = getUserInfo();
+  const matched =
+    cachedUser &&
+    [cachedUser.account, cachedUser.username].filter(Boolean)
+      .some((field) => String(field) === account);
+  loginForm.value.image =
+    matched && cachedUser.avatar
+      ? normalizeImageUrl(cachedUser.avatar, defaultAvatar)
+      : defaultAvatar;
+
+  queryAvatar(account);
 };
+
+// 卸载时清理未触发的头像查询防抖任务
+onUnmounted(() => {
+  cancelAvatarQuery();
+});
 
 const handleVerificationSuccess = () => {
   verificationPassed.value = true;
@@ -780,6 +804,7 @@ onMounted(() => {
   const rememberedUsername = localStorage.getItem('rememberedUsername');
   if (rememberedUsername) {
     loginForm.value.username = rememberedUsername;
+    handleUsernameInput();
   }
 });
 </script>
