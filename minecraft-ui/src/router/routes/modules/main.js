@@ -23,7 +23,7 @@ export default [
     component: () => import('@/views/WorldTravel/index.vue'),
     meta: {
       title: '世界旅行',
-      requiresAuth: true,
+      requiresAuth: false,
       nav: 'main',
       navLabel: '目的地',
       navLabelKey: 'header.nav.destination',
