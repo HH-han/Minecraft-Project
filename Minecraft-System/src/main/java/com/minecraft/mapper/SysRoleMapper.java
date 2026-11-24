@@ -2,10 +2,12 @@ package com.minecraft.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.minecraft.entity.SysRole;
+import com.minecraft.vo.UserRoleRowVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
+import java.util.Collection;
 import java.util.List;
 
 @Mapper
@@ -25,4 +27,13 @@ public interface SysRoleMapper extends BaseMapper<SysRole> {
     /** 角色下用户ID */
     @Select("SELECT user_id FROM sys_user_role WHERE role_id = #{roleId}")
     List<Long> selectUserIdsByRole(@Param("roleId") Long roleId);
+
+    /** 批量查询多个用户的角色（用于用户列表展示） */
+    @Select("<script>"
+            + "SELECT ur.user_id AS userId, r.id AS roleId, r.code AS roleCode, r.name AS roleName "
+            + "FROM sys_user_role ur INNER JOIN sys_role r ON r.id = ur.role_id "
+            + "WHERE r.deleted = 0 AND ur.user_id IN "
+            + "<foreach collection='userIds' item='userId' open='(' separator=',' close=')'>#{userId}</foreach>"
+            + "</script>")
+    List<UserRoleRowVO> selectRolesByUserIds(@Param("userIds") Collection<Long> userIds);
 }

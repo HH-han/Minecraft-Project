@@ -12,6 +12,7 @@ import com.minecraft.mapper.SysRoleMapper;
 import com.minecraft.mapper.SysUserRoleMapper;
 import com.minecraft.mapper.UserMapper;
 import com.minecraft.utils.SecurityUtils;
+import com.minecraft.vo.UserRoleRowVO;
 import com.minecraft.vo.UserVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -20,8 +21,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -61,6 +66,18 @@ public class SysUserService {
         return userRoleMapper.selectList(
                         new LambdaQueryWrapper<SysUserRole>().eq(SysUserRole::getUserId, userId))
                 .stream().map(SysUserRole::getRoleId).toList();
+    }
+
+    /** 批量查询用户角色，返回 userId -> 角色行 */
+    public Map<Long, List<UserRoleRowVO>> getRolesByUserIds(Collection<Long> userIds) {
+        Map<Long, List<UserRoleRowVO>> result = new HashMap<>();
+        if (CollectionUtils.isEmpty(userIds)) {
+            return result;
+        }
+        for (UserRoleRowVO row : roleMapper.selectRolesByUserIds(userIds)) {
+            result.computeIfAbsent(row.getUserId(), key -> new ArrayList<>()).add(row);
+        }
+        return result;
     }
 
     @Transactional(rollbackFor = Exception.class)

@@ -39,8 +39,14 @@ export interface UserDetail {
   status: number;
   /** 是否在线 */
   online: boolean;
-  /** 权限码列表 */
-  permissions: string[];
+  /** 权限码列表（历史字段） */
+  permissions: string;
+  /** RBAC 角色编码 */
+  roles?: string[];
+  /** RBAC 角色名称 */
+  roleNames?: string[];
+  /** 是否超级管理员 */
+  superAdmin?: boolean;
   /** 创建时间（时间戳或字符串） */
   createTime: number | string;
   /** 更新时间（时间戳或字符串） */
@@ -92,6 +98,11 @@ export const deleteUser = (id: number | string): Promise<any> => {
 // 获取所有用户
 export const getAllUsers = (): Promise<any> => {
   return requestClient.get('/user/list');
+};
+
+// 根据账号获取用户（用于新增后回查用户ID）
+export const getUserByAccount = (account: string): Promise<any> => {
+  return requestClient.get('/user/by-account', { params: { account } });
 };
 
 // 获取用户统计总数

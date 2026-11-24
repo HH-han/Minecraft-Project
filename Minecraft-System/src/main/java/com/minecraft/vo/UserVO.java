@@ -34,6 +34,8 @@ public class UserVO {
     private Integer points;
     /** 角色编码（RBAC） */
     private List<String> roles;
+    /** 角色名称（管理端展示用） */
+    private List<String> roleNames;
     /** 是否超级管理员 */
     private Boolean superAdmin;
     /** 前端（Vben）展示名称 */

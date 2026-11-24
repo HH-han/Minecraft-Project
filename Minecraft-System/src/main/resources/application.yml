@@ -117,6 +117,11 @@ jwt:
   secret: tourism-secret-key-2024-abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ
   expiration: 604800000
 
+# 统一权限（RBAC）配置
+perm:
+  # 应急旁路开关：false 时跳过所有 @PreAuthorize 权限校验（仅用于线上故障应急）
+  enabled: true
+
 websocket:
   allowed-origins: "*"
 

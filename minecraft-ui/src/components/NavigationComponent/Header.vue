@@ -214,6 +214,7 @@ import SocialLoginModal from '@/components/PromptComponent/SocialLoginModal.vue'
 import { mainNavMenus, moreNavMenus } from '@/router/routes';
 // 接口
 import { useAuthStore } from '@/stores/auth';
+import { usePermissionStore } from '@/stores/permissionStore';
 import { getUserInfo, logout } from '@/api/user';
 import { normalizeImageUrl } from '@/utils/imageUrl';
 
@@ -227,12 +228,15 @@ const props = defineProps({
 const defaultAvatar = new URL('@/assets/defaultimage/mrtx.png', import.meta.url).href
 const defaultLogo = new URL('@/assets/logo/logo.png', import.meta.url).href
 const authStore = useAuthStore();
+const permissionStore = usePermissionStore();
 
-// 导航项数据（路由表派生）
-const navItems = mainNavMenus;
+const canSee = (menu) => !menu.permission || permissionStore.hasPerm(menu.permission);
 
-// 更多下拉菜单项（路由表派生）
-const moreMenuItems = moreNavMenus;
+// 导航项数据（路由表派生，按权限过滤）
+const navItems = computed(() => mainNavMenus.filter(canSee));
+
+// 更多下拉菜单项（路由表派生，按权限过滤）
+const moreMenuItems = computed(() => moreNavMenus.filter(canSee));
 
 const { t } = useI18n();
 
@@ -362,8 +366,8 @@ const tabIcon = (tab) => (tab.more ? MORE_TAB_ICON : navIcon(tab.path));
 
 /** 「更多」浮层内容 = 主菜单中未上底部栏的项 + 全部更多菜单项 */
 const moreSheetItems = computed(() => [
-  ...navItems.filter((item) => !mobileTabPaths.includes(item.path)),
-  ...moreMenuItems,
+  ...navItems.value.filter((item) => !mobileTabPaths.includes(item.path)),
+  ...moreMenuItems.value,
 ]);
 
 /** 当前页面属于「更多」中的某一项时，高亮底部「更多」标签 */

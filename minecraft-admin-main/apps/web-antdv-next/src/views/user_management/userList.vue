@@ -39,8 +39,14 @@ import {
   createUser,
   deleteUser,
   getAllUsers,
+  getUserByAccount,
   updateUserInfo,
 } from '#/api/management/user/user';
+import {
+  assignUserRoles,
+  getAllRoles,
+  getUserRoles,
+} from '#/api/management/system/rbac';
 import ImageUploadField from '#/components/ImageUploadField.vue';
 
 defineOptions({ name: 'UserList' });
@@ -81,7 +87,7 @@ interface UserFormState {
   hobbies: string;
   points: number;
   status: number; // 1 启用 / 0 停用
-  permissions: string;
+  roleNames?: string[];
   // 详情视图专用（表单不提交）
   online: any;
   createTime?: number | string;
@@ -106,7 +112,7 @@ function emptyForm(): UserFormState {
     hobbies: '',
     points: 0,
     status: 1,
-    permissions: '',
+    roleNames: [],
     online: false,
     createTime: undefined,
     updateTime: undefined,
@@ -357,9 +363,9 @@ const columns = computed<TableColumnsType>(() => [
       `${text ?? 0} ${$t('user.detail.points_unit')}`,
   },
   {
-    title: $t('user.detail.fields.permissions'),
-    dataIndex: 'permissions',
-    width: 110,
+    title: $t('user.detail.fields.roles'),
+    dataIndex: 'roles',
+    width: 180,
   },
   {
     title: $t('user.detail.fields.status'),
@@ -417,25 +423,6 @@ function genderText(gender: any): string {
   return $t('user.detail.gender.unknown');
 }
 
-function permissionsText(permissions: any): string {
-  // 权限码映射：'0' 管理员 / '1' 普通用户，其余原样展示
-  if (
-    permissions === null ||
-    permissions === undefined ||
-    permissions === ''
-  ) {
-    return $t('user.detail.no_permissions');
-  }
-  const p = String(permissions);
-  if (p === '0') {
-    return $t('user.detail.permissions.admin');
-  }
-  if (p === '1') {
-    return $t('user.detail.permissions.user');
-  }
-  return p;
-}
-
 function formatDateTime(value: number | string | undefined): string {
   if (value === null || value === undefined || value === '') {
     return '-';
@@ -484,7 +471,7 @@ function recordToForm(rec: any): UserFormState {
     hobbies: String(rec.hobbies ?? ''),
     points: Number(rec.points) || 0,
     status: Number(rec.status) === 0 ? 0 : 1,
-    permissions: String(rec.permissions ?? ''),
+    roleNames: Array.isArray(rec.roleNames) ? rec.roleNames : [],
     online: Number(rec.online) === 1 || rec.online === true,
     createTime: rec.createTime,
     updateTime: rec.updateTime,
@@ -492,22 +479,67 @@ function recordToForm(rec: any): UserFormState {
 }
 
 // =========================
+// RBAC 角色（权限）状态
+// =========================
+const roleOptions = ref<Array<{ code: string; id: number; name: string }>>([]);
+const roleOptionsLoaded = ref(false);
+const selectedRoleIds = ref<number[]>([]);
+
+async function loadRoleOptions() {
+  if (roleOptionsLoaded.value) return;
+  try {
+    const data: any = await getAllRoles();
+    roleOptions.value = (Array.isArray(data) ? data : []).filter(
+      (role: any) => role.status !== 0,
+    );
+    roleOptionsLoaded.value = true;
+  } catch {
+    roleOptions.value = [];
+  }
+}
+
+async function loadUserRoles(userId: any) {
+  selectedRoleIds.value = [];
+  if (userId === undefined || userId === null) return;
+  try {
+    const ids: any = await getUserRoles(userId);
+    selectedRoleIds.value = Array.isArray(ids) ? ids : [];
+  } catch {
+    selectedRoleIds.value = [];
+  }
+}
+
+// 下拉选项 / 详情展示用的角色名称
+const roleSelectOptions = computed(() =>
+  roleOptions.value.map((role) => ({ label: role.name, value: role.id })),
+);
+const selectedRoleNames = computed(() =>
+  roleOptions.value
+    .filter((role) => selectedRoleIds.value.includes(Number(role.id)))
+    .map((role) => role.name),
+);
+
+// =========================
 // 按钮：打开弹窗
 // =========================
 function openCreate() {
   Object.assign(formData, emptyForm());
+  selectedRoleIds.value = [];
+  loadRoleOptions();
   modalMode.value = 'create';
   modalVisible.value = true;
 }
 
-function openEdit(record: any) {
+async function openEdit(record: any) {
   Object.assign(formData, recordToForm(record));
+  await Promise.all([loadRoleOptions(), loadUserRoles(record.id)]);
   modalMode.value = 'edit';
   modalVisible.value = true;
 }
 
-function openDetail(record: any) {
+async function openDetail(record: any) {
   Object.assign(formData, recordToForm(record));
+  await Promise.all([loadRoleOptions(), loadUserRoles(record.id)]);
   modalMode.value = 'detail';
   modalVisible.value = true;
 }
@@ -541,6 +573,9 @@ async function handleSubmit() {
     delete payload.online;
     delete payload.createTime;
     delete payload.updateTime;
+    delete payload.roleNames;
+    // 角色通过 RBAC 接口单独维护，不再写入历史 permissions 字段
+    delete payload.permissions;
     // id / userId 必需，若表单里有则带上
     if (formData.id !== undefined && formData.id !== null) {
       payload.id = formData.id;
@@ -552,8 +587,15 @@ async function handleSubmit() {
         // 创建场景：已由规则保证必填，此处保险
         return;
       }
-      await createUser(payload);
+      const account: any = await createUser(payload);
       message.success($t('user.action.create_success'));
+      // 注册接口仅返回账号，回查用户ID后写入 RBAC 角色
+      try {
+        const created: any = await getUserByAccount(String(account));
+        await assignUserRoles(created?.id, selectedRoleIds.value);
+      } catch {
+        message.warning($t('user.form.role_assign_failed'));
+      }
     } else if (modalMode.value === 'edit') {
       // 编辑：若密码为空，后端约定不更新密码，则移除该字段避免写空
       if (!payload.password) {
@@ -561,6 +603,11 @@ async function handleSubmit() {
       }
       await updateUserInfo(payload);
       message.success($t('user.action.update_success'));
+      try {
+        await assignUserRoles(formData.id as number, selectedRoleIds.value);
+      } catch {
+        message.warning($t('user.form.role_assign_failed'));
+      }
     }
     closeModal();
     await fetchData();
@@ -827,11 +874,28 @@ async function confirmCropperAvatar() {
               </Tag>
             </template>
 
-            <!-- 权限 Tag -->
-            <template v-else-if="column.dataIndex === 'permissions'">
-              <Tag color="blue">
-                {{ permissionsText(record.permissions) }}
-              </Tag>
+            <!-- 角色 Tag -->
+            <template v-else-if="column.dataIndex === 'roles'">
+              <Space :size="4" wrap>
+                <Tag v-if="record.superAdmin" color="gold">
+                  {{ $t('user.detail.super_admin') }}
+                </Tag>
+                <Tag
+                  v-for="roleName in record.roleNames || []"
+                  :key="roleName"
+                  color="blue"
+                >
+                  {{ roleName }}
+                </Tag>
+                <span
+                  v-if="
+                    !record.superAdmin && !(record.roleNames && record.roleNames.length)
+                  "
+                  class="text-xs opacity-60"
+                >
+                  {{ $t('user.detail.no_roles') }}
+                </span>
+              </Space>
             </template>
 
             <!-- 操作列：详情 / 修改 / 删除 -->
@@ -973,10 +1037,19 @@ async function confirmCropperAvatar() {
           <Descriptions.Item :label="$t('user.detail.fields.experience')">
             {{ formData.experience || '-' }}
           </Descriptions.Item>
-          <Descriptions.Item :label="$t('user.detail.fields.permissions')">
-            <Tag color="blue">
-              {{ permissionsText(formData.permissions) }}
-            </Tag>
+          <Descriptions.Item :label="$t('user.detail.fields.roles')">
+            <Space :size="4" wrap>
+              <Tag
+                v-for="roleName in selectedRoleNames"
+                :key="roleName"
+                color="blue"
+              >
+                {{ roleName }}
+              </Tag>
+              <span v-if="!selectedRoleNames.length" class="text-xs opacity-60">
+                {{ $t('user.detail.no_roles') }}
+              </span>
+            </Space>
           </Descriptions.Item>
           <Descriptions.Item :label="$t('user.detail.fields.online')">
             {{
@@ -1252,26 +1325,19 @@ async function confirmCropperAvatar() {
             </FormItem>
 
             <FormItem
-              :label="$t('user.form.field_permissions')"
-              name="permissions"
-              prop="permissions"
+              :label="$t('user.form.field_roles')"
+              name="roles"
+              prop="roles"
               style="display: block; width: 100%; margin-bottom: 16px;"
             >
               <Select
-                v-model:value="formData.permissions"
+                v-model:value="selectedRoleIds"
+                mode="multiple"
                 class="w-full"
                 allow-clear
-                :placeholder="`${$t('user.form.placeholder_select')}${$t('user.form.field_permissions')}`"
-                :options="[
-                  {
-                    value: '0',
-                    label: $t('user.detail.permissions.admin'),
-                  },
-                  {
-                    value: '1',
-                    label: $t('user.detail.permissions.user'),
-                  },
-                ]"
+                :placeholder="$t('user.form.roles_placeholder')"
+                :options="roleSelectOptions"
+                option-filter-prop="label"
               />
             </FormItem>
 

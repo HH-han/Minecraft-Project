@@ -11,9 +11,11 @@ import org.springframework.beans.BeanUtils;
 import com.minecraft.entity.PointsRecord;
 import com.minecraft.mapper.PointsRecordMapper;
 import com.minecraft.service.LoginLogService;
+import com.minecraft.service.SysUserService;
 import com.minecraft.service.UserService;
 import com.minecraft.utils.ImageUtils;
 import com.minecraft.utils.SecurityUtils;
+import com.minecraft.vo.UserRoleRowVO;
 import jakarta.servlet.http.HttpServletRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,6 +42,9 @@ public class UserController {
 
     @Autowired
     private ImageUtils imageUtils;
+
+    @Autowired
+    private SysUserService sysUserService;
 
     @Operation(summary = "上传图片")
     @PostMapping("/upload")
@@ -99,15 +104,22 @@ public class UserController {
     @GetMapping("/list")
     @PreAuthorize("@perm.has('sys:user:list')")
     public ApiResponse<List<UserVO>> getAllUsers(@RequestParam(required = false) Integer limit) {
-        List<UserVO> users = userService.getAllUsers(limit).stream()
-                .map(this::toUserVO)
-                .collect(Collectors.toList());
-        return ApiResponse.success(users);
+        List<User> users = userService.getAllUsers(limit);
+        java.util.Map<Long, List<UserRoleRowVO>> roleMap = sysUserService.getRolesByUserIds(
+                users.stream().map(User::getId).toList());
+        List<UserVO> result = users.stream().map(user -> {
+            UserVO vo = toUserVO(user);
+            List<UserRoleRowVO> roles = roleMap.getOrDefault(user.getId(), List.of());
+            vo.setRoles(roles.stream().map(UserRoleRowVO::getRoleCode).toList());
+            vo.setRoleNames(roles.stream().map(UserRoleRowVO::getRoleName).toList());
+            return vo;
+        }).collect(Collectors.toList());
+        return ApiResponse.success(result);
     }
 
     @Operation(summary ="根据账号获取用户信息")
     @GetMapping("/by-account")
-    @PreAuthorize("@perm.has('sys:user:query')")
+    @PreAuthorize("@perm.hasAny('sys:user:query','sys:user:add','sys:user:edit')")
     public ApiResponse<UserVO> getUserByAccount(@RequestParam String account) {
         return ApiResponse.success(toUserVO(userService.getUserByAccount(account)));
     }
@@ -125,6 +137,7 @@ public class UserController {
         vo.setRealName(user.getNickname() != null && !user.getNickname().isBlank()
                 ? user.getNickname()
                 : user.getUsername());
+        vo.setSuperAdmin(user.getSuperAdmin() != null && user.getSuperAdmin() == 1);
         return vo;
     }
 

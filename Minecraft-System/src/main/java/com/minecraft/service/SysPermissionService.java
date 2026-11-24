@@ -129,7 +129,7 @@ public class SysPermissionService {
         Set<String> dbCodes = new HashSet<>();
         for (SysPermission p : permissionMapper.selectList(new LambdaQueryWrapper<SysPermission>()
                 .in(SysPermission::getType, List.of(3, 4)))) {
-            if (StringUtils.hasText(p.getCode())) {
+            if (StringUtils.hasText(p.getCode()) && !"*:*:*".equals(p.getCode())) {
                 dbCodes.add(p.getCode());
             }
         }
@@ -138,7 +138,10 @@ public class SysPermissionService {
         List<String> unprotected = new ArrayList<>();
         Pattern quoted = Pattern.compile("'([^']+)'");
 
-        RequestMappingHandlerMapping mapping = applicationContext.getBean(RequestMappingHandlerMapping.class);
+        // Actuator 也注册了 RequestMappingHandlerMapping（controllerEndpointHandlerMapping），
+        // 必须按名称获取 MVC 的映射器，否则会因存在多个同类型 Bean 抛 NoUniqueBeanDefinitionException
+        RequestMappingHandlerMapping mapping = applicationContext.getBean(
+                "requestMappingHandlerMapping", RequestMappingHandlerMapping.class);
         for (Map.Entry<RequestMappingInfo, HandlerMethod> entry : mapping.getHandlerMethods().entrySet()) {
             HandlerMethod handlerMethod = entry.getValue();
             if (!handlerMethod.getBeanType().getName().startsWith("com.minecraft.controller")) {

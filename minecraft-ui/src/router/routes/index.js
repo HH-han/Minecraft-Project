@@ -55,12 +55,17 @@ function collectNavMenus(routeList, parentPath = '') {
       const fullPath = resolveFullPath(parent, route.path);
       const { meta } = route;
       if (meta?.nav) {
+        // 父级菜单若未声明权限，则取首个声明了权限的子路由，避免无权用户看到入口
+        const childPermission = route.children?.find(
+          (child) => child.meta?.permission
+        )?.meta.permission;
         menus.push({
           path: fullPath,
           label: meta.navLabel || meta.title,
           labelKey: meta.navLabelKey || null,
           group: meta.nav,
           order: meta.order ?? 99,
+          permission: meta.permission || childPermission || null,
         });
       }
       if (route.children?.length) {

@@ -36,7 +36,7 @@ public class SysRoleController {
 
     @Operation(summary = "全部角色（下拉选择）")
     @GetMapping("/all")
-    @PreAuthorize("@perm.has('sys:role:list')")
+    @PreAuthorize("@perm.hasAny('sys:role:list','sys:user:assign')")
     public ApiResponse<List<SysRole>> all() {
         return ApiResponse.success(sysRoleService.listAll());
     }
