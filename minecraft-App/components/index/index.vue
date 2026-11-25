@@ -214,7 +214,8 @@ const navigateTo = (url) => {
     '/pages/index/index',
     '/pages/discover/index',
     '/pages/news/index',
-    '/pages/profile/index'
+    '/pages/profile/index',
+    '/pages/personalcenter/index'
   ];
 
   // 检查是否为 tabbar 页面

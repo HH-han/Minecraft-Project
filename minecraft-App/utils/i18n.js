@@ -46,10 +46,10 @@ function applyHtmlLang() {
 }
 
 export function applyTabBarLocale() {
+	// 顺序需与 pages.json -> tabBar.list 保持一致
 	const labels = [
 		t('tabbar.home'),
 		t('tabbar.discover'),
-		t('tabbar.community'),
 		t('tabbar.news'),
 		t('tabbar.profile')
 	]

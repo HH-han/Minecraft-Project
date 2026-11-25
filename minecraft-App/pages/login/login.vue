@@ -211,9 +211,10 @@ const goRegister = () => {
 .auth-page {
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+  justify-content: flex-start;
+  padding: 28px 16px calc(28px + env(safe-area-inset-bottom));
   background-color: var(--bg-color);
   background-image:
     radial-gradient(900px 520px at 12% -6%, rgba(30, 91, 72, 0.12), transparent 62%),
@@ -482,6 +483,16 @@ const goRegister = () => {
   color: var(--text-tertiary-color);
 }
 
+.field-input :deep(.uni-input-input) {
+  font-size: 14.5px;
+  color: var(--text-color);
+  background: transparent;
+}
+
+.field-input :deep(.uni-input-placeholder) {
+  color: var(--text-tertiary-color);
+}
+
 .eye-btn {
   flex: 0 0 auto;
   width: 30px;
@@ -616,6 +627,7 @@ const goRegister = () => {
 /* ============ PC：左右分栏 ============ */
 @media (min-width: 900px) {
   .auth-page {
+    justify-content: center;
     padding: 40px;
   }
 

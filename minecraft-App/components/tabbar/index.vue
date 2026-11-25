@@ -32,7 +32,7 @@ const tabList = [
   { key: 'discover', label: 'tabbar.discover', icon: 'map', activeIcon: 'map-filled', path: '/pages/discover/index' },
   { key: 'scan', label: 'tabbar.scan', icon: 'scan', path: '/pages/login/scan', center: true },
   { key: 'news', label: 'tabbar.news', icon: 'paperplane', activeIcon: 'paperplane-filled', path: '/pages/news/index' },
-  { key: 'profile', label: 'tabbar.profile', icon: 'person', activeIcon: 'person-filled', path: '/pages/profile/index' }
+  { key: 'profile', label: 'tabbar.profile', icon: 'person', activeIcon: 'person-filled', path: '/pages/personalcenter/index' }
 ]
 
 const iconType = (item) => (props.current === item.key && item.activeIcon ? item.activeIcon : item.icon)

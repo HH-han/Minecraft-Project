@@ -299,6 +299,16 @@
                                     "navigationBarTextStyle":  "black",
                                     "backgroundColor":  "#F7F4EE"
                                 }
+                  },
+                  {
+                      "path":  "pages/personalcenter/index",
+                      "style":  {
+                                    "navigationBarTitleText":  "个人中心",
+                                    "navigationBarBackgroundColor":  "#FFFFFF",
+                                    "navigationBarTextStyle":  "black",
+                                    "backgroundColor":  "#F7F4EE",
+                                    "enablePullDownRefresh":  true
+                                }
                   }
               ],
     "globalStyle":  {
@@ -371,7 +381,7 @@
                                     "textFontSize":  "12px"
                                 },
                                 {
-                                    "pagePath":  "pages/profile/index",
+                                    "pagePath":  "pages/personalcenter/index",
                                     "iconPath":  "/static/tabbar/user.png",
                                     "selectedIconPath":  "/static/tabbar/user.png",
                                     "text":  "我的",
