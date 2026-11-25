@@ -1,17 +1,19 @@
 <template>
-  <view class="groupTravel-container">
-    <text>跟团游页面</text>
-  </view>
+  <div class="app-page app-page--plain">
+    <div class="shell">
+      <div class="empty-state" style="padding-top: 72px">
+        <div class="empty-state__icon">
+          <uni-icons type="staff" size="26" color="#2F6BFF" />
+        </div>
+        {{ t('placeholder.groupTravel') }}
+      </div>
+    </div>
+  </div>
 </template>
 
-<script>
-export default {
-  name: 'GroupTravelIndex'
-}
-</script>
+<script setup>
+import UniIcons from '@/uni_modules/uni-icons/components/uni-icons/uni-icons.vue'
+import { t, usePageTitle } from '@/utils/i18n'
 
-<style scoped>
-.groupTravel-container {
-  padding: 20rpx;
-}
-</style>
+usePageTitle('page.groupTravel')
+</script>

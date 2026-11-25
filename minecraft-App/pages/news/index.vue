@@ -1,72 +1,108 @@
 <template>
-  <div class="news-container">
-    <!-- 搜索栏 -->
-    <div class="search-bar">
-      <input type="text" v-model="searchQuery" placeholder="搜索新闻" class="search-input">
-      <button class="search-btn">搜索</button>
-    </div>
+  <div class="app-page">
+    <div class="shell">
 
-    <!-- 新闻列表 -->
-    <div class="news-list">
-      <div v-for="news in newsList" :key="news.id" class="news-item" @click="navigateToDetail(news.id)">
-        <div class="news-content">
-          <div class="news-image" v-if="news.coverImage">
-            <img :src="news.coverImage" :alt="news.title">
+      <!-- 页头 -->
+      <header class="news-head reveal">
+        <div class="news-head__glow"></div>
+        <div class="page-eyebrow">{{ t('news.eyebrow') }}</div>
+        <h1 class="page-title">{{ t('news.title') }}</h1>
+        <p class="page-sub">{{ t('news.sub') }}</p>
+      </header>
+
+      <!-- 搜索 -->
+      <div class="search-field search-row reveal reveal-delay-1">
+        <uni-icons type="search" size="17" color="#8C948B" />
+        <input v-model="searchQuery" type="text" :placeholder="t('news.searchPlaceholder')" confirm-type="search"
+          @confirm="handleSearch" />
+        <button class="search-submit" @click="handleSearch">{{ t('common.search') }}</button>
+      </div>
+
+      <!-- 骨架 -->
+      <div v-if="loading" class="news-list">
+        <div v-for="i in 4" :key="i" class="news-card">
+          <div class="skeleton news-thumb-skeleton"></div>
+          <div class="news-text">
+            <div class="skeleton skeleton-line skeleton-line--sm"></div>
+            <div class="skeleton skeleton-line skeleton-line--lg"></div>
+            <div class="skeleton skeleton-line"></div>
           </div>
-          <div class="news-info">
-            <h3>{{ news.title }}</h3>
-            <p class="news-desc">{{ news.description }}</p>
-            <div class="news-meta">
-              <span class="news-source">{{ news.source }}</span>
-              <span class="news-date">{{ news.createTime }}</span>
+        </div>
+      </div>
+
+      <!-- 列表 -->
+      <div v-else-if="newsList.length" class="news-list">
+        <article v-for="(news, index) in newsList" :key="news.id" class="news-card"
+          :class="{ 'news-card--featured': index === 0 && news.coverImage }"
+          @click="navigateToDetail(news.id)">
+          <div v-if="news.coverImage" class="news-thumb">
+            <img :src="news.coverImage" :alt="news.title" loading="lazy">
+            <span v-if="index === 0" class="featured-flag">{{ t('news.featured') }}</span>
+          </div>
+          <div class="news-text">
+            <div class="news-top">
+              <span v-if="news.source" class="news-source">{{ news.source }}</span>
+              <span class="news-date">{{ shortDate(news.createTime) }}</span>
+            </div>
+            <h3 class="news-title">{{ news.title }}</h3>
+            <p class="news-desc clamp-2">{{ news.description }}</p>
+            <div class="news-stats">
+              <span><uni-icons type="eye" size="12" color="currentColor" />{{ compact(news.viewCount) }}</span>
+              <span><uni-icons type="heart" size="12" color="currentColor" />{{ compact(news.likeCount) }}</span>
+              <span><uni-icons type="chat" size="12" color="currentColor" />{{ compact(news.commentCount) }}</span>
+              <span><uni-icons type="star" size="12" color="currentColor" />{{ compact(news.collectCount) }}</span>
             </div>
           </div>
-        </div>
-        <div class="news-stats">
-          <span class="news-stat">{{ news.viewCount }} 浏览</span>
-          <span class="news-stat">{{ news.likeCount }} 点赞</span>
-          <span class="news-stat">{{ news.commentCount }} 评论</span>
-          <span class="news-stat">{{ news.collectCount }} 收藏</span>
-        </div>
+        </article>
+      </div>
+
+      <!-- 空状态 -->
+      <div v-else class="empty-state">
+        <div class="empty-state__icon"><uni-icons type="list" size="26" color="#1E5B48" /></div>
+        {{ searchQuery ? t('news.emptySearch') : t('news.empty') }}
+      </div>
+
+      <!-- 分页 -->
+      <div v-if="!loading && newsList.length > 0" class="pager">
+        <button class="pager-btn" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">{{ t('common.prev') }}</button>
+        <span class="pager-info">{{ currentPage }} / {{ totalPages }}</span>
+        <button class="pager-btn" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">{{ t('common.next') }}</button>
       </div>
     </div>
 
-    <!-- 无数据提示 -->
-    <div v-if="newsList.length === 0" class="empty-tip">
-      暂无新闻数据
-    </div>
-
-    <!-- 分页 -->
-    <div v-if="newsList.length > 0" class="pagination">
-      <button class="page-btn" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">上一页</button>
-      <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
-      <button class="page-btn" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">下一页</button>
-    </div>
+    <TabBar current="news" />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getNewsList } from '@/api/news'
+import UniIcons from '@/uni_modules/uni-icons/components/uni-icons/uni-icons.vue'
+import TabBar from '@/components/tabbar/index.vue'
+import { t, usePageTitle } from '@/utils/i18n'
 
-// 搜索参数
+usePageTitle('page.news')
+
 const searchQuery = ref('')
-
-// 分页参数
 const currentPage = ref(1)
 const pageSize = ref(10)
 const totalPages = ref(1)
-
-// 新闻列表数据
 const newsList = ref([])
+const loading = ref(true)
 
-// 计算总页数
-const calculateTotalPages = (total) => {
-  return Math.ceil(total / pageSize.value)
+const calculateTotalPages = (total) => Math.ceil(total / pageSize.value) || 1
+
+const compact = (value) => {
+  const num = Number(value) || 0
+  if (num >= 10000) return (num / 10000).toFixed(1).replace('.0', '') + 'w'
+  if (num >= 1000) return (num / 1000).toFixed(1).replace('.0', '') + 'k'
+  return String(num)
 }
 
-// 获取新闻列表
+const shortDate = (value) => (value ? String(value).replace('T', ' ').slice(0, 10) : '')
+
 const fetchNewsList = async () => {
+  loading.value = true
   try {
     const response = await getNewsList({
       page: currentPage.value,
@@ -77,242 +113,294 @@ const fetchNewsList = async () => {
     totalPages.value = calculateTotalPages(response.data.total || 0)
   } catch (error) {
     console.error('获取新闻列表失败:', error)
+    newsList.value = []
+  } finally {
+    loading.value = false
   }
 }
 
-// 导航到详情页
-const navigateToDetail = (id) => {
-  uni.navigateTo({
-    url: `/pages/news/detail?id=${id}`
-  })
+const handleSearch = () => {
+  currentPage.value = 1
+  fetchNewsList()
+  uni.pageScrollTo({ scrollTop: 0, duration: 240 })
 }
 
-// 切换页码
+const navigateToDetail = (id) => {
+  uni.navigateTo({ url: `/pages/news/detail?id=${id}` })
+}
+
 const changePage = (page) => {
+  if (page < 1 || page > totalPages.value) return
   currentPage.value = page
   fetchNewsList()
+  uni.pageScrollTo({ scrollTop: 0, duration: 240 })
 }
 
-// 页面加载时获取数据
-onMounted(() => {
-  fetchNewsList()
-})
+onMounted(fetchNewsList)
 </script>
 
 <style scoped>
-.news-container {
-  min-height: 100vh;
-  background-color: var(--background-color);
-  padding: 20px;
+/* 页头 */
+.news-head {
+  position: relative;
+  overflow: hidden;
+  padding: 24px 22px;
+  border-radius: var(--radius-xl);
+  background: var(--card-background);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-sm);
 }
 
-.search-bar {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
+.news-head__glow {
+  position: absolute;
+  top: -80px;
+  right: -40px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  filter: blur(40px);
+  pointer-events: none;
 }
 
-.search-input {
-  flex: 1;
-  padding: 12px 16px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 14px;
-  outline: none;
-  transition: all 0.3s ease;
+.page-eyebrow {
+  position: relative;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  color: var(--primary-color);
 }
 
-.search-input:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(30, 136, 229, 0.1);
+.page-title {
+  position: relative;
+  margin-top: 8px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text-color);
 }
 
-.search-btn {
-  padding: 12px 24px;
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.page-sub {
+  position: relative;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-secondary-color);
 }
 
-.search-btn:hover {
-  background-color: var(--primary-dark);
+/* 搜索 */
+.search-row {
+  margin-top: 16px;
 }
 
+.search-submit {
+  flex: 0 0 auto;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--primary-color);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  transition: transform 0.2s var(--ease-out);
+}
+
+.search-submit:active {
+  transform: scale(0.95);
+}
+
+/* 列表 */
 .news-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-top: 16px;
 }
 
-.news-item {
-  background-color: var(--card-background);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.news-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.news-content {
+.news-card {
   display: flex;
-  gap: 16px;
-  align-items: flex-start;
+  gap: 14px;
+  padding: 14px;
+  background: var(--card-background);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 0.35s var(--ease-out), box-shadow 0.35s var(--ease-out),
+    border-color 0.35s var(--ease-out);
 }
 
-.news-image {
-  flex: 0 0 100px;
-  height: 70px;
-  border-radius: 8px;
+.news-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-strong);
+}
+
+.news-thumb {
+  position: relative;
+  flex: 0 0 112px;
+  height: 92px;
+  border-radius: var(--radius-md);
   overflow: hidden;
+  background: var(--surface-2);
 }
 
-.news-image img {
+.news-thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition: transform 0.6s var(--ease-out);
 }
 
-.news-item:hover .news-image img {
-  transform: scale(1.05);
+.news-card:hover .news-thumb img {
+  transform: scale(1.06);
 }
 
-.news-info {
+.featured-flag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-color);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  box-shadow: 0 4px 10px rgba(196, 97, 60, 0.32);
+}
+
+.news-text {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-.news-info h3 {
-  margin: 0 0 8px 0;
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--text-color);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  line-height: 1.4;
-}
-
-.news-desc {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  line-height: 1.4;
-  color: var(--text-secondary-color);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-
-.news-meta {
+.news-top {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 12px;
-  color: var(--text-secondary-color);
-  margin-bottom: 8px;
+  gap: 8px;
+  margin-bottom: 6px;
 }
 
 .news-source {
-  background: rgba(30, 136, 229, 0.1);
   padding: 2px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft);
   color: var(--primary-color);
-  font-weight: 500;
-  font-size: 11px;
+  font-size: 10px;
+  font-weight: 700;
 }
 
 .news-date {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  font-size: 11px;
+  color: var(--text-tertiary-color);
+  font-variant-numeric: tabular-nums;
+}
+
+.news-title {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.42;
+  color: var(--text-color);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.news-desc {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-secondary-color);
 }
 
 .news-stats {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  font-size: 12px;
-  color: var(--text-secondary-color);
-  padding-top: 8px;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  gap: 14px;
+  margin-top: auto;
+  padding-top: 9px;
+  font-size: 11px;
+  color: var(--text-tertiary-color);
 }
 
-.news-stat {
-  display: flex;
+.news-stats span {
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  transition: color 0.3s ease;
+  gap: 3px;
 }
 
-.news-item:hover .news-stat {
-  color: var(--primary-color);
+/* 骨架 */
+.skeleton-line {
+  height: 10px;
+  margin-top: 8px;
+  width: 70%;
 }
 
-.empty-tip {
-  text-align: center;
-  padding: 40px 0;
-  color: var(--text-secondary-color);
-  font-size: 16px;
+.skeleton-line--lg {
+  width: 96%;
+  height: 15px;
 }
 
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 16px;
-  margin-top: 20px;
+.skeleton-line--sm {
+  width: 38%;
 }
 
-.page-btn {
-  padding: 8px 16px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background-color: white;
-  color: var(--text-color);
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.news-thumb-skeleton {
+  flex: 0 0 112px;
+  height: 92px;
 }
 
-.page-btn:hover:not(:disabled) {
-  background-color: var(--primary-color);
-  color: white;
-  border-color: var(--primary-color);
-}
-
-.page-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.page-info {
-  font-size: 14px;
-  color: var(--text-color);
-}
-
-@media (max-width: 768px) {
-  .news-list {
-    gap: 12px;
+/* PC */
+@media (min-width: 768px) {
+  .news-head {
+    padding: 34px 38px;
   }
 
-  .news-item {
-    padding: 12px;
+  .page-title {
+    font-size: 34px;
+  }
+
+  .news-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  /* 头条跨两列，图片在左、信息在右 */
+  .news-card--featured {
+    grid-column: 1 / -1;
+    padding: 18px;
+  }
+
+  .news-card--featured .news-thumb {
+    flex-basis: 340px;
+    height: 210px;
+  }
+
+  .news-card--featured .news-title {
+    font-size: 22px;
+    line-height: 1.35;
+  }
+
+  .news-card--featured .news-desc {
+    font-size: 14px;
+    -webkit-line-clamp: 3;
+  }
+
+  .news-thumb {
+    flex-basis: 140px;
+    height: 104px;
+  }
+
+  .news-title {
+    font-size: 16px;
+  }
+
+  .news-thumb-skeleton {
+    flex-basis: 140px;
+    height: 104px;
   }
 }
 </style>

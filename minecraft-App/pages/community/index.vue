@@ -1,101 +1,128 @@
 <template>
-  <div class="community-container">
-    <!-- 页面标题 -->
-    <div class="page-header">
-      <h1>社区</h1>
-      <p>分享你的旅行经历和故事</p>
-    </div>
-    
-    <!-- 搜索栏 -->
-    <div class="search-bar">
-      <input type="text" v-model="searchQuery" placeholder="搜索帖子" class="search-input">
-      <button class="search-btn">搜索</button>
-    </div>
-    
-    <!-- 帖子列表 -->
-    <div class="post-list">
-      <div 
-        v-for="post in posts" 
-        :key="post.id" 
-        class="post-item"
-        @click="navigateToDetail(post.id)"
-      >
-        <div class="post-header">
-          <div class="user-info">
-            <div class="user-avatar">
-              <img :src="post.userAvatar || 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar%20profile%20picture&image_size=square'" :alt="post.userName">
-            </div>
-            <div class="user-details">
-              <h4>{{ post.userName }}</h4>
-              <p class="post-time">{{ post.createTime }}</p>
+  <div class="app-page community-page">
+    <div class="shell">
+
+      <!-- 页头 -->
+      <header class="community-head reveal">
+        <div class="community-head__glow"></div>
+        <div class="community-head__text">
+          <div class="page-eyebrow">{{ t('community.eyebrow') }}</div>
+          <h1 class="page-title">{{ t('community.title') }}</h1>
+          <p class="page-sub">{{ t('community.sub') }}</p>
+        </div>
+        <button class="compose-btn" @click="createPost">
+          <uni-icons type="compose" size="16" color="#FFFFFF" />
+          {{ t('community.compose') }}
+        </button>
+      </header>
+
+      <!-- 搜索 -->
+      <div class="search-field search-row reveal reveal-delay-1">
+        <uni-icons type="search" size="17" color="#8C948B" />
+        <input v-model="searchQuery" type="text" :placeholder="t('community.searchPlaceholder')" confirm-type="search"
+          @confirm="handleSearch" />
+        <button class="search-submit" @click="handleSearch">{{ t('common.search') }}</button>
+      </div>
+
+      <!-- 骨架 -->
+      <div v-if="loading" class="post-list">
+        <div v-for="i in 3" :key="i" class="post-card">
+          <div class="post-author">
+            <div class="skeleton avatar-skeleton"></div>
+            <div class="author-text">
+              <div class="skeleton skeleton-line skeleton-line--sm"></div>
+              <div class="skeleton skeleton-line skeleton-line--xs"></div>
             </div>
           </div>
-        </div>
-        <div class="post-content">
-          <h3>{{ post.title }}</h3>
-          <p class="post-desc">{{ post.content }}</p>
-          <img v-if="post.images && post.images.length > 0" :src="post.images[0]" :alt="post.title" class="post-image">
-        </div>
-        <div class="post-footer">
-          <div class="post-stats">
-            <span class="stat-item">
-              <span class="stat-icon">❤️</span>
-              <span>{{ post.likeCount || 0 }}</span>
-            </span>
-            <span class="stat-item">
-              <span class="stat-icon">💬</span>
-              <span>{{ post.commentCount || 0 }}</span>
-            </span>
-            <span class="stat-item">
-              <span class="stat-icon">👁️</span>
-              <span>{{ post.viewCount || 0 }}</span>
-            </span>
-          </div>
+          <div class="skeleton skeleton-line skeleton-line--lg"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton post-image-skeleton"></div>
         </div>
       </div>
+
+      <!-- 帖子列表 -->
+      <div v-else-if="posts.length" class="post-list">
+        <article v-for="post in posts" :key="post.id" class="post-card" @click="navigateToDetail(post.id)">
+          <div class="post-author">
+            <div class="author-avatar">
+              <img :src="post.userAvatar || defaultAvatar" :alt="post.userName">
+            </div>
+            <div class="author-text">
+              <h4 class="author-name">{{ post.userName }}</h4>
+              <p class="post-time">{{ shortDate(post.createTime) }}</p>
+            </div>
+            <span v-if="post.tag" class="tag-pill">{{ post.tag }}</span>
+          </div>
+
+          <div class="post-content">
+            <h3 class="post-title">{{ post.title }}</h3>
+            <p class="post-desc clamp-2">{{ post.content }}</p>
+          </div>
+
+          <div v-if="post.images && post.images.length > 0" class="post-image">
+            <img :src="post.images[0]" :alt="post.title" loading="lazy">
+          </div>
+
+          <div class="post-footer">
+            <span class="stat"><uni-icons type="heart" size="14" color="currentColor" />{{ compact(post.likeCount) }}</span>
+            <span class="stat"><uni-icons type="chat" size="14" color="currentColor" />{{ compact(post.commentCount) }}</span>
+            <span class="stat"><uni-icons type="eye" size="14" color="currentColor" />{{ compact(post.viewCount) }}</span>
+            <span class="stat stat--more"><uni-icons type="more-filled" size="15" color="currentColor" /></span>
+          </div>
+        </article>
+      </div>
+
+      <!-- 空状态 -->
+      <div v-else class="empty-state">
+        <div class="empty-state__icon"><uni-icons type="chatboxes" size="26" color="#1E5B48" /></div>
+        {{ searchQuery ? t('community.emptySearch') : t('community.empty') }}
+      </div>
+
+      <!-- 分页 -->
+      <div v-if="!loading && posts.length > 0" class="pager">
+        <button class="pager-btn" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">{{ t('common.prev') }}</button>
+        <span class="pager-info">{{ currentPage }} / {{ totalPages }}</span>
+        <button class="pager-btn" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">{{ t('common.next') }}</button>
+      </div>
     </div>
-    
-    <!-- 无数据提示 -->
-    <div v-if="posts.length === 0" class="empty-tip">
-      暂无帖子数据
-    </div>
-    
-    <!-- 分页 -->
-    <div v-if="posts.length > 0" class="pagination">
-      <button class="page-btn" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">上一页</button>
-      <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
-      <button class="page-btn" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">下一页</button>
-    </div>
-    
+
     <!-- 发布按钮 -->
-    <div class="create-post-btn">
-      <button @click="createPost">+</button>
-    </div>
+    <button class="fab" @click="createPost" aria-label="发布帖子">
+      <uni-icons type="plusempty" size="24" color="#FFFFFF" />
+    </button>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getPostList } from '@/api/community'
+import UniIcons from '@/uni_modules/uni-icons/components/uni-icons/uni-icons.vue'
+import { t, usePageTitle } from '@/utils/i18n'
 
-// 搜索参数
+usePageTitle('page.community')
+
+const defaultAvatar = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar%20portrait&image_size=square'
+
 const searchQuery = ref('')
-
-// 分页参数
 const currentPage = ref(1)
 const pageSize = ref(10)
 const totalPages = ref(1)
-
-// 帖子列表数据
 const posts = ref([])
+const loading = ref(true)
 
-// 计算总页数
-const calculateTotalPages = (total) => {
-  return Math.ceil(total / pageSize.value)
+const calculateTotalPages = (total) => Math.ceil(total / pageSize.value) || 1
+
+const compact = (value) => {
+  const num = Number(value) || 0
+  if (num >= 10000) return (num / 10000).toFixed(1).replace('.0', '') + 'w'
+  if (num >= 1000) return (num / 1000).toFixed(1).replace('.0', '') + 'k'
+  return String(num)
 }
 
-// 获取帖子列表
+const shortDate = (value) => (value ? String(value).replace('T', ' ').slice(0, 16) : '')
+
 const fetchPosts = async () => {
+  loading.value = true
   try {
     const response = await getPostList({
       page: currentPage.value,
@@ -106,295 +133,348 @@ const fetchPosts = async () => {
     totalPages.value = calculateTotalPages(response.data.total || 0)
   } catch (error) {
     console.error('获取帖子列表失败:', error)
+    posts.value = []
+  } finally {
+    loading.value = false
   }
 }
 
-// 导航到详情页
-const navigateToDetail = (id) => {
-  uni.navigateTo({
-    url: `/pages/community/detail?id=${id}`
-  })
+const handleSearch = () => {
+  currentPage.value = 1
+  fetchPosts()
+  uni.pageScrollTo({ scrollTop: 0, duration: 240 })
 }
 
-// 切换页码
+const navigateToDetail = (id) => {
+  uni.navigateTo({ url: `/pages/community/detail?id=${id}` })
+}
+
 const changePage = (page) => {
+  if (page < 1 || page > totalPages.value) return
   currentPage.value = page
   fetchPosts()
+  uni.pageScrollTo({ scrollTop: 0, duration: 240 })
 }
 
-// 创建帖子
 const createPost = () => {
-  uni.navigateTo({
-    url: '/pages/community/create'
-  })
+  uni.navigateTo({ url: '/pages/community/create' })
 }
 
-// 页面加载时获取数据
-onMounted(() => {
-  fetchPosts()
-})
+onMounted(fetchPosts)
 </script>
 
 <style scoped>
-.community-container {
-  min-height: 100vh;
-  background-color: var(--background-color);
-  padding: 20px;
+.community-page {
   position: relative;
 }
 
-.page-header {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.page-header h1 {
-  margin: 0 0 8px 0;
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--text-color);
-}
-
-.page-header p {
-  margin: 0;
-  font-size: 16px;
-  color: var(--text-secondary-color);
-}
-
-.search-bar {
+/* 页头 */
+.community-head {
+  position: relative;
+  overflow: hidden;
   display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 22px;
+  border-radius: var(--radius-xl);
+  background: var(--primary-color);
+  box-shadow: var(--shadow-brand);
+  color: #fff;
 }
 
-.search-input {
-  flex: 1;
-  padding: 12px 16px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 14px;
-  outline: none;
-  transition: all 0.3s ease;
+.community-head__glow {
+  position: absolute;
+  right: -40px;
+  top: -70px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  filter: blur(40px);
+  pointer-events: none;
 }
 
-.search-input:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(30, 136, 229, 0.1);
+.community-head__text {
+  position: relative;
+  z-index: 1;
 }
 
-.search-btn {
-  padding: 12px 24px;
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.page-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: rgba(255, 255, 255, 0.78);
 }
 
-.search-btn:hover {
-  background-color: var(--primary-dark);
+.page-title {
+  margin-top: 7px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
 }
 
+.page-sub {
+  margin-top: 5px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.compose-btn {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 16px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s var(--ease-out);
+}
+
+.compose-btn:hover {
+  background: rgba(255, 255, 255, 0.28);
+  transform: translateY(-1px);
+}
+
+.compose-btn:active {
+  transform: scale(0.96);
+}
+
+/* 搜索 */
+.search-row {
+  margin-top: 16px;
+}
+
+.search-submit {
+  flex: 0 0 auto;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--primary-color);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  transition: transform 0.2s var(--ease-out);
+}
+
+.search-submit:active {
+  transform: scale(0.95);
+}
+
+/* 列表 */
 .post-list {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  margin-bottom: 80px;
+  gap: 14px;
+  margin-top: 16px;
 }
 
-.post-item {
-  background-color: var(--card-background);
-  border-radius: 12px;
+.post-card {
+  background: var(--card-background);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
   padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
   cursor: pointer;
+  transition: transform 0.35s var(--ease-out), box-shadow 0.35s var(--ease-out),
+    border-color 0.35s var(--ease-out);
 }
 
-.post-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.post-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-strong);
 }
 
-.post-header {
-  margin-bottom: 12px;
-}
-
-.user-info {
+.post-author {
   display: flex;
   align-items: center;
+  gap: 10px;
 }
 
-.user-avatar {
-  width: 48px;
-  height: 48px;
+.author-avatar {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   overflow: hidden;
-  margin-right: 12px;
+  background: var(--surface-2);
+  border: 2px solid var(--card-background);
+  box-shadow: 0 0 0 1px var(--border-color);
 }
 
-.user-avatar img {
+.author-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.user-details h4 {
-  margin: 0 0 4px 0;
-  font-size: 16px;
-  font-weight: 500;
+.author-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.author-name {
+  font-size: 14px;
+  font-weight: 700;
   color: var(--text-color);
 }
 
 .post-time {
-  margin: 0;
-  font-size: 12px;
-  color: var(--text-secondary-color);
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--text-tertiary-color);
+  font-variant-numeric: tabular-nums;
 }
 
 .post-content {
-  margin-bottom: 12px;
+  margin-top: 12px;
 }
 
-.post-content h3 {
-  margin: 0 0 8px 0;
-  font-size: 18px;
-  font-weight: 500;
+.post-title {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.4;
   color: var(--text-color);
 }
 
 .post-desc {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  line-height: 1.4;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.6;
   color: var(--text-secondary-color);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
 }
 
 .post-image {
+  margin-top: 12px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface-2);
+  max-height: 300px;
+}
+
+.post-image img {
   width: 100%;
-  max-height: 200px;
+  height: 100%;
+  max-height: 300px;
   object-fit: cover;
-  border-radius: 8px;
+  transition: transform 0.6s var(--ease-out);
+}
+
+.post-card:hover .post-image img {
+  transform: scale(1.04);
 }
 
 .post-footer {
-  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 14px;
   padding-top: 12px;
+  border-top: 1px solid var(--border-color);
 }
 
-.post-stats {
-  display: flex;
-  gap: 24px;
-}
-
-.stat-item {
-  display: flex;
+.stat {
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 14px;
-  color: var(--text-secondary-color);
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-tertiary-color);
+  transition: color 0.25s var(--ease-out);
 }
 
-.stat-icon {
-  font-size: 16px;
+.post-card:hover .stat {
+  color: var(--primary-color);
 }
 
-.empty-tip {
-  text-align: center;
-  padding: 40px 0;
-  color: var(--text-secondary-color);
-  font-size: 16px;
-  margin-bottom: 80px;
+.stat--more {
+  margin-left: auto;
 }
 
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 16px;
-  margin-top: 20px;
-  margin-bottom: 80px;
-}
-
-.page-btn {
-  padding: 8px 16px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background-color: white;
-  color: var(--text-color);
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.page-btn:hover:not(:disabled) {
-  background-color: var(--primary-color);
-  color: white;
-  border-color: var(--primary-color);
-}
-
-.page-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.page-info {
-  font-size: 14px;
-  color: var(--text-color);
-}
-
-.create-post-btn {
+/* 悬浮按钮 */
+.fab {
   position: fixed;
-  bottom: 70px;
-  right: 30px;
-  z-index: 1000;
-}
-
-.create-post-btn button {
-  width: 60px;
-  height: 60px;
+  right: 20px;
+  bottom: calc(78px + env(safe-area-inset-bottom));
+  z-index: 90;
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 50%;
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  font-size: 24px;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(30, 136, 229, 0.4);
-  transition: all 0.3s ease;
+  background: var(--primary-color);
+  box-shadow: var(--shadow-brand);
+  transition: transform 0.3s var(--ease-spring), box-shadow 0.3s var(--ease-out);
 }
 
-.create-post-btn button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(30, 136, 229, 0.5);
+.fab:hover {
+  transform: translateY(-3px) scale(1.05);
 }
 
-@media (max-width: 768px) {
+.fab:active {
+  transform: scale(0.92);
+}
+
+/* 骨架 */
+.avatar-skeleton {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+}
+
+.skeleton-line {
+  height: 10px;
+  margin-top: 8px;
+  width: 72%;
+}
+
+.skeleton-line--lg {
+  width: 90%;
+  height: 14px;
+}
+
+.skeleton-line--sm {
+  width: 42%;
+}
+
+.skeleton-line--xs {
+  width: 26%;
+}
+
+.post-image-skeleton {
+  height: 150px;
+  margin-top: 12px;
+}
+
+/* PC */
+@media (min-width: 768px) {
+  .community-head {
+    padding: 34px 38px;
+  }
+
+  .page-title {
+    font-size: 34px;
+  }
+
   .post-list {
-    gap: 16px;
+    gap: 18px;
   }
-  
-  .post-item {
-    padding: 12px;
+
+  .post-card {
+    padding: 20px 22px;
   }
-  
-  .create-post-btn {
-    bottom: 70px;
-    right: 20px;
-  }
-  
-  .create-post-btn button {
-    width: 50px;
-    height: 50px;
-    font-size: 20px;
+
+  .post-title {
+    font-size: 19px;
   }
 }
 </style>

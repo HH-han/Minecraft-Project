@@ -1,8 +1,8 @@
 <template>
   <view class="note-mine">
     <view class="mine-header">
-      <text class="page-title">我的笔记</text>
-      <button class="create-btn" @click="goEditor">写笔记</button>
+      <text class="page-title">{{ t('page.noteMine') }}</text>
+      <button class="create-btn" @click="goEditor">{{ t('note.write') }}</button>
     </view>
 
     <!-- 状态筛选 -->
@@ -15,7 +15,7 @@
           :class="{ active: activeStatus === item.value }"
           @click="switchStatus(item.value)"
         >
-          {{ item.label }}
+          {{ t(item.labelKey) }}
         </view>
       </view>
     </scroll-view>
@@ -23,16 +23,16 @@
     <view class="note-list">
       <view v-for="note in notes" :key="note.id" class="note-item" @click="goDetail(note)">
         <image v-if="note.coverUrl" class="note-cover" :src="note.coverUrl" mode="aspectFill" />
-        <view v-else class="note-cover note-cover--empty">暂无封面</view>
+        <view v-else class="note-cover note-cover--empty">{{ t('note.noCover') }}</view>
 
         <view class="note-body">
           <view class="note-title-row">
             <text class="note-title">{{ note.title }}</text>
             <text class="note-status" :class="statusClass(note.status)">{{ statusLabel(note.status) }}</text>
           </view>
-          <text class="note-summary">{{ note.summary || '暂无摘要' }}</text>
+          <text class="note-summary">{{ note.summary || t('note.noSummary') }}</text>
           <view v-if="note.status === 3 && note.rejectReason" class="reject-tip">
-            驳回原因：{{ note.rejectReason }}
+            {{ t('note.rejectPrefix', { reason: note.rejectReason }) }}
           </view>
           <view class="note-stats">
             <text class="stat">👁 {{ note.viewCount || 0 }}</text>
@@ -41,42 +41,43 @@
             <text class="stat">💬 {{ note.commentCount || 0 }}</text>
           </view>
           <view class="note-ops" @click.stop>
-            <text class="op" @click="goEditor(note)">编辑</text>
-            <text class="op op--danger" @click="removeNote(note)">删除</text>
+            <text class="op" @click="goEditor(note)">{{ t('note.edit') }}</text>
+            <text class="op op--danger" @click="removeNote(note)">{{ t('note.delete') }}</text>
           </view>
         </view>
       </view>
     </view>
 
-    <view v-if="!loading && notes.length === 0" class="empty-tip">这里还什么都没有</view>
+    <view v-if="!loading && notes.length === 0" class="empty-tip">{{ t('note.emptyMine') }}</view>
     <view v-if="notes.length" class="load-more" @click="loadMore">
-      {{ noMore ? '没有更多了' : '加载更多' }}
+      {{ noMore ? t('note.noMore') : t('note.loadMore') }}
     </view>
   </view>
 </template>
 
 <script>
 import { deleteNote, getMyNotes } from '@/api/travelNote'
+import { t } from '@/utils/i18n'
 
 const STATUS_MAP = {
-  0: { label: '草稿', cls: 'status--draft' },
-  1: { label: '待审核', cls: 'status--pending' },
-  2: { label: '已发布', cls: 'status--published' },
-  3: { label: '已驳回', cls: 'status--rejected' },
-  4: { label: '已下架', cls: 'status--offline' },
-  5: { label: '私密', cls: 'status--private' }
+  0: { labelKey: 'note.statusDraft', cls: 'status--draft' },
+  1: { labelKey: 'note.statusPending', cls: 'status--pending' },
+  2: { labelKey: 'note.statusPublished', cls: 'status--published' },
+  3: { labelKey: 'note.statusRejected', cls: 'status--rejected' },
+  4: { labelKey: 'note.statusOffline', cls: 'status--offline' },
+  5: { labelKey: 'note.statusPrivate', cls: 'status--private' }
 }
 
 export default {
   data() {
     return {
       statusTabs: [
-        { label: '全部', value: 'all' },
-        { label: '草稿箱', value: 0 },
-        { label: '待审核', value: 1 },
-        { label: '已发布', value: 2 },
-        { label: '已驳回', value: 3 },
-        { label: '私密', value: 5 }
+        { labelKey: 'common.all', value: 'all' },
+        { labelKey: 'note.tabDraft', value: 0 },
+        { labelKey: 'note.statusPending', value: 1 },
+        { labelKey: 'note.statusPublished', value: 2 },
+        { labelKey: 'note.statusRejected', value: 3 },
+        { labelKey: 'note.statusPrivate', value: 5 }
       ],
       activeStatus: 'all',
       loading: false,
@@ -88,13 +89,14 @@ export default {
   },
   onLoad() {
     if (!uni.getStorageSync('token')) {
-      uni.showToast({ title: '请先登录', icon: 'none' })
+      uni.showToast({ title: this.t('common.loginRequired'), icon: 'none' })
       setTimeout(() => uni.navigateBack(), 800)
       return
     }
     this.fetchNotes()
   },
   onShow() {
+    uni.setNavigationBarTitle({ title: this.t('page.noteMine') })
     if (uni.getStorageSync('token')) {
       this.reset()
     }
@@ -104,8 +106,10 @@ export default {
     setTimeout(() => uni.stopPullDownRefresh(), 600)
   },
   methods: {
+    t,
     statusLabel(status) {
-      return (STATUS_MAP[status] && STATUS_MAP[status].label) || '未知'
+      const item = STATUS_MAP[status]
+      return item ? t(item.labelKey) : t('note.statusUnknown')
     },
     statusClass(status) {
       return (STATUS_MAP[status] && STATUS_MAP[status].cls) || ''
@@ -146,7 +150,7 @@ export default {
     },
     goDetail(note) {
       if (note.status !== 2) {
-        uni.showToast({ title: '仅已发布笔记可查看详情', icon: 'none' })
+        uni.showToast({ title: this.t('note.publishedOnly'), icon: 'none' })
         return
       }
       uni.navigateTo({ url: `/pages/travelNote/detail?id=${note.id}` })
@@ -156,16 +160,16 @@ export default {
     },
     removeNote(note) {
       uni.showModal({
-        title: '提示',
-        content: '确定删除这篇笔记吗？',
+        title: this.t('note.deleteTitle'),
+        content: this.t('note.deleteContent'),
         success: async (r) => {
           if (!r.confirm) return
           const res = await deleteNote(note.id)
           if (res.code === 200) {
-            uni.showToast({ title: '删除成功', icon: 'none' })
+            uni.showToast({ title: this.t('note.deleted'), icon: 'none' })
             this.reset()
           } else {
-            uni.showToast({ title: res.message || '删除失败', icon: 'none' })
+            uni.showToast({ title: res.message || this.t('note.deleteFailed'), icon: 'none' })
           }
         }
       })
@@ -177,7 +181,7 @@ export default {
 <style scoped>
 .note-mine {
   min-height: 100vh;
-  background-color: var(--background-color, #f8faff);
+  background-color: var(--background-color, #F7F4EE);
   padding: 24rpx;
 }
 
@@ -217,7 +221,7 @@ export default {
 
 .status-item {
   padding: 10rpx 26rpx;
-  background-color: #fff;
+  background-color: var(--card-background);
   border-radius: 30rpx;
   font-size: 26rpx;
   color: var(--text-secondary-color, #7d7e80);
@@ -238,7 +242,7 @@ export default {
 .note-item {
   display: flex;
   gap: 20rpx;
-  background-color: #fff;
+  background-color: var(--card-background);
   border-radius: 16rpx;
   padding: 20rpx;
 }

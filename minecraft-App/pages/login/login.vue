@@ -1,87 +1,90 @@
 <template>
-  <view class="login-container">
-    <view class="login-background">
-      <view class="block"></view>
-      <view class="block"></view>
-      <view class="block"></view>
-      <view class="block"></view>
-      <view class="block"></view>
-    </view>
-    <view class="login-form">
-      <view class="logo">
-        <text class="logo-text">Minecraft</text>
-        <text class="logo-subtext">登录您的账户</text>
-      </view>
-      <!-- 头像显示 -->
-      <view class="avatar-container">
-        <view class="avatar">
-          <image :src="avatarUrl" mode="aspectFill" class="avatar-img" />
-        </view>
-      </view>
-      <view class="form-item">
-        <view class="input-wrapper">
-          <text class="input-icon">
-            <svg t="1772207429069" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
-              p-id="7501" width="256" height="256">
-              <path d="M502.28224 338.432m-234.496 0a234.496 234.496 0 1 0 468.992 0 234.496 234.496 0 1 0-468.992 0Z"
-                fill="#CAE4FF" p-id="7502"></path>
-              <path
-                d="M492.288 609.792c-160.256-0.512-289.792-130.048-289.792-289.792 0-160.768 129.024-291.84 289.792-294.4 160.256 0.512 289.792 130.048 289.792 289.792 0.512 161.28-129.024 291.84-289.792 294.4z m0-500.224c-113.664 0-205.824 92.16-205.824 205.824 0 113.664 92.16 205.824 205.824 205.824s205.824-92.16 205.824-205.824c0-113.664-92.16-205.824-205.824-205.824z"
-                fill="#0972E7" p-id="7503"></path>
-              <path
-                d="M109.824 1013.248c-23.04 0-41.984-18.944-41.984-41.984v-16.896c1.024-236.544 192.512-427.52 428.544-428.544 23.04 0 41.984 18.944 41.984 41.984 0 23.04-18.944 41.984-41.984 41.984-189.952 1.024-343.552 154.624-344.576 344.576v12.8c0.512 24.064-17.92 44.032-41.984 46.08z"
-                fill="#0972E7" p-id="7504"></path>
-              <path
-                d="M874.752 1009.152c-22.016 1.536-40.448-15.36-41.984-37.376v-17.408c-1.024-189.952-154.624-343.552-344.576-344.576-23.04 0-41.984-18.944-41.984-41.984 0-23.04 18.944-41.984 41.984-41.984 236.544 1.024 427.52 192.512 428.544 428.544v12.8c1.536 22.016-15.36 40.448-37.376 41.984h-4.608z"
-                fill="#0972E7" p-id="7505"></path>
-            </svg>
-          </text>
-          <input v-model="formData.account" placeholder="请输入账号" class="form-input" :class="{ 'error': errors.account }"
-            @input="handleAccountInput" />
-        </view>
-        <text v-if="errors.account" class="error-message">{{ errors.account }}</text>
-      </view>
-      <view class="form-item">
-        <view class="input-wrapper">
-          <text class="input-icon">
-            <svg t="1775143734296" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
-              p-id="12595" width="256" height="256">
-              <path
-                d="M511.2832 509.696m-432.3328 0a432.3328 432.3328 0 1 0 864.6656 0 432.3328 432.3328 0 1 0-864.6656 0Z"
-                fill="#FF579C" p-id="12596"></path>
-              <path
-                d="M286.3104 415.5904c-85.0432 0-160.4096 41.3696-207.104 105.0624 4.5568 182.7328 122.368 337.3056 285.952 396.032 103.2192-33.28 177.92-130.048 177.92-244.3776-0.0512-141.7728-114.9952-256.7168-256.768-256.7168z"
-                fill="#FF80BA" p-id="12597"></path>
-              <path
-                d="M408.7808 422.8096V358.7584c0-27.9552 22.7328-50.6368 50.6368-50.6368h103.68c27.9552 0 50.6368 22.7328 50.6368 50.6368v64.0512h61.44V358.7584c0-61.7984-50.2784-112.0768-112.0768-112.0768H459.4176c-61.7984 0-112.0768 50.2784-112.0768 112.0768v64.0512h61.44z"
-                fill="#FFC7E3" p-id="12598"></path>
-              <path
-                d="M668.8768 395.2128H353.6384c-48.9472 0-88.6272 39.68-88.6272 88.6272v186.0608c0 48.9472 39.68 88.6272 88.6272 88.6272h315.2384c48.9472 0 88.6272-39.68 88.6272-88.6272V483.84c0-48.9472-39.68-88.6272-88.6272-88.6272z m-130.1504 188.2112v64.512a27.4432 27.4432 0 0 1-54.8864 0v-64.512a55.31648 55.31648 0 0 1-27.9552-48.0768c0-30.6176 24.7808-55.3984 55.3984-55.3984s55.3984 24.7808 55.3984 55.3984c0 20.6336-11.264 38.5536-27.9552 48.0768z"
-                fill="#FFFFFF" p-id="12599"></path>
-            </svg>
-          </text>
-          <input v-model="formData.password" type="password" placeholder="请输入密码" class="form-input"
-            :class="{ 'error': errors.password }" />
-        </view>
-        <text v-if="errors.password" class="error-message">{{ errors.password }}</text>
-      </view>
-      <view class="form-item">
-        <view class="checkbox-group">
-          <view class="custom-checkbox" :class="{ 'checked': remember }" @click="remember = !remember">
-            <text v-if="remember" class="checkbox-check">✓</text>
+  <view class="auth-page">
+    <view class="auth-shell">
+      <!-- 品牌区（PC） -->
+      <view class="brand-panel">
+        <view class="brand-pattern brand-pattern--1"></view>
+        <view class="brand-pattern brand-pattern--2"></view>
+        <view class="brand-inner">
+          <view class="brand-logo">
+            <uni-icons type="map-pin-ellipse" size="24" color="#FFFDF8" />
           </view>
-          <text class="checkbox-label">记住我</text>
+          <text class="brand-name">Minecraft</text>
+          <text class="brand-tagline">{{ t('auth.brandTagline') }}</text>
+
+          <view class="brand-points">
+            <view v-for="key in brandPoints" :key="key" class="brand-point">
+              <view class="point-dot">
+                <uni-icons type="checkmarkempty" size="11" color="#1E5B48" />
+              </view>
+              <text class="point-text">{{ t(key) }}</text>
+            </view>
+          </view>
         </view>
-        <text class="forgot-password" @click="forgotPassword">忘记密码？</text>
+        <text class="brand-copyright">© 2026 Minecraft Travel</text>
       </view>
-      <view class="form-item">
-        <button :loading="loading" @click="submitForm" class="login-button">
-          <text class="button-text">登录</text>
+
+      <!-- 表单区 -->
+      <view class="auth-card">
+        <view class="mobile-brand">
+          <view class="mobile-logo">
+            <uni-icons type="map-pin-ellipse" size="20" color="#1E5B48" />
+          </view>
+          <view class="mobile-brand__text">
+            <text class="mobile-name">Minecraft</text>
+            <text class="mobile-tagline">{{ t('auth.brandTagline') }}</text>
+          </view>
+        </view>
+
+        <view class="card-head">
+          <text class="card-title">{{ t('auth.loginTitle') }}</text>
+          <text class="card-sub">{{ t('auth.loginSubtitle') }}</text>
+        </view>
+
+        <view class="field">
+          <text class="field-label">{{ t('auth.accountLabel') }}</text>
+          <view class="input-wrap" :class="{ 'is-error': !!errors.account }">
+            <uni-icons class="field-icon" type="person" size="17" color="currentColor" />
+            <input v-model="formData.account" class="field-input"
+              :placeholder="t('auth.accountPlaceholder')" confirm-type="next" />
+          </view>
+          <text v-if="errors.account" class="error-text">{{ errors.account }}</text>
+        </view>
+
+        <view class="field">
+          <text class="field-label">{{ t('auth.passwordLabel') }}</text>
+          <view class="input-wrap" :class="{ 'is-error': !!errors.password }">
+            <uni-icons class="field-icon" type="locked" size="17" color="currentColor" />
+            <input v-model="formData.password" class="field-input" :type="showPassword ? 'text' : 'password'"
+              :placeholder="t('auth.passwordPlaceholder')" confirm-type="done" @confirm="submitForm" />
+            <view class="eye-btn" :aria-label="showPassword ? t('auth.hidePassword') : t('auth.showPassword')"
+              @click="showPassword = !showPassword">
+              <uni-icons :type="showPassword ? 'eye-filled' : 'eye-slash'" size="17" color="currentColor" />
+            </view>
+          </view>
+          <text v-if="errors.password" class="error-text">{{ errors.password }}</text>
+        </view>
+
+        <view class="form-row">
+          <view class="remember" @click="remember = !remember">
+            <view class="checkbox" :class="{ 'is-checked': remember }">
+              <uni-icons v-if="remember" type="checkmarkempty" size="12" color="#FFFFFF" />
+            </view>
+            <text class="remember-text">{{ t('auth.remember') }}</text>
+          </view>
+          <text class="text-link" @click="forgotPassword">{{ t('auth.forgot') }}</text>
+        </view>
+
+        <button class="submit-btn" :loading="loading" :disabled="loading" @click="submitForm">
+          {{ t('auth.login') }}
         </button>
-      </view>
-      <view class="register-link">
-        <text>还没有账号？</text>
-        <text class="link" @click="goRegister">立即注册</text>
+
+        <view class="switch-row">
+          <text class="switch-text">{{ t('auth.noAccount') }}</text>
+          <text class="text-link" @click="goRegister">{{ t('auth.registerNow') }}</text>
+        </view>
+
+        <text class="legal">{{ t('auth.legal') }}</text>
       </view>
     </view>
   </view>
@@ -91,9 +94,16 @@
 import { ref, reactive } from 'vue';
 import { onLoad } from '@dcloudio/uni-app';
 import { login } from '../../api/auth';
+import { t, usePageTitle } from '@/utils/i18n';
+import UniIcons from '@/uni_modules/uni-icons/components/uni-icons/uni-icons.vue';
+
+usePageTitle('page.login');
+
+const brandPoints = ['auth.brandPoint1', 'auth.brandPoint2', 'auth.brandPoint3'];
 
 const loading = ref(false);
 const remember = ref(false);
+const showPassword = ref(false);
 let redirectUrl = '';
 
 onLoad((options) => {
@@ -106,34 +116,15 @@ onLoad((options) => {
   }
 });
 
-// 头像相关
-const defaultAvatar = 'https://img.icons8.com/ios-filled/50/000000/user.png';
-const avatarUrl = ref(defaultAvatar);
-
 const formData = reactive({
   account: '',
-  password: '',
-  hasInput: false
+  password: ''
 });
 
 const errors = reactive({
   account: '',
   password: ''
 });
-
-// 处理账号输入，获取头像
-const handleAccountInput = async () => {
-  const account = formData.account.trim();
-  formData.hasInput = account !== '';
-
-  if (account) {
-    // 这里可以添加调用后端API获取用户头像的逻辑
-    // 暂时使用默认头像
-    avatarUrl.value = defaultAvatar;
-  } else {
-    avatarUrl.value = defaultAvatar;
-  }
-};
 
 const validateForm = () => {
   let isValid = true;
@@ -144,13 +135,13 @@ const validateForm = () => {
 
   // 验证账号
   if (!formData.account.trim()) {
-    errors.account = '请输入账号';
+    errors.account = t('auth.accountRequired');
     isValid = false;
   }
 
   // 验证密码
   if (!formData.password.trim()) {
-    errors.password = '请输入密码';
+    errors.password = t('auth.passwordRequired');
     isValid = false;
   }
 
@@ -168,7 +159,7 @@ const submitForm = async () => {
         uni.setStorageSync('userInfo', response.data);
 
         uni.showToast({
-          title: '登录成功',
+          title: t('auth.loginSuccess'),
           icon: 'success'
         });
 
@@ -186,13 +177,13 @@ const submitForm = async () => {
         }
       } else {
         uni.showToast({
-          title: response.message || '登录失败',
+          title: response.message || t('auth.loginFailed'),
           icon: 'none'
         });
       }
     } catch (error) {
       uni.showToast({
-        title: '网络错误，请稍后重试',
+        title: t('auth.networkError'),
         icon: 'none'
       });
     } finally {
@@ -203,7 +194,7 @@ const submitForm = async () => {
 
 const forgotPassword = () => {
   uni.showToast({
-    title: '忘记密码功能暂未实现',
+    title: t('auth.forgotNotReady'),
     icon: 'none'
   });
 };
@@ -216,111 +207,37 @@ const goRegister = () => {
 </script>
 
 <style scoped>
-/* CSS 变量定义 */
-:root {
-  --bg-color: #f5f5f5;
-  --card-color: #ffffff;
-  --text-color: #333333;
-  --border-color: #6c6c6c;
-  --primary-color: #007aff;
-}
-
-.login-container {
+/* ============ 页面底壳 ============ */
+.auth-page {
+  min-height: 100vh;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  padding: 20rpx;
+  padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
   background-color: var(--bg-color);
-  position: relative;
+  background-image:
+    radial-gradient(900px 520px at 12% -6%, rgba(30, 91, 72, 0.12), transparent 62%),
+    radial-gradient(760px 520px at 104% 104%, rgba(196, 97, 60, 0.1), transparent 58%);
+  background-repeat: no-repeat;
+}
+
+.auth-shell {
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
+  border-radius: 24px;
+  background: var(--card-background);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-lg);
+  animation: authFloatUp 0.55s var(--ease-out) both;
 }
 
-.login-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-}
-
-.block {
-  position: absolute;
-  background-color: rgba(0, 122, 255, 0.05);
-  border-radius: 50%;
-  animation: float 8s infinite ease-in-out;
-}
-
-.block:nth-child(1) {
-  width: 200rpx;
-  height: 200rpx;
-  top: 10%;
-  left: 10%;
-  animation-delay: 0s;
-}
-
-.block:nth-child(2) {
-  width: 150rpx;
-  height: 150rpx;
-  top: 60%;
-  right: 15%;
-  animation-delay: 2s;
-}
-
-.block:nth-child(3) {
-  width: 100rpx;
-  height: 100rpx;
-  top: 30%;
-  right: 20%;
-  animation-delay: 4s;
-}
-
-.block:nth-child(4) {
-  width: 120rpx;
-  height: 120rpx;
-  bottom: 20%;
-  left: 25%;
-  animation-delay: 6s;
-}
-
-.block:nth-child(5) {
-  width: 80rpx;
-  height: 80rpx;
-  top: 40%;
-  left: 30%;
-  animation-delay: 1s;
-}
-
-@keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0) rotate(0deg);
-  }
-
-  50% {
-    transform: translateY(-20rpx) rotate(180deg);
-  }
-}
-
-.login-form {
-  width: 100%;
-  max-width: 300px;
-  padding: 60rpx 40rpx;
-  background-color: var(--card-color);
-  border-radius: 20rpx;
-  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.1);
-  position: relative;
-  z-index: 1;
-  animation: slideIn 0.5s ease-out;
-}
-
-@keyframes slideIn {
+@keyframes authFloatUp {
   from {
     opacity: 0;
-    transform: translateY(50rpx);
+    transform: translateY(18px);
   }
 
   to {
@@ -329,267 +246,403 @@ const goRegister = () => {
   }
 }
 
-/* 头像样式 */
-.avatar-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 40rpx;
-  animation: slideIn 0.5s ease-out 0.2s both;
-}
-
-.avatar {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 3rpx solid var(--primary-color);
-  box-shadow: 0 4rpx 12rpx rgba(0, 122, 255, 0.3);
-  animation: scaleIn 0.5s ease-out 0.4s both;
-}
-
-.avatar-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: all 0.3s ease;
-}
-
-.avatar-img:hover {
-  transform: scale(1.05);
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.logo {
-  text-align: center;
-  margin-bottom: 50rpx;
-}
-
-.logo-text {
-  display: block;
-  font-size: 48rpx;
-  font-weight: bold;
-  color: var(--primary-color);
-  margin-bottom: 10rpx;
-  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
-}
-
-.logo-subtext {
-  display: block;
-  font-size: 24rpx;
-  color: var(--text-color);
-  opacity: 0.7;
-}
-
-.form-item {
-  margin-bottom: 35rpx;
-  display: flex;
-  gap: 8px;
-}
-
-.input-wrapper {
+/* ============ 品牌区（PC 显示） ============ */
+.brand-panel {
   position: relative;
+  display: none;
+  overflow: hidden;
+  padding: 44px 40px 36px;
+  background: linear-gradient(158deg, #235F4B 0%, #1A4C3D 52%, #113528 100%);
+  color: #FFFDF8;
+}
+
+.brand-pattern {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 253, 248, 0.14);
+  pointer-events: none;
+}
+
+.brand-pattern--1 {
+  width: 300px;
+  height: 300px;
+  right: -120px;
+  top: -110px;
+  background: radial-gradient(circle, rgba(255, 253, 248, 0.14), transparent 66%);
+  border: none;
+}
+
+.brand-pattern--2 {
+  width: 220px;
+  height: 220px;
+  left: -90px;
+  bottom: -80px;
+}
+
+.brand-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.brand-logo {
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
-  flex-direction: row;
-  border: 1px solid var(--border-color);
-  border-radius: 12rpx;
-  padding: 8rpx 20rpx;
-  transition: all 0.3s ease;
-  background-color: var(--bg-color);
+  justify-content: center;
+  border-radius: 15px;
+  background: rgba(255, 253, 248, 0.14);
+  border: 1px solid rgba(255, 253, 248, 0.24);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
-.input-wrapper:focus-within {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3rpx rgba(0, 122, 255, 0.1);
+.brand-name {
+  margin-top: 22px;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  line-height: 1.1;
 }
 
-.input-wrapper.error {
-  border-color: #ff4d4f;
+.brand-tagline {
+  margin-top: 10px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: rgba(255, 253, 248, 0.72);
 }
 
-.input-icon {
-  padding: 0 20rpx;
-  font-size: 28rpx;
+.brand-points {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: auto;
+  padding-top: 36px;
 }
 
-.input-icon svg {
-  width: 32rpx;
-  height: 32rpx;
-  fill: var(--text-color);
+.brand-point {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.form-input {
-  flex: 1;
-  font-size: 28rpx;
-  background-color: transparent;
+.point-dot {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 253, 248, 0.92);
+}
+
+.point-text {
+  font-size: 13px;
+  color: rgba(255, 253, 248, 0.86);
+}
+
+.brand-copyright {
+  position: relative;
+  z-index: 1;
+  margin-top: 28px;
+  font-size: 10.5px;
+  letter-spacing: 0.4px;
+  color: rgba(255, 253, 248, 0.42);
+}
+
+/* ============ 表单区 ============ */
+.auth-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 30px 22px 26px;
+  background: var(--card-background);
+}
+
+.mobile-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 22px;
+}
+
+.mobile-logo {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  background: var(--primary-soft);
+}
+
+.mobile-brand__text {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-name {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
   color: var(--text-color);
+}
+
+.mobile-tagline {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--text-tertiary-color);
+}
+
+.card-head {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-title {
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: var(--text-color);
+}
+
+.card-sub {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text-secondary-color);
+}
+
+/* ============ 表单控件 ============ */
+.field {
+  display: flex;
+  flex-direction: column;
+  margin-top: 18px;
+}
+
+.field-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--text-secondary-color);
+}
+
+.input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 50px;
+  margin-top: 8px;
+  padding: 0 14px;
+  border-radius: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-color);
+  transition: border-color 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out),
+    background-color 0.25s var(--ease-out);
+}
+
+.input-wrap:focus-within {
+  background: var(--card-background);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.input-wrap.is-error {
+  border-color: #C0392B;
+  box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.1);
+}
+
+.field-icon {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  color: var(--text-tertiary-color);
+  transition: color 0.25s var(--ease-out);
+}
+
+.input-wrap:focus-within .field-icon {
+  color: var(--primary-color);
+}
+
+.field-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
   border: none;
   outline: none;
-}
-
-.form-input::placeholder {
+  background: transparent;
+  font-size: 14.5px;
   color: var(--text-color);
-  opacity: 0.5;
 }
 
-.error-message {
-  display: block;
-  font-size: 20rpx;
-  color: #ff4d4f;
-  margin-top: 10rpx;
-  animation: shake 0.3s ease;
+.field-input::placeholder {
+  color: var(--text-tertiary-color);
 }
 
-@keyframes shake {
-
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-
-  25% {
-    transform: translateX(-5rpx);
-  }
-
-  75% {
-    transform: translateX(5rpx);
-  }
-}
-
-.checkbox-group {
-  display: flex;
-  align-items: center;
-  flex-direction: row;
-  justify-content: space-between;
-}
-
-.custom-checkbox {
-  width: 32rpx;
-  height: 32rpx;
-  border: 2rpx solid #6c6c6c;
-  border-radius: 6rpx;
+.eye-btn {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 12rpx;
-  transition: all 0.3s ease;
+  margin-right: -6px;
+  border-radius: 50%;
+  color: var(--text-tertiary-color);
+  transition: color 0.2s var(--ease-out), background-color 0.2s var(--ease-out);
+}
+
+.eye-btn:hover {
+  color: var(--primary-color);
+  background: var(--primary-soft);
+}
+
+.error-text {
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #C0392B;
+}
+
+/* ============ 记住我 / 链接 ============ */
+.form-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   cursor: pointer;
 }
 
-.custom-checkbox.checked {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-}
-
-.checkbox-check {
-  color: white;
-  font-size: 20rpx;
-  font-weight: bold;
-}
-
-.checkbox-label {
-  font-size: 24rpx;
-  color: var(--text-color);
-}
-
-.forgot-password {
-  float: right;
-  font-size: 24rpx;
-  color: var(--primary-color);
-  transition: color 0.3s ease;
-}
-
-.forgot-password:hover {
-  color: #0056b3;
-  text-decoration: underline;
-}
-
-.login-button {
-  width: 100%;
-  padding: 2rpx;
-  font-size: 30rpx;
-  background: linear-gradient(135deg, var(--primary-color), #0056b3);
-  color: white;
-  border: none;
-  border-radius: 12rpx;
-  transition: all 0.3s ease;
-  box-shadow: 0 4rpx 12rpx rgba(0, 122, 255, 0.3);
-  overflow: hidden;
-  position: relative;
-}
-
-.login-button::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(to right,
-      rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.3) 50%,
-      rgba(255, 255, 255, 0) 100%);
-  transform: rotate(30deg);
-  animation: shine 2s infinite;
-}
-
-@keyframes shine {
-  0% {
-    transform: translateX(-100%) rotate(30deg);
-  }
-
-  100% {
-    transform: translateX(100%) rotate(30deg);
-  }
-}
-
-.login-button:hover {
-  transform: translateY(-2rpx);
-  box-shadow: 0 6rpx 16rpx rgba(0, 122, 255, 0.4);
-}
-
-.login-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2rpx 8rpx rgba(0, 122, 255, 0.3);
-}
-
-.button-text {
-  position: relative;
-  z-index: 1;
-  font-weight: bold;
-}
-
-.register-link {
-  text-align: center;
-  margin-top: 40rpx;
-  font-size: 24rpx;
-  color: var(--text-color);
+.checkbox {
+  width: 18px;
+  height: 18px;
   display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  border: 1.5px solid var(--border-strong);
+  background: var(--card-background);
+  transition: all 0.2s var(--ease-out);
 }
 
-.link {
+.checkbox.is-checked {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 10px rgba(30, 91, 72, 0.24);
+}
+
+.remember-text {
+  font-size: 12.5px;
+  color: var(--text-secondary-color);
+}
+
+.text-link {
+  font-size: 12.5px;
+  font-weight: 600;
   color: var(--primary-color);
-  margin-left: 10rpx;
-  font-weight: 500;
-  transition: color 0.3s ease;
+  transition: opacity 0.2s var(--ease-out);
 }
 
-.link:hover {
-  color: #0056b3;
-  text-decoration: underline;
+.text-link:hover {
+  opacity: 0.75;
+}
+
+/* ============ 提交按钮 ============ */
+.submit-btn {
+  width: 100%;
+  height: 52px;
+  line-height: 52px;
+  margin-top: 22px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #235F4B 0%, #1E5B48 55%, #2F7A55 100%);
+  color: #FFFDF8;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  box-shadow: var(--shadow-brand);
+  transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out), opacity 0.25s var(--ease-out);
+}
+
+.submit-btn::after {
+  border: none;
+}
+
+.submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(30, 91, 72, 0.3);
+}
+
+.submit-btn:active {
+  transform: scale(0.99);
+}
+
+.submit-btn[disabled] {
+  opacity: 0.7;
+}
+
+/* ============ 底部切换 / 条款 ============ */
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 20px;
+}
+
+.switch-text {
+  font-size: 13px;
+  color: var(--text-secondary-color);
+}
+
+.legal {
+  margin-top: 22px;
+  font-size: 10.5px;
+  line-height: 1.65;
+  text-align: center;
+  color: var(--text-tertiary-color);
+}
+
+/* ============ PC：左右分栏 ============ */
+@media (min-width: 900px) {
+  .auth-page {
+    padding: 40px;
+  }
+
+  .auth-shell {
+    max-width: 1040px;
+    min-height: 620px;
+    display: grid;
+    grid-template-columns: 1.02fr 0.98fr;
+    border-radius: 28px;
+  }
+
+  .brand-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .auth-card {
+    padding: 52px 54px;
+  }
+
+  .mobile-brand {
+    display: none;
+  }
+
+  .card-title {
+    font-size: 28px;
+  }
 }
 </style>

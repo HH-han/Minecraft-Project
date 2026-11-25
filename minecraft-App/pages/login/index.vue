@@ -11,6 +11,9 @@
 import { ref } from 'vue';
 import LoginComponent from './login.vue';
 import RegisterComponent from './register.vue';
+import { usePageTitle } from '@/utils/i18n';
+
+usePageTitle('page.login');
 
 const activeIndex = ref(0);
 </script>

@@ -1,59 +1,52 @@
 <template>
   <div class="about-container">
     <div class="about-header">
-      <h1>关于我们</h1>
+      <h1>{{ t('page.about') }}</h1>
     </div>
-    
+
     <div class="about-content">
       <div class="about-logo">
-        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=travel%20app%20logo%20modern%20design&image_size=square" alt="应用logo">
+        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=travel%20app%20logo%20modern%20design&image_size=square" alt="logo">
       </div>
-      
+
       <div class="about-info">
-        <h2>旅行助手</h2>
-        <p class="version">版本：v1.0.0</p>
-        <p class="description">
-          旅行助手是一款专注于为用户提供全方位旅行服务的应用，包括景点推荐、酒店预订、美食探索、票务预订等功能。我们致力于为用户打造便捷、舒适的旅行体验，让每一次出行都充满乐趣。
-        </p>
+        <h2>{{ t('about.appName') }}</h2>
+        <p class="version">{{ t('about.version') }}</p>
+        <p class="description">{{ t('about.description') }}</p>
       </div>
-      
+
       <div class="about-section">
-        <h3>功能特点</h3>
+        <h3>{{ t('about.features') }}</h3>
         <ul class="feature-list">
-          <li>• 景点推荐与详情</li>
-          <li>• 酒店预订与比较</li>
-          <li>• 美食探索与推荐</li>
-          <li>• 票务预订与管理</li>
-          <li>• 旅行计划制定</li>
-          <li>• 在线客服支持</li>
+          <li>• {{ t('about.f1') }}</li>
+          <li>• {{ t('about.f2') }}</li>
+          <li>• {{ t('about.f3') }}</li>
+          <li>• {{ t('about.f4') }}</li>
+          <li>• {{ t('about.f5') }}</li>
+          <li>• {{ t('about.f6') }}</li>
         </ul>
       </div>
-      
+
       <div class="about-section">
-        <h3>联系我们</h3>
-        <p>邮箱：support@travelassistant.com</p>
-        <p>电话：400-123-4567</p>
-        <p>地址：北京市朝阳区旅行大厦1001室</p>
+        <h3>{{ t('about.contact') }}</h3>
+        <p>{{ t('about.email') }}</p>
+        <p>{{ t('about.phone') }}</p>
+        <p>{{ t('about.address') }}</p>
       </div>
-      
+
       <div class="about-section">
-        <h3>用户协议</h3>
-        <p><a href="#">《用户服务协议》</a></p>
-        <p><a href="#">《隐私政策》</a></p>
+        <h3>{{ t('about.agreement') }}</h3>
+        <p><a href="#">{{ t('about.terms') }}</a></p>
+        <p><a href="#">{{ t('about.privacyPolicy') }}</a></p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { t, usePageTitle } from '@/utils/i18n'
 
-// 导航到指定页面
-const navigateTo = (url) => {
-  uni.navigateTo({
-    url
-  })
-}
+usePageTitle('page.about')
 </script>
 
 <style scoped>

@@ -1,6 +1,14 @@
 <template>
   <!-- 功能导航 -->
-  <div class="glass-morphism nav-container">
+  <div class="service-card">
+    <div class="service-head">
+      <div>
+        <div class="service-title">{{ t('service.title') }}</div>
+        <div class="service-sub">{{ t('service.sub') }}</div>
+      </div>
+      <div class="service-badge">{{ t('service.badge') }}</div>
+    </div>
+    <div class="nav-container">
     <div class="nav-item" @click="navigateTo('/pages/attraction/index')">
       <div class="nav-icon">
         <svg t="1774967500532" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
@@ -11,7 +19,7 @@
         </svg>
         ️
       </div>
-      <div class="nav-text">景点</div>
+      <div class="nav-text">{{ t('service.attraction') }}</div>
     </div>
     <div class="nav-item" @click="navigateTo('/pages/hotel/index')">
       <div class="nav-icon">
@@ -43,7 +51,7 @@
             fill="#D6EBFF" p-id="8857"></path>
         </svg>
       </div>
-      <div class="nav-text">酒店</div>
+      <div class="nav-text">{{ t('service.hotel') }}</div>
     </div>
     <div class="nav-item" @click="navigateTo('/pages/ticket/index')">
       <div class="nav-icon">
@@ -76,7 +84,7 @@
             fill="#434343" p-id="10885"></path>
         </svg>
       </div>
-      <div class="nav-text">票务</div>
+      <div class="nav-text">{{ t('service.ticket') }}</div>
     </div>
     <div class="nav-item" @click="navigateTo('/pages/food/index')">
       <div class="nav-icon">
@@ -99,7 +107,7 @@
             fill="#FF5F89" p-id="13401"></path>
         </svg>
       </div>
-      <div class="nav-text">美食</div>
+      <div class="nav-text">{{ t('service.food') }}</div>
     </div>
     <div class="nav-item" @click="navigateTo('/pages/product/index')">
       <div class="nav-icon">
@@ -113,7 +121,7 @@
             fill="#F4AA4A" p-id="5778"></path>
         </svg>
       </div>
-      <div class="nav-text">特产</div>
+      <div class="nav-text">{{ t('service.product') }}</div>
     </div>
     <div class="nav-item" @click="navigateTo('/pages/travelPlan/index')">
       <div class="nav-icon">
@@ -146,7 +154,7 @@
             fill="#FFB380" p-id="7072"></path>
         </svg>
       </div>
-      <div class="nav-text">出行计划</div>
+      <div class="nav-text">{{ t('service.plan') }}</div>
     </div>
     <div class="nav-item" @click="navigateTo('/pages/groupTravel/index')">
       <div class="nav-icon">
@@ -160,7 +168,7 @@
             fill="#1EA8FF" opacity=".5" p-id="9013"></path>
         </svg>
       </div>
-      <div class="nav-text">跟团游</div>
+      <div class="nav-text">{{ t('service.group') }}</div>
     </div>
     <div class="nav-item" @click="navigateTo('/pages/news/index')">
       <div class="nav-icon">
@@ -177,22 +185,25 @@
             fill="#FFFFFF" p-id="10983"></path>
         </svg>
       </div>
-      <div class="nav-text">新闻</div>
+      <div class="nav-text">{{ t('service.news') }}</div>
     </div>
     <div class="nav-item" @click="navigateTo('/pages/login/scan')">
       <div class="nav-icon">
         <svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="256" height="256">
           <path
             d="M117.368 487.445h371.92v-371.92h-371.92v371.92z m92.981-278.94h185.96v185.96h-185.96v-185.96z m325.43-92.98v371.92h371.92v-371.92H535.78z m278.94 278.94h-185.96v-185.96h185.96v185.96z m-557.88-46.49h92.98v-92.98h-92.98v92.98z m-139.47 557.88h371.92v-371.92h-371.92v371.92z m92.98-278.94h185.96v185.96h-185.96v-185.96z m557.88-371.92h-92.98v92.98h92.98v-92.98z m-232.45 650.86h92.98v-92.98h-92.98v92.98z m92.98-278.94v185.96h92.98v-185.96h-92.98z m185.96 185.96h-92.98v92.98h185.96v-185.96h-92.98v92.98z m0-185.96h92.98v-92.98h-92.98v92.98z m-278.94-92.98v92.98h92.98v-92.98h-92.98z m-278.94 232.45h92.98v-92.98h-92.98v92.98z"
-            fill="#3A80D2"></path>
+            fill="#1E5B48"></path>
         </svg>
       </div>
-      <div class="nav-text">扫一扫</div>
+      <div class="nav-text">{{ t('service.scan') }}</div>
+    </div>
     </div>
   </div>
 </template>
 
 <script setup>
+import { t } from '@/utils/i18n'
+
 // 导航到指定页面
 const navigateTo = (url) => {
   // 提取页面路径（去除参数部分）
@@ -202,7 +213,6 @@ const navigateTo = (url) => {
   const tabbarPages = [
     '/pages/index/index',
     '/pages/discover/index',
-    '/pages/community/index',
     '/pages/news/index',
     '/pages/profile/index'
   ];
@@ -223,88 +233,188 @@ const navigateTo = (url) => {
 </script>
 
 <style scoped>
-/* 导航容器样式 */
-.nav-container {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 16px;
-  padding: 20px;
-  margin: 20px 0;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(8px);
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+/* 服务入口卡片 */
+.service-card {
+  position: relative;
+  margin-top: 18px;
+  padding: 18px 16px 10px;
+  background: var(--card-background);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
 }
 
-/* 导航项样式 */
+.service-card::before {
+  content: '';
+  position: absolute;
+  top: -70px;
+  right: -50px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.service-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 0 2px;
+}
+
+.service-title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--text-color);
+}
+
+.service-sub {
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--text-tertiary-color);
+}
+
+.service-badge {
+  flex: 0 0 auto;
+  padding: 5px 11px;
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft);
+  color: var(--primary-color);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* 导航容器 */
+.nav-container {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+/* 导航项 */
 .nav-item {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 8px;
+  padding: 10px 4px 12px;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.3s ease;
-  padding: 12px;
-  border-radius: 12px;
+  transition: transform 0.3s var(--ease-out), background-color 0.3s var(--ease-out);
 }
 
 .nav-item:hover {
-  background: rgba(30, 136, 229, 0.1);
+  background: var(--surface-2);
   transform: translateY(-2px);
 }
 
-/* 导航图标样式 */
+.nav-item:active {
+  transform: scale(0.94);
+}
+
+/* 图标底座 */
 .nav-icon {
-  width: 56px;
-  height: 56px;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 8px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+  transition: transform 0.35s var(--ease-spring), box-shadow 0.3s var(--ease-out);
 }
 
 .nav-item:hover .nav-icon {
-  background: rgba(30, 136, 229, 0.2);
-  transform: scale(1.05);
+  transform: scale(1.06);
+  box-shadow: 0 8px 18px rgba(38, 45, 36, 0.1);
+}
+
+.nav-item:nth-child(1) .nav-icon {
+  background: rgba(47, 125, 85, 0.12);
+}
+
+.nav-item:nth-child(2) .nav-icon {
+  background: rgba(58, 128, 190, 0.12);
+}
+
+.nav-item:nth-child(3) .nav-icon {
+  background: rgba(214, 122, 46, 0.14);
+}
+
+.nav-item:nth-child(4) .nav-icon {
+  background: rgba(196, 88, 106, 0.12);
+}
+
+.nav-item:nth-child(5) .nav-icon {
+  background: rgba(192, 138, 46, 0.16);
+}
+
+.nav-item:nth-child(6) .nav-icon {
+  background: rgba(206, 116, 66, 0.14);
+}
+
+.nav-item:nth-child(7) .nav-icon {
+  background: rgba(46, 122, 156, 0.12);
+}
+
+.nav-item:nth-child(8) .nav-icon {
+  background: rgba(181, 72, 47, 0.12);
+}
+
+.nav-item:nth-child(9) .nav-icon {
+  background: rgba(70, 96, 140, 0.12);
 }
 
 .nav-icon svg {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
 }
 
-/* 导航文本样式 */
+/* 文字 */
 .nav-text {
   font-size: 12px;
   font-weight: 500;
-  color: var(--text-color);
-  text-align: center;
   line-height: 1.2;
+  text-align: center;
+  color: var(--text-secondary-color);
+  transition: color 0.25s var(--ease-out);
 }
 
-/* 响应式设计 */
-@media (max-width: 768px) {
+.nav-item:hover .nav-text {
+  color: var(--primary-color);
+}
+
+/* PC 端：一行展示全部服务 */
+@media (min-width: 768px) {
+  .service-card {
+    padding: 22px 26px 14px;
+  }
+
   .nav-container {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    padding: 16px;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 10px;
   }
-  
+
   .nav-icon {
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
   }
-  
+
   .nav-icon svg {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
   }
-  
+
   .nav-text {
-    font-size: 11px;
+    font-size: 13px;
   }
 }
 </style>

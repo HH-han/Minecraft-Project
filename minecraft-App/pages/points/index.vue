@@ -2,13 +2,13 @@
   <view class="points-container">
     <view class="points-header">
       <view class="points-info">
-        <text class="points-label">我的积分</text>
+        <text class="points-label">{{ t('points.myPoints') }}</text>
         <text class="points-value">{{ userInfo?.points || 0 }}</text>
       </view>
     </view>
     
     <view class="products-section">
-      <text class="section-title">积分兑换商品</text>
+      <text class="section-title">{{ t('points.products') }}</text>
       <view class="products-list">
         <view 
           v-for="product in products" 
@@ -21,8 +21,8 @@
             <text class="product-name">{{ product.name }}</text>
             <text class="product-description">{{ product.description }}</text>
             <view class="product-footer">
-              <text class="points-price">{{ product.pointsPrice }} 积分</text>
-              <text class="stock">库存: {{ product.stock }}</text>
+              <text class="points-price">{{ t('points.price', { n: product.pointsPrice }) }}</text>
+              <text class="stock">{{ t('points.stock', { n: product.stock }) }}</text>
             </view>
           </view>
         </view>
@@ -32,22 +32,22 @@
     <!-- 兑换弹窗 -->
     <uni-popup ref="exchangePopup" type="center" :mask-click="false">
       <view class="exchange-popup">
-        <text class="popup-title">兑换商品</text>
+        <text class="popup-title">{{ t('points.exchangeTitle') }}</text>
         <view class="popup-content">
           <view class="form-item">
-            <text class="label">收货人</text>
-            <input v-model="exchangeForm.receiver" placeholder="请输入收货人姓名" class="input" />
+            <text class="label">{{ t('points.receiver') }}</text>
+            <input v-model="exchangeForm.receiver" :placeholder="t('points.receiverPlaceholder')" class="input" />
           </view>
           <view class="form-item">
-            <text class="label">手机号</text>
-            <input v-model="exchangeForm.phone" placeholder="请输入手机号" class="input" />
+            <text class="label">{{ t('points.phone') }}</text>
+            <input v-model="exchangeForm.phone" :placeholder="t('points.phonePlaceholder')" class="input" />
           </view>
           <view class="form-item">
-            <text class="label">收货地址</text>
-            <textarea v-model="exchangeForm.address" placeholder="请输入收货地址" class="textarea"></textarea>
+            <text class="label">{{ t('points.address') }}</text>
+            <textarea v-model="exchangeForm.address" :placeholder="t('points.addressPlaceholder')" class="textarea"></textarea>
           </view>
           <view class="form-item">
-            <text class="label">兑换数量</text>
+            <text class="label">{{ t('points.qty') }}</text>
             <view class="quantity-control">
               <button @click="decreaseQuantity" class="quantity-btn">-</button>
               <text class="quantity">{{ exchangeForm.quantity }}</text>
@@ -55,13 +55,13 @@
             </view>
           </view>
           <view class="form-item">
-            <text class="label">所需积分</text>
-            <text class="total-points">{{ (currentProduct?.pointsPrice || 0) * exchangeForm.quantity }} 积分</text>
+            <text class="label">{{ t('points.cost') }}</text>
+            <text class="total-points">{{ t('points.price', { n: (currentProduct?.pointsPrice || 0) * exchangeForm.quantity }) }}</text>
           </view>
         </view>
         <view class="popup-footer">
-          <button @click="closePopup" class="cancel-btn">取消</button>
-          <button @click="submitExchange" class="confirm-btn">确认兑换</button>
+          <button @click="closePopup" class="cancel-btn">{{ t('points.cancel') }}</button>
+          <button @click="submitExchange" class="confirm-btn">{{ t('points.confirm') }}</button>
         </view>
       </view>
     </uni-popup>
@@ -71,6 +71,7 @@
 <script>
 import { getPointsProducts, exchangeProduct } from '@/api/points'
 import { getUserInfo } from '@/api/user'
+import { t } from '@/utils/i18n'
 
 export default {
   data() {
@@ -90,7 +91,11 @@ export default {
     this.loadUserInfo()
     this.loadProducts()
   },
+  onShow() {
+    uni.setNavigationBarTitle({ title: t('page.points') })
+  },
   methods: {
+    t,
     async loadUserInfo() {
       try {
         const res = await getUserInfo()
@@ -127,7 +132,7 @@ export default {
     },
     async submitExchange() {
       if (!this.exchangeForm.receiver || !this.exchangeForm.phone || !this.exchangeForm.address) {
-        uni.showToast({ title: '请填写完整信息', icon: 'none' })
+        uni.showToast({ title: t('points.fillAll'), icon: 'none' })
         return
       }
       
@@ -140,12 +145,12 @@ export default {
           receiver: this.exchangeForm.receiver
         })
         
-        uni.showToast({ title: '兑换成功', icon: 'success' })
+        uni.showToast({ title: t('points.success'), icon: 'success' })
         this.$refs.exchangePopup.close()
         this.loadProducts()
         this.loadUserInfo()
       } catch (error) {
-        uni.showToast({ title: error.response?.data?.message || '兑换失败', icon: 'none' })
+        uni.showToast({ title: error.response?.data?.message || t('points.failed'), icon: 'none' })
       }
     }
   }
@@ -155,11 +160,11 @@ export default {
 <style scoped>
 .points-container {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: var(--bg-color);
 }
 
 .points-header {
-  background: linear-gradient(135deg, #4CAF50, #45a049);
+  background: var(--primary-color);
   padding: 30rpx;
   color: white;
   text-align: center;
@@ -189,7 +194,7 @@ export default {
   font-size: 32rpx;
   font-weight: bold;
   margin-bottom: 20rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .products-list {
@@ -200,7 +205,7 @@ export default {
 
 .product-item {
   width: 48%;
-  background-color: white;
+  background-color: var(--card-background);
   border-radius: 12rpx;
   margin-bottom: 20rpx;
   overflow: hidden;
@@ -226,12 +231,12 @@ export default {
   font-size: 28rpx;
   font-weight: bold;
   margin-bottom: 10rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .product-description {
   font-size: 24rpx;
-  color: #666;
+  color: var(--text-secondary-color);
   margin-bottom: 15rpx;
   line-height: 1.4;
   display: -webkit-box;
@@ -249,18 +254,18 @@ export default {
 .points-price {
   font-size: 26rpx;
   font-weight: bold;
-  color: #ff6b6b;
+  color: var(--accent-color);
 }
 
 .stock {
   font-size: 22rpx;
-  color: #999;
+  color: var(--text-tertiary-color);
 }
 
 .exchange-popup {
   width: 90%;
   max-width: 600rpx;
-  background-color: white;
+  background-color: var(--card-background);
   border-radius: 12rpx;
   padding: 30rpx;
 }
@@ -270,7 +275,7 @@ export default {
   font-weight: bold;
   text-align: center;
   margin-bottom: 30rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .form-item {
@@ -280,14 +285,14 @@ export default {
 .label {
   display: block;
   font-size: 26rpx;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 10rpx;
 }
 
 .input {
   width: 100%;
   padding: 15rpx;
-  border: 1rpx solid #ddd;
+  border: 1rpx solid var(--border-color);
   border-radius: 6rpx;
   font-size: 24rpx;
 }
@@ -295,7 +300,7 @@ export default {
 .textarea {
   width: 100%;
   padding: 15rpx;
-  border: 1rpx solid #ddd;
+  border: 1rpx solid var(--border-color);
   border-radius: 6rpx;
   font-size: 24rpx;
   min-height: 120rpx;
@@ -309,8 +314,8 @@ export default {
 .quantity-btn {
   width: 60rpx;
   height: 60rpx;
-  border: 1rpx solid #ddd;
-  background-color: #f5f5f5;
+  border: 1rpx solid var(--border-color);
+  background-color: var(--bg-color);
   border-radius: 6rpx;
   font-size: 30rpx;
   display: flex;
@@ -327,7 +332,7 @@ export default {
 .total-points {
   font-size: 28rpx;
   font-weight: bold;
-  color: #ff6b6b;
+  color: var(--accent-color);
 }
 
 .popup-footer {
@@ -340,17 +345,17 @@ export default {
   flex: 1;
   height: 80rpx;
   margin-right: 20rpx;
-  border: 1rpx solid #ddd;
-  background-color: white;
+  border: 1rpx solid var(--border-color);
+  background-color: var(--card-background);
   border-radius: 6rpx;
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-color);
 }
 
 .confirm-btn {
   flex: 1;
   height: 80rpx;
-  background-color: #4CAF50;
+  background-color: var(--primary-color);
   border: none;
   border-radius: 6rpx;
   font-size: 28rpx;

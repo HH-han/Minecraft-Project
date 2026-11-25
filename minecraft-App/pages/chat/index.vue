@@ -1,99 +1,140 @@
 <template>
-  <div class="chat-container">
-    <div class="chat-header">
-      <h1>在线客服</h1>
-    </div>
-    
-    <div class="chat-messages">
-      <div class="message-item bot">
-        <div class="message-avatar">
-          <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=customer%20service%20robot%20avatar&image_size=square" alt="客服头像">
-        </div>
-        <div class="message-content">
-          <p>您好！欢迎使用在线客服，有什么可以帮助您的吗？</p>
-          <span class="message-time">10:00</span>
-        </div>
-      </div>
-      
-      <div class="message-item user">
-        <div class="message-content">
-          <p>我想了解一下景点门票的预订流程</p>
-          <span class="message-time">10:01</span>
-        </div>
-        <div class="message-avatar">
-          <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar%20profile%20picture&image_size=square" alt="用户头像">
-        </div>
-      </div>
-      
-      <div class="message-item bot">
-        <div class="message-avatar">
-          <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=customer%20service%20robot%20avatar&image_size=square" alt="客服头像">
-        </div>
-        <div class="message-content">
-          <p>您好，预订景点门票的流程如下：</p>
-          <p>1. 在首页选择"景点"进入景点列表</p>
-          <p>2. 选择您感兴趣的景点，点击进入详情页</p>
-          <p>3. 在详情页点击"立即预订"按钮</p>
-          <p>4. 选择日期和人数，然后点击"提交订单"</p>
-          <p>5. 完成支付后，您将收到电子门票</p>
-          <span class="message-time">10:02</span>
+  <div class="app-page app-page--plain chat-page">
+    <div class="shell">
+      <header class="simple-head">
+        <div class="page-eyebrow">{{ t('chat.eyebrow') }}</div>
+        <h1 class="page-title">{{ t('chat.title') }}</h1>
+        <p class="page-sub">{{ t('chat.sub') }}</p>
+      </header>
+
+      <div class="chat-messages">
+        <div v-for="item in messages" :key="item.id" class="message-item" :class="item.role">
+          <div v-if="item.role === 'bot'" class="message-avatar">
+            <img :src="botAvatar" alt="客服头像">
+          </div>
+          <div class="message-content">
+            <div class="bubble">
+              <p v-for="(key, index) in item.lineKeys" :key="'k' + index">{{ t(key) }}</p>
+              <p v-for="(line, index) in item.lines" :key="'l' + index">{{ line }}</p>
+            </div>
+            <span class="message-time">{{ item.time }}</span>
+          </div>
         </div>
       </div>
     </div>
-    
-    <div class="chat-input">
-      <input type="text" v-model="message" placeholder="请输入您的问题..." class="input-field">
-      <button @click="sendMessage" class="send-btn">发送</button>
+
+    <!-- 输入栏 -->
+    <div class="chat-input-bar">
+      <div class="chat-input">
+        <input v-model="message" type="text" :placeholder="t('chat.placeholder')" confirm-type="send" @confirm="sendMessage" />
+        <button class="send-btn" @click="sendMessage">
+          <uni-icons type="paperplane-filled" size="17" color="#FFFFFF" />
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import UniIcons from '@/uni_modules/uni-icons/components/uni-icons/uni-icons.vue'
+import { t, usePageTitle } from '@/utils/i18n'
+
+usePageTitle('page.chat')
+
+const botAvatar = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=customer%20service%20robot%20avatar&image_size=square'
+
+const currentTime = () => {
+  const now = new Date()
+  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+}
+
+const messages = ref([
+  {
+    id: 1,
+    role: 'bot',
+    lineKeys: ['chat.welcome'],
+    time: '10:00'
+  },
+  {
+    id: 2,
+    role: 'user',
+    lineKeys: ['chat.exampleUser'],
+    time: '10:01'
+  },
+  {
+    id: 3,
+    role: 'bot',
+    lineKeys: ['chat.replyIntro', 'chat.step1', 'chat.step2', 'chat.step3', 'chat.step4'],
+    time: '10:02'
+  }
+])
 
 const message = ref('')
 
-// 发送消息
+const scrollToBottom = () => {
+  setTimeout(() => {
+    uni.pageScrollTo({ scrollTop: 99999, duration: 200 })
+  }, 60)
+}
+
 const sendMessage = () => {
-  if (message.value.trim()) {
-    // 发送消息逻辑
-    console.log('发送消息:', message.value)
-    message.value = ''
-    
-    // 模拟客服回复
-    setTimeout(() => {
-      // 这里可以添加客服回复的逻辑
-    }, 1000)
-  }
+  const text = message.value.trim()
+  if (!text) return
+
+  messages.value.push({
+    id: Date.now(),
+    role: 'user',
+    lines: [text],
+    time: currentTime()
+  })
+  message.value = ''
+  scrollToBottom()
+
+  setTimeout(() => {
+    messages.value.push({
+      id: Date.now() + 1,
+      role: 'bot',
+      lineKeys: ['chat.autoReply'],
+      time: currentTime()
+    })
+    scrollToBottom()
+  }, 800)
 }
 </script>
 
 <style scoped>
-.chat-container {
-  min-height: 100vh;
-  background-color: var(--background-color);
-  display: flex;
-  flex-direction: column;
+.chat-page {
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
 }
 
-.chat-header {
-  padding: 20px;
-  border-bottom: 1px solid var(--border-color);
-  background-color: var(--card-background);
+.simple-head {
+  padding: 6px 2px 0;
+  margin-bottom: 16px;
 }
 
-.chat-header h1 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
+.page-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  color: var(--primary-color);
+}
+
+.page-title {
+  margin-top: 7px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
   color: var(--text-color);
-  text-align: center;
+}
+
+.page-sub {
+  margin-top: 5px;
+  font-size: 13px;
+  color: var(--text-secondary-color);
 }
 
 .chat-messages {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -101,25 +142,22 @@ const sendMessage = () => {
 
 .message-item {
   display: flex;
-  max-width: 80%;
-}
-
-.message-item.bot {
-  align-self: flex-start;
-  flex-direction: row;
+  align-items: flex-start;
+  gap: 9px;
 }
 
 .message-item.user {
-  align-self: flex-end;
   flex-direction: row-reverse;
 }
 
 .message-avatar {
-  width: 40px;
-  height: 40px;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   overflow: hidden;
-  margin: 0 12px;
+  background: var(--surface-2);
+  box-shadow: 0 0 0 1px var(--border-color);
 }
 
 .message-avatar img {
@@ -129,86 +167,113 @@ const sendMessage = () => {
 }
 
 .message-content {
-  background-color: var(--card-background);
-  padding: 12px 16px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  position: relative;
-}
-
-.message-item.bot .message-content {
-  border-bottom-left-radius: 4px;
+  max-width: 76%;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .message-item.user .message-content {
-  background-color: var(--primary-color);
-  color: white;
-  border-bottom-right-radius: 4px;
+  align-items: flex-end;
 }
 
-.message-content p {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-  line-height: 1.5;
+.bubble {
+  padding: 11px 14px;
+  border-radius: 16px 16px 16px 4px;
+  background: var(--card-background);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-sm);
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text-color);
 }
 
-.message-content p:last-child {
-  margin-bottom: 0;
+.bubble p + p {
+  margin-top: 4px;
+}
+
+.message-item.user .bubble {
+  border-radius: 16px 16px 4px 16px;
+  background: var(--primary-color);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: var(--shadow-brand);
 }
 
 .message-time {
-  font-size: 12px;
-  color: var(--text-secondary-color);
-  position: absolute;
-  bottom: -20px;
-  right: 0;
+  font-size: 10px;
+  color: var(--text-tertiary-color);
 }
 
-.message-item.user .message-time {
-  color: rgba(255, 255, 255, 0.6);
+.chat-input-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 80;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 1200px;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  background: var(--glass-background);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--card-border);
 }
 
 .chat-input {
-  padding: 20px;
-  border-top: 1px solid var(--border-color);
-  background-color: var(--card-background);
   display: flex;
-  gap: 12px;
-}
-
-.input-field {
-  flex: 1;
-  padding: 12px 16px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--card-background);
   border: 1px solid var(--border-color);
-  border-radius: 20px;
-  font-size: 14px;
-  outline: none;
-  transition: all 0.3s ease;
 }
 
-.input-field:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(30, 136, 229, 0.1);
+.chat-input input {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+.chat-input input::placeholder {
+  color: var(--text-tertiary-color);
 }
 
 .send-btn {
-  padding: 12px 24px;
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--primary-color);
+  box-shadow: var(--shadow-brand);
+  transition: transform 0.2s var(--ease-spring);
 }
 
-.send-btn:hover {
-  background-color: var(--primary-dark);
+.send-btn:active {
+  transform: scale(0.92);
 }
 
-.send-btn:disabled {
-  background-color: var(--text-secondary-color);
-  cursor: not-allowed;
+@media (min-width: 768px) {
+  .page-title {
+    font-size: 32px;
+  }
+
+  .message-content {
+    max-width: 60%;
+  }
+
+  .chat-input-bar {
+    width: min(100%, 1200px);
+    border-radius: 20px 20px 0 0;
+    padding: 12px 28px calc(12px + env(safe-area-inset-bottom));
+  }
 }
 </style>

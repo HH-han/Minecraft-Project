@@ -1,98 +1,153 @@
 <template>
-  <div class="attraction-container">
-    <!-- 搜索栏 -->
-    <div class="search-bar">
-      <input type="text" v-model="searchQuery" placeholder="搜索景点" class="search-input">
-      <button class="search-btn">搜索</button>
-    </div>
-    
-    <!-- 筛选栏 -->
-    <div class="filter-bar">
-      <select v-model="filterCity" class="filter-select">
-        <option value="">全部城市</option>
-        <option value="北京">北京</option>
-        <option value="上海">上海</option>
-        <option value="广州">广州</option>
-        <option value="深圳">深圳</option>
-      </select>
-      <select v-model="filterSeason" class="filter-select">
-        <option value="">全部季节</option>
-        <option value="spring">春季</option>
-        <option value="summer">夏季</option>
-        <option value="autumn">秋季</option>
-        <option value="winter">冬季</option>
-      </select>
-    </div>
-    
-    <!-- 景点列表 -->
-    <div class="attraction-list">
-      <div 
-        v-for="attraction in attractions" 
-        :key="attraction.id" 
-        class="attraction-item"
-        @click="navigateToDetail(attraction.id)"
-      >
-        <img :src="attraction.coverImage" :alt="attraction.name" class="attraction-image">
-        <div class="attraction-info">
-          <h3>{{ attraction.name }}</h3>
-          <p class="attraction-city">{{ attraction.city }}</p>
-          <div class="attraction-price" v-if="attraction.price > 0">¥{{ attraction.price }}</div>
-          <div class="attraction-price free" v-else>免费</div>
-          <div class="attraction-address">{{ attraction.address }}</div>
-          <div class="attraction-season" v-if="attraction.season">{{ attraction.season }}</div>
-          <div class="attraction-stats">
-            <div class="attraction-rating">
-              <span class="star">★</span>
-              <span>{{ attraction.rating }}</span>
-            </div>
-            <div class="attraction-stat">
-              <span>{{ attraction.likeCount }} 点赞</span>
-              <span>{{ attraction.commentCount }} 评论</span>
-              <span>{{ attraction.collectCount }} 收藏</span>
-            </div>
+  <div class="app-page app-page--plain">
+    <div class="shell">
+      <header class="head reveal">
+        <div class="page-eyebrow">{{ t('list.attractionEyebrow') }}</div>
+        <h1 class="page-title">{{ t('page.attraction') }}</h1>
+        <p class="page-sub">{{ t('list.attractionSub') }}</p>
+      </header>
+
+      <!-- 搜索 -->
+      <div class="search-field search-row reveal reveal-delay-1">
+        <uni-icons type="search" size="17" color="#8C948B" />
+        <input v-model="searchQuery" type="text" :placeholder="t('list.searchAttraction')" confirm-type="search"
+          @confirm="handleFilterChange" />
+        <button class="search-submit" @click="handleFilterChange">{{ t('common.search') }}</button>
+      </div>
+
+      <!-- 筛选 -->
+      <div class="filter-group">
+        <div class="chip-row">
+          <button v-for="item in cityOptions" :key="item.value" class="chip"
+            :class="{ 'is-active': filterCity === item.value }" @click="selectCity(item.value)">
+            {{ t(item.labelKey) }}
+          </button>
+        </div>
+        <div class="chip-row">
+          <button v-for="item in seasonOptions" :key="item.value" class="chip"
+            :class="{ 'is-active': filterSeason === item.value }" @click="selectSeason(item.value)">
+            {{ t(item.labelKey) }}
+          </button>
+        </div>
+      </div>
+
+      <!-- 骨架 -->
+      <div v-if="loading" class="grid">
+        <div v-for="i in 6" :key="i" class="card card--skeleton">
+          <div class="skeleton media-skeleton"></div>
+          <div class="card-body">
+            <div class="skeleton skeleton-line skeleton-line--lg"></div>
+            <div class="skeleton skeleton-line"></div>
+            <div class="skeleton skeleton-line skeleton-line--sm"></div>
           </div>
         </div>
       </div>
-    </div>
-    
-    <!-- 无数据提示 -->
-    <div v-if="attractions.length === 0" class="empty-tip">
-      暂无景点数据
-    </div>
-    
-    <!-- 分页 -->
-    <div v-if="attractions.length > 0" class="pagination">
-      <button class="page-btn" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">上一页</button>
-      <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
-      <button class="page-btn" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">下一页</button>
+
+      <!-- 列表 -->
+      <div v-else-if="attractions.length" class="grid">
+        <article v-for="attraction in attractions" :key="attraction.id" class="card"
+          @click="navigateToDetail(attraction.id)">
+          <div class="card-media">
+            <img :src="attraction.coverImage" :alt="attraction.name" loading="lazy">
+            <span v-if="attraction.season" class="media-badge">{{ seasonLabel(attraction.season) }}</span>
+            <span v-if="attraction.rating" class="media-rating">
+              <uni-icons type="star-filled" size="11" color="#FFFFFF" />
+              {{ attraction.rating }}
+            </span>
+          </div>
+          <div class="card-body">
+            <h3 class="card-title">{{ attraction.name }}</h3>
+            <div class="card-meta">
+              <uni-icons type="location" size="12" color="currentColor" />
+              {{ attraction.city }}
+            </div>
+            <p v-if="attraction.address" class="card-address clamp-1">{{ attraction.address }}</p>
+            <div class="card-foot">
+              <span v-if="attraction.price > 0" class="price"><small>¥</small>{{ attraction.price }}</span>
+              <span v-else class="price is-free">{{ t('common.free') }}</span>
+              <div class="stats">
+                <span><uni-icons type="heart" size="12" color="currentColor" />{{ compact(attraction.likeCount) }}</span>
+                <span><uni-icons type="chat" size="12" color="currentColor" />{{ compact(attraction.commentCount) }}</span>
+                <span><uni-icons type="star" size="12" color="currentColor" />{{ compact(attraction.collectCount) }}</span>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- 空状态 -->
+      <div v-else class="empty-state">
+        <div class="empty-state__icon"><uni-icons type="map" size="26" color="#1E5B48" /></div>
+        {{ t('list.emptyAttraction') }}
+      </div>
+
+      <!-- 分页 -->
+      <div v-if="!loading && attractions.length > 0" class="pager">
+        <button class="pager-btn" :disabled="currentPage === 1" @click="changePage(currentPage - 1)">{{ t('common.prev') }}</button>
+        <span class="pager-info">{{ currentPage }} / {{ totalPages }}</span>
+        <button class="pager-btn" :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">{{ t('common.next') }}</button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { getAttractionList } from '@/api/attraction'
+import UniIcons from '@/uni_modules/uni-icons/components/uni-icons/uni-icons.vue'
+import { t, usePageTitle } from '@/utils/i18n'
 
-// 搜索和筛选参数
+usePageTitle('page.attraction')
+
 const searchQuery = ref('')
 const filterCity = ref('')
 const filterSeason = ref('')
 
-// 分页参数
 const currentPage = ref(1)
 const pageSize = ref(10)
 const totalPages = ref(1)
-
-// 景点列表数据
 const attractions = ref([])
+const loading = ref(true)
 
-// 计算总页数
-const calculateTotalPages = (total) => {
-  return Math.ceil(total / pageSize.value)
+const cityOptions = [
+  { labelKey: 'list.allCities', value: '' },
+  { labelKey: 'list.cityBeijing', value: '北京' },
+  { labelKey: 'list.cityShanghai', value: '上海' },
+  { labelKey: 'list.cityGuangzhou', value: '广州' },
+  { labelKey: 'list.cityShenzhen', value: '深圳' }
+]
+
+const seasonOptions = [
+  { labelKey: 'list.allSeasons', value: '' },
+  { labelKey: 'list.seasonSpring', value: 'spring' },
+  { labelKey: 'list.seasonSummer', value: 'summer' },
+  { labelKey: 'list.seasonAutumn', value: 'autumn' },
+  { labelKey: 'list.seasonWinter', value: 'winter' }
+]
+
+const seasonKeyMap = {
+  spring: 'list.seasonSpring',
+  summer: 'list.seasonSummer',
+  autumn: 'list.seasonAutumn',
+  winter: 'list.seasonWinter'
 }
 
-// 获取景点列表
+const seasonLabel = (value) => {
+  const key = seasonKeyMap[value]
+  return key ? t(key) : value
+}
+
+const compact = (value) => {
+  const num = Number(value) || 0
+  if (num >= 10000) return (num / 10000).toFixed(1).replace('.0', '') + 'w'
+  if (num >= 1000) return (num / 1000).toFixed(1).replace('.0', '') + 'k'
+  return String(num)
+}
+
+const calculateTotalPages = (total) => Math.ceil(total / pageSize.value) || 1
+
 const fetchAttractions = async () => {
+  loading.value = true
   try {
     const response = await getAttractionList({
       page: currentPage.value,
@@ -105,254 +160,300 @@ const fetchAttractions = async () => {
     totalPages.value = calculateTotalPages(response.data.total || 0)
   } catch (error) {
     console.error('获取景点列表失败:', error)
+    attractions.value = []
+  } finally {
+    loading.value = false
   }
 }
 
-// 导航到详情页
-const navigateToDetail = (id) => {
-  uni.navigateTo({
-    url: `/pages/attraction/detail?id=${id}`
-  })
+const handleFilterChange = () => {
+  currentPage.value = 1
+  fetchAttractions()
 }
 
-// 切换页码
+const selectCity = (value) => {
+  if (filterCity.value === value) return
+  filterCity.value = value
+  handleFilterChange()
+}
+
+const selectSeason = (value) => {
+  if (filterSeason.value === value) return
+  filterSeason.value = value
+  handleFilterChange()
+}
+
+const navigateToDetail = (id) => {
+  uni.navigateTo({ url: `/pages/attraction/detail?id=${id}` })
+}
+
 const changePage = (page) => {
+  if (page < 1 || page > totalPages.value) return
   currentPage.value = page
   fetchAttractions()
+  uni.pageScrollTo({ scrollTop: 0, duration: 240 })
 }
 
-// 页面加载时获取数据
-onMounted(() => {
-  fetchAttractions()
-})
+onMounted(fetchAttractions)
 </script>
 
 <style scoped>
-.attraction-container {
-  min-height: 100vh;
-  background-color: var(--background-color);
-  padding: 20px;
+.head {
+  padding: 6px 2px 0;
 }
 
-.search-bar {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.search-input {
-  flex: 1;
-  padding: 12px 16px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 14px;
-  outline: none;
-  transition: all 0.3s ease;
-}
-
-.search-input:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(30, 136, 229, 0.1);
-}
-
-.search-btn {
-  padding: 12px 24px;
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.search-btn:hover {
-  background-color: var(--primary-dark);
-}
-
-.filter-bar {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.filter-select {
-  flex: 1;
-  padding: 12px 16px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 14px;
-  outline: none;
-  background-color: white;
-  cursor: pointer;
-}
-
-.attraction-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.attraction-item {
-  background-color: var(--card-background);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.attraction-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.attraction-image {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-}
-
-.attraction-info {
-  padding: 16px;
-}
-
-.attraction-info h3 {
-  margin: 0 0 8px 0;
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--text-color);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.attraction-city {
-  margin: 0 0 8px 0;
-  font-size: 14px;
-  color: var(--text-secondary-color);
-}
-
-.attraction-price {
-  font-size: 16px;
+.page-eyebrow {
+  font-size: 10px;
   font-weight: 700;
-  color: #F44336;
-  margin: 8px 0;
-}
-
-.attraction-price.free {
-  color: #4CAF50;
-}
-
-.attraction-address {
-  font-size: 12px;
-  color: var(--text-secondary-color);
-  margin-bottom: 8px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.attraction-season {
-  font-size: 12px;
-  background: rgba(76, 175, 80, 0.1);
-  color: #4CAF50;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-weight: 500;
-  margin-bottom: 8px;
-  display: inline-block;
-}
-
-.attraction-stats {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.attraction-rating {
-  display: flex;
-  align-items: center;
-  font-size: 14px;
-  color: #FF9800;
-}
-
-.star {
-  margin-right: 4px;
-}
-
-.attraction-stat {
-  display: flex;
-  gap: 12px;
-  font-size: 12px;
-  color: var(--text-secondary-color);
-}
-
-.attraction-stat span {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  transition: color 0.3s ease;
-}
-
-.attraction-item:hover .attraction-stat span {
+  letter-spacing: 1.6px;
   color: var(--primary-color);
 }
 
-.empty-tip {
-  text-align: center;
-  padding: 40px 0;
+.page-title {
+  margin-top: 7px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text-color);
+}
+
+.page-sub {
+  margin-top: 5px;
+  font-size: 13px;
+  line-height: 1.6;
   color: var(--text-secondary-color);
-  font-size: 16px;
 }
 
-.pagination {
+.search-row {
+  margin-top: 16px;
+}
+
+.search-submit {
+  flex: 0 0 auto;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--primary-color);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  transition: transform 0.2s var(--ease-out);
+}
+
+.search-submit:active {
+  transform: scale(0.95);
+}
+
+.filter-group {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 16px;
-  margin-top: 20px;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
 }
 
-.page-btn {
-  padding: 8px 16px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background-color: white;
-  color: var(--text-color);
-  font-size: 14px;
+/* 卡片网格 */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.card {
+  background: var(--card-background);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out),
+    border-color 0.4s var(--ease-out);
 }
 
-.page-btn:hover:not(:disabled) {
-  background-color: var(--primary-color);
-  color: white;
-  border-color: var(--primary-color);
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-strong);
 }
 
-.page-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.card:active {
+  transform: scale(0.99);
 }
 
-.page-info {
-  font-size: 14px;
+.card-media {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s var(--ease-out);
+}
+
+.card:hover .card-media img {
+  transform: scale(1.06);
+}
+
+.card-media::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 44%;
+  background: linear-gradient(to top, rgba(6, 16, 33, 0.5), transparent);
+  pointer-events: none;
+}
+
+.media-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--success-color);
+  font-size: 11px;
+  font-weight: 700;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.media-rating {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.card-body {
+  padding: 14px 15px 15px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 700;
   color: var(--text-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-@media (max-width: 768px) {
-  .attraction-list {
-    grid-template-columns: 1fr;
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 5px;
+  font-size: 12px;
+  color: var(--text-tertiary-color);
+}
+
+.card-address {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-secondary-color);
+}
+
+.card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border-color);
+}
+
+.price {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1px;
+  color: #C4613C;
+  font-size: 18px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.price small {
+  font-size: 11px;
+}
+
+.price.is-free {
+  font-size: 14px;
+  color: var(--success-color);
+}
+
+.stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-tertiary-color);
+}
+
+.stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* 骨架 */
+.card--skeleton {
+  pointer-events: none;
+}
+
+.media-skeleton {
+  height: 180px;
+  border-radius: 0;
+}
+
+.skeleton-line {
+  height: 10px;
+  margin-top: 8px;
+  width: 72%;
+}
+
+.skeleton-line--lg {
+  width: 100%;
+  height: 14px;
+}
+
+.skeleton-line--sm {
+  width: 44%;
+}
+
+/* PC */
+@media (min-width: 768px) {
+  .page-title {
+    font-size: 32px;
   }
-  
-  .filter-bar {
-    flex-direction: column;
+
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .card-media {
+    height: 210px;
+  }
+
+  .media-skeleton {
+    height: 210px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 </style>

@@ -1,17 +1,19 @@
 <template>
-  <view class="ticket-container">
-    <text>票务预订页面</text>
-  </view>
+  <div class="app-page app-page--plain">
+    <div class="shell">
+      <div class="empty-state" style="padding-top: 72px">
+        <div class="empty-state__icon">
+          <uni-icons type="wallet" size="26" color="#2F6BFF" />
+        </div>
+        {{ t('placeholder.ticket') }}
+      </div>
+    </div>
+  </div>
 </template>
 
-<script>
-export default {
-  name: 'TicketIndex'
-}
-</script>
+<script setup>
+import UniIcons from '@/uni_modules/uni-icons/components/uni-icons/uni-icons.vue'
+import { t, usePageTitle } from '@/utils/i18n'
 
-<style scoped>
-.ticket-container {
-  padding: 20rpx;
-}
-</style>
+usePageTitle('page.ticket')
+</script>

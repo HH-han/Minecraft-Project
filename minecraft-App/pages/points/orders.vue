@@ -1,7 +1,7 @@
 <template>
   <view class="orders-container">
     <view class="header">
-      <text class="title">兑换订单</text>
+      <text class="title">{{ t('page.pointsOrders') }}</text>
     </view>
     
     <view class="orders-list">
@@ -11,25 +11,25 @@
         class="order-item"
       >
         <view class="order-header">
-          <text class="order-no">订单号: {{ order.orderNo }}</text>
+          <text class="order-no">{{ t('points.orderNo', { no: order.orderNo }) }}</text>
           <text :class="['order-status', order.status]" :style="{ backgroundColor: getStatusColor(order.status) }">
             {{ getStatusText(order.status) }}
           </text>
         </view>
         <view class="order-content">
           <text class="product-name">{{ order.productName }}</text>
-          <text class="order-info">数量: {{ order.quantity }}</text>
-          <text class="order-info">使用积分: {{ order.pointsUsed }}</text>
-          <text class="order-info">收货人: {{ order.receiver }}</text>
-          <text class="order-info">联系电话: {{ order.phone }}</text>
-          <text class="order-info">收货地址: {{ order.address }}</text>
+          <text class="order-info">{{ t('points.qtyLabel', { n: order.quantity }) }}</text>
+          <text class="order-info">{{ t('points.used', { n: order.pointsUsed }) }}</text>
+          <text class="order-info">{{ t('points.receiverLabel', { name: order.receiver }) }}</text>
+          <text class="order-info">{{ t('points.phoneLabel', { phone: order.phone }) }}</text>
+          <text class="order-info">{{ t('points.addressLabel', { addr: order.address }) }}</text>
         </view>
         <view class="order-footer">
           <text class="order-time">{{ formatTime(order.createTime) }}</text>
         </view>
       </view>
       <view v-if="orders.length === 0" class="empty">
-        <text>暂无兑换订单</text>
+        <text>{{ t('points.emptyOrders') }}</text>
       </view>
     </view>
   </view>
@@ -37,6 +37,7 @@
 
 <script>
 import { getExchangeOrders } from '@/api/points'
+import { t } from '@/utils/i18n'
 
 export default {
   data() {
@@ -47,7 +48,11 @@ export default {
   onLoad() {
     this.loadOrders()
   },
+  onShow() {
+    uni.setNavigationBarTitle({ title: t('page.pointsOrders') })
+  },
   methods: {
+    t,
     async loadOrders() {
       try {
         const res = await getExchangeOrders({ page: 1, size: 100 })
@@ -58,21 +63,21 @@ export default {
     },
     getStatusText(status) {
       const statusMap = {
-        'PENDING': '处理中',
-        'SUCCESS': '成功',
-        'FAILED': '失败',
-        'CANCELLED': '已取消'
+        'PENDING': t('points.statusPending'),
+        'SUCCESS': t('points.statusSuccess'),
+        'FAILED': t('points.statusFailed'),
+        'CANCELLED': t('points.statusCancelled')
       }
       return statusMap[status] || status
     },
     getStatusColor(status) {
       const colorMap = {
-        'PENDING': '#ff9800',
-        'SUCCESS': '#4CAF50',
-        'FAILED': '#f44336',
-        'CANCELLED': '#9e9e9e'
+        'PENDING': '#C08A2E',
+        'SUCCESS': '#2F7A55',
+        'FAILED': '#B5482F',
+        'CANCELLED': '#8C948B'
       }
-      return colorMap[status] || '#9e9e9e'
+      return colorMap[status] || '#8C948B'
     },
     formatTime(time) {
       if (!time) return ''
@@ -86,13 +91,13 @@ export default {
 <style scoped>
 .orders-container {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: var(--bg-color);
 }
 
 .header {
-  background-color: white;
+  background-color: var(--card-background);
   padding: 20rpx;
-  border-bottom: 1rpx solid #eee;
+  border-bottom: 1rpx solid var(--border-color);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -101,7 +106,7 @@ export default {
 .title {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 .orders-list {
@@ -109,7 +114,7 @@ export default {
 }
 
 .order-item {
-  background-color: white;
+  background-color: var(--card-background);
   border-radius: 12rpx;
   padding: 20rpx;
   margin-bottom: 15rpx;
@@ -122,12 +127,12 @@ export default {
   align-items: center;
   margin-bottom: 15rpx;
   padding-bottom: 15rpx;
-  border-bottom: 1rpx solid #eee;
+  border-bottom: 1rpx solid var(--border-color);
 }
 
 .order-no {
   font-size: 24rpx;
-  color: #666;
+  color: var(--text-secondary-color);
 }
 
 .order-status {
@@ -144,32 +149,32 @@ export default {
 .product-name {
   font-size: 28rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 10rpx;
   display: block;
 }
 
 .order-info {
   font-size: 24rpx;
-  color: #666;
+  color: var(--text-secondary-color);
   margin-bottom: 5rpx;
   display: block;
 }
 
 .order-footer {
   padding-top: 15rpx;
-  border-top: 1rpx solid #eee;
+  border-top: 1rpx solid var(--border-color);
 }
 
 .order-time {
   font-size: 20rpx;
-  color: #999;
+  color: var(--text-tertiary-color);
 }
 
 .empty {
   text-align: center;
   padding: 100rpx 0;
-  color: #999;
+  color: var(--text-tertiary-color);
   font-size: 24rpx;
 }
 </style>

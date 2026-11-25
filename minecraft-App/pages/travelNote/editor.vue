@@ -1,43 +1,43 @@
 <template>
   <view class="note-editor">
-    <text class="page-title">{{ isEdit ? '编辑笔记' : '发布旅游笔记' }}</text>
+    <text class="page-title">{{ isEdit ? t('noteEditor.editTitle') : t('noteEditor.createTitle') }}</text>
 
     <view class="field">
-      <text class="label">标题</text>
-      <input v-model="form.title" class="input" maxlength="120" placeholder="一句话介绍这次旅行" />
+      <text class="label">{{ t('noteEditor.title') }}</text>
+      <input v-model="form.title" class="input" maxlength="120" :placeholder="t('noteEditor.titlePlaceholder')" />
     </view>
 
     <view class="field">
-      <text class="label">摘要</text>
-      <textarea v-model="form.summary" class="textarea" maxlength="300" placeholder="将展示在卡片上" />
+      <text class="label">{{ t('noteEditor.summary') }}</text>
+      <textarea v-model="form.summary" class="textarea" maxlength="300" :placeholder="t('noteEditor.summaryPlaceholder')" />
     </view>
 
     <view class="field-row">
       <view class="field field--half">
-        <text class="label">目的地</text>
-        <input v-model="form.destination" class="input" maxlength="100" placeholder="如：云南 · 大理" />
+        <text class="label">{{ t('noteEditor.destination') }}</text>
+        <input v-model="form.destination" class="input" maxlength="100" :placeholder="t('noteEditor.destinationPlaceholder')" />
       </view>
       <view class="field field--half">
-        <text class="label">出行日期</text>
+        <text class="label">{{ t('noteEditor.date') }}</text>
         <picker mode="date" :value="form.travelDate" @change="onDateChange">
-          <view class="input picker-value">{{ form.travelDate || '请选择' }}</view>
+          <view class="input picker-value">{{ form.travelDate || t('noteEditor.selectDate') }}</view>
         </picker>
       </view>
     </view>
 
     <view class="field-row">
       <view class="field field--half">
-        <text class="label">旅行天数</text>
+        <text class="label">{{ t('noteEditor.days') }}</text>
         <input v-model.number="form.travelDays" class="input" type="number" placeholder="1" />
       </view>
       <view class="field field--half">
-        <text class="label">人均花费（元）</text>
+        <text class="label">{{ t('noteEditor.cost') }}</text>
         <input v-model.number="form.cost" class="input" type="digit" placeholder="0" />
       </view>
     </view>
 
     <view class="field">
-      <text class="label">图集（第一张为封面）</text>
+      <text class="label">{{ t('noteEditor.images') }}</text>
       <view class="image-list">
         <view v-for="(img, idx) in images" :key="idx" class="image-item">
           <image class="image-thumb" :src="img" mode="aspectFill" />
@@ -50,30 +50,31 @@
     </view>
 
     <view class="field">
-      <text class="label">正文</text>
+      <text class="label">{{ t('noteEditor.content') }}</text>
       <textarea
         v-model="content"
         class="textarea textarea--large"
         maxlength="5000"
-        placeholder="开始记录你的旅程..."
+        :placeholder="t('noteEditor.contentPlaceholder')"
       />
     </view>
 
     <view class="field">
-      <text class="label">标签（逗号分隔，最多10个）</text>
-      <input v-model="tagText" class="input" placeholder="亲子游,自驾游,美食" />
+      <text class="label">{{ t('noteEditor.tags') }}</text>
+      <input v-model="tagText" class="input" :placeholder="t('noteEditor.tagsPlaceholder')" />
     </view>
 
     <view class="submit-bar">
-      <button class="btn btn--ghost" :disabled="saving" @click="save(0)">保存草稿</button>
-      <button class="btn btn--ghost" :disabled="saving" @click="save(5)">设为私密</button>
-      <button class="btn btn--primary" :disabled="saving" @click="save(1)">提交审核</button>
+      <button class="btn btn--ghost" :disabled="saving" @click="save(0)">{{ t('noteEditor.saveDraft') }}</button>
+      <button class="btn btn--ghost" :disabled="saving" @click="save(5)">{{ t('noteEditor.setPrivate') }}</button>
+      <button class="btn btn--primary" :disabled="saving" @click="save(1)">{{ t('noteEditor.submit') }}</button>
     </view>
   </view>
 </template>
 
 <script>
 import { createNote, getNoteDetail, updateNote, uploadNoteImage } from '@/api/travelNote'
+import { t } from '@/utils/i18n'
 
 export default {
   data() {
@@ -100,7 +101,7 @@ export default {
   },
   onLoad(options) {
     if (!uni.getStorageSync('token')) {
-      uni.showToast({ title: '请先登录', icon: 'none' })
+      uni.showToast({ title: t('common.loginRequired'), icon: 'none' })
       setTimeout(() => uni.navigateBack(), 800)
       return
     }
@@ -109,11 +110,15 @@ export default {
       this.loadForEdit()
     }
   },
+  onShow() {
+    uni.setNavigationBarTitle({ title: t('page.noteEditor') })
+  },
   methods: {
+    t,
     async loadForEdit() {
       const res = await getNoteDetail(this.editId)
       if (res.code !== 200 || !res.data) {
-        uni.showToast({ title: res.message || '笔记不存在', icon: 'none' })
+        uni.showToast({ title: res.message || t('noteEditor.notFound'), icon: 'none' })
         setTimeout(() => uni.navigateBack(), 800)
         return
       }
@@ -141,7 +146,7 @@ export default {
               if (up.code === 200 && up.data) {
                 this.images.push(up.data)
               } else {
-                uni.showToast({ title: up.message || '上传失败', icon: 'none' })
+                uni.showToast({ title: up.message || t('noteEditor.uploadFailed'), icon: 'none' })
               }
             } catch (e) {
               console.error('图片上传失败', e)
@@ -176,31 +181,31 @@ export default {
     },
     async save(status) {
       if (!this.form.title.trim()) {
-        uni.showToast({ title: '请填写标题', icon: 'none' })
+        uni.showToast({ title: t('noteEditor.titleRequired'), icon: 'none' })
         return
       }
       if (status === 1 && !this.content.trim()) {
-        uni.showToast({ title: '提交审核前请填写正文', icon: 'none' })
+        uni.showToast({ title: t('noteEditor.contentRequired'), icon: 'none' })
         return
       }
       this.saving = true
-      uni.showLoading({ title: '提交中' })
+      uni.showLoading({ title: t('noteEditor.submitting') })
       try {
         const payload = this.buildPayload(status)
         const res = this.isEdit ? await updateNote(this.editId, payload) : await createNote(payload)
         uni.hideLoading()
         if (res.code === 200) {
           uni.showToast({
-            title: status === 0 ? '草稿已保存' : status === 5 ? '已设为私密' : '已提交审核',
+            title: status === 0 ? t('noteEditor.draftSaved') : status === 5 ? t('noteEditor.privateSet') : t('noteEditor.submitted'),
             icon: 'none'
           })
           setTimeout(() => uni.redirectTo({ url: '/pages/travelNote/mine' }), 900)
         } else {
-          uni.showToast({ title: res.message || '保存失败', icon: 'none' })
+          uni.showToast({ title: res.message || t('noteEditor.saveFailed'), icon: 'none' })
         }
       } catch (e) {
         uni.hideLoading()
-        uni.showToast({ title: '保存失败', icon: 'none' })
+        uni.showToast({ title: t('noteEditor.saveFailed'), icon: 'none' })
       } finally {
         this.saving = false
       }
@@ -212,7 +217,7 @@ export default {
 <style scoped>
 .note-editor {
   min-height: 100vh;
-  background-color: var(--background-color, #f8faff);
+  background-color: var(--background-color, #F7F4EE);
   padding: 24rpx 24rpx 200rpx;
 }
 
@@ -248,7 +253,7 @@ export default {
   width: 100%;
   height: 84rpx;
   padding: 0 24rpx;
-  background-color: #fff;
+  background-color: var(--card-background);
   border-radius: 12rpx;
   font-size: 28rpx;
   box-sizing: border-box;
@@ -263,7 +268,7 @@ export default {
   width: 100%;
   min-height: 140rpx;
   padding: 20rpx 24rpx;
-  background-color: #fff;
+  background-color: var(--card-background);
   border-radius: 12rpx;
   font-size: 28rpx;
   box-sizing: border-box;
@@ -310,7 +315,7 @@ export default {
   width: 180rpx;
   height: 180rpx;
   border-radius: 12rpx;
-  background-color: #fff;
+  background-color: var(--card-background);
   border: 2rpx dashed #cfd6e4;
   display: flex;
   align-items: center;
@@ -330,7 +335,7 @@ export default {
   display: flex;
   gap: 16rpx;
   padding: 20rpx 24rpx 40rpx;
-  background-color: #fff;
+  background-color: var(--card-background);
   box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.06);
 }
 

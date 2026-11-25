@@ -7,16 +7,16 @@
         <view class="author-row">
           <image v-if="note.avatar" class="avatar" :src="note.avatar" mode="aspectFill" />
           <view class="author-info">
-            <text class="author-name">{{ note.username || '匿名用户' }}</text>
+            <text class="author-name">{{ note.username || t('note.anonymous') }}</text>
             <text class="publish-time">{{ formatTime(note.publishTime || note.createTime) }}</text>
           </view>
           <text v-if="note.destination" class="dest">{{ note.destination }}</text>
         </view>
 
         <view class="trip-info">
-          <text v-if="note.travelDays" class="trip-item">行程 {{ note.travelDays }} 天</text>
-          <text v-if="note.cost" class="trip-item">人均 ¥{{ note.cost }}</text>
-          <text v-if="note.travelDate" class="trip-item">出行 {{ note.travelDate }}</text>
+          <text v-if="note.travelDays" class="trip-item">{{ t('noteDetail.trip', { n: note.travelDays }) }}</text>
+          <text v-if="note.cost" class="trip-item">{{ t('noteDetail.cost', { n: note.cost }) }}</text>
+          <text v-if="note.travelDate" class="trip-item">{{ t('noteDetail.date', { date: note.travelDate }) }}</text>
         </view>
 
         <view v-if="note.tags && note.tags.length" class="tags">
@@ -44,7 +44,7 @@
 
       <!-- 关联 -->
       <view v-if="note.relations && note.relations.length" class="section">
-        <text class="section-title">相关推荐</text>
+        <text class="section-title">{{ t('noteDetail.related') }}</text>
         <view v-for="rel in note.relations" :key="rel.id" class="relation-item">
           <image v-if="rel.bizCover" class="relation-cover" :src="rel.bizCover" mode="aspectFill" />
           <view v-else class="relation-cover relation-cover--empty" />
@@ -57,7 +57,7 @@
 
       <!-- 行程轨迹 -->
       <view v-if="note.routes && note.routes.length" class="section">
-        <text class="section-title">行程轨迹</text>
+        <text class="section-title">{{ t('noteDetail.routes') }}</text>
         <view v-for="route in note.routes" :key="route.id" class="route-item">
           <text class="route-day">Day {{ route.dayIndex || '-' }}</text>
           <text class="route-poi">{{ route.poiName }}</text>
@@ -73,17 +73,17 @@
         <view class="action-btn" :class="{ active: note.isCollected }" @click="toggleCollect">
           ★ {{ note.collectCount || 0 }}
         </view>
-        <view class="action-btn" @click="copyToPlan">复制为行程</view>
-        <view class="action-btn" @click="handleReport">举报</view>
+        <view class="action-btn" @click="copyToPlan">{{ t('noteDetail.copyPlan') }}</view>
+        <view class="action-btn" @click="handleReport">{{ t('noteDetail.report') }}</view>
       </view>
 
       <!-- 评论 -->
       <view class="section">
-        <text class="section-title">评论 ({{ note.commentCount || 0 }})</text>
+        <text class="section-title">{{ t('noteDetail.comments') }} ({{ note.commentCount || 0 }})</text>
 
         <view class="comment-input-row">
-          <input v-model="commentText" class="comment-input" placeholder="写下你的想法..." />
-          <button class="comment-submit" :disabled="commentSubmitting" @click="submitComment">发送</button>
+          <input v-model="commentText" class="comment-input" :placeholder="t('noteDetail.commentPlaceholder')" />
+          <button class="comment-submit" :disabled="commentSubmitting" @click="submitComment">{{ t('noteDetail.send') }}</button>
         </view>
 
         <view v-for="comment in comments" :key="comment.id" class="comment-item">
@@ -95,24 +95,24 @@
             </view>
             <text class="comment-text">{{ comment.content }}</text>
             <view class="comment-ops">
-              <text class="comment-op" @click="replyTo(comment, null)">回复</text>
+              <text class="comment-op" @click="replyTo(comment, null)">{{ t('noteDetail.reply') }}</text>
               <text v-if="comment.userId === currentUserId" class="comment-op comment-op--danger" @click="removeComment(comment.id)">
-                删除
+                {{ t('noteDetail.delete') }}
               </text>
             </view>
 
             <view v-for="reply in comment.replies || []" :key="reply.id" class="reply-item">
               <text class="comment-user">{{ reply.username }}</text>
-              <text v-if="reply.replyUsername" class="comment-user"> 回复 @{{ reply.replyUsername }}</text>
+              <text v-if="reply.replyUsername" class="comment-user">{{ t('noteDetail.replyTo', { name: reply.replyUsername }) }}</text>
               <text class="comment-text">{{ reply.content }}</text>
               <view class="comment-ops">
-                <text class="comment-op" @click="replyTo(comment, reply)">回复</text>
+                <text class="comment-op" @click="replyTo(comment, reply)">{{ t('noteDetail.reply') }}</text>
                 <text
                   v-if="reply.userId === currentUserId"
                   class="comment-op comment-op--danger"
                   @click="removeComment(reply.id)"
                 >
-                  删除
+                  {{ t('noteDetail.delete') }}
                 </text>
               </view>
             </view>
@@ -120,12 +120,12 @@
         </view>
 
         <view v-if="comments.length" class="load-more" @click="loadMoreComments">
-          {{ commentsNoMore ? '没有更多评论' : '加载更多评论' }}
+          {{ commentsNoMore ? t('noteDetail.noMoreComments') : t('noteDetail.loadMoreComments') }}
         </view>
       </view>
     </template>
 
-    <view v-else-if="!loading" class="empty-tip">笔记不存在或未发布</view>
+    <view v-else-if="!loading" class="empty-tip">{{ t('noteDetail.notFound') }}</view>
   </view>
 </template>
 
@@ -142,8 +142,15 @@ import {
   uncollectNote,
   unlikeNote
 } from '@/api/travelNote'
+import { t } from '@/utils/i18n'
 
-const BIZ_TYPES = { 1: '景点', 2: '酒店', 3: '美食', 4: '商品', 5: '行程' }
+const BIZ_TYPES = {
+  1: 'noteDetail.bizAttraction',
+  2: 'noteDetail.bizHotel',
+  3: 'noteDetail.bizFood',
+  4: 'noteDetail.bizProduct',
+  5: 'noteDetail.bizPlan'
+}
 
 export default {
   data() {
@@ -168,9 +175,14 @@ export default {
   onPullDownRefresh() {
     this.fetchDetail().finally(() => uni.stopPullDownRefresh())
   },
+  onShow() {
+    uni.setNavigationBarTitle({ title: t('page.noteDetail') })
+  },
   methods: {
+    t,
     bizTypeLabel(type) {
-      return BIZ_TYPES[type] || '相关'
+      const key = BIZ_TYPES[type]
+      return key ? t(key) : t('noteDetail.bizRelated')
     },
     async fetchDetail() {
       this.loading = true
@@ -180,7 +192,7 @@ export default {
           this.note = res.data
           this.fetchComments()
         } else {
-          uni.showToast({ title: res.message || '加载失败', icon: 'none' })
+          uni.showToast({ title: res.message || t('noteDetail.loadFailed'), icon: 'none' })
         }
       } catch (e) {
         console.error('获取笔记详情失败', e)
@@ -213,7 +225,7 @@ export default {
     },
     ensureLogin() {
       if (!uni.getStorageSync('token')) {
-        uni.showToast({ title: '请先登录', icon: 'none' })
+        uni.showToast({ title: t('common.loginRequired'), icon: 'none' })
         setTimeout(() => uni.navigateTo({ url: '/pages/login/login' }), 800)
         return false
       }
@@ -235,7 +247,7 @@ export default {
       if (res.code === 200) {
         this.note.isCollected = !this.note.isCollected
         this.note.collectCount = Math.max((this.note.collectCount || 0) + (this.note.isCollected ? 1 : -1), 0)
-        uni.showToast({ title: this.note.isCollected ? '已收藏' : '已取消收藏', icon: 'none' })
+        uni.showToast({ title: this.note.isCollected ? t('detail.collectAdded') : t('detail.collectRemoved'), icon: 'none' })
       } else {
         uni.showToast({ title: res.message, icon: 'none' })
       }
@@ -243,32 +255,32 @@ export default {
     copyToPlan() {
       if (!this.ensureLogin()) return
       uni.showModal({
-        title: '复制为行程',
-        content: '将根据本笔记生成一份出行计划，是否继续？',
+        title: t('noteDetail.copyTitle'),
+        content: t('noteDetail.copyContent'),
         success: async (r) => {
           if (!r.confirm) return
           const res = await copyNoteToPlan(this.noteId)
-          uni.showToast({ title: res.message || '已复制', icon: 'none' })
+          uni.showToast({ title: res.message || t('noteDetail.copied'), icon: 'none' })
         }
       })
     },
     handleReport() {
       if (!this.ensureLogin()) return
       uni.showModal({
-        title: '举报笔记',
+        title: t('noteDetail.reportTitle'),
         editable: true,
-        placeholderText: '请描述举报原因',
+        placeholderText: t('noteDetail.reportPlaceholder'),
         success: async (r) => {
           if (!r.confirm) return
-          const res = await reportNote(this.noteId, r.content || '违规内容')
-          uni.showToast({ title: res.message || '举报成功', icon: 'none' })
+          const res = await reportNote(this.noteId, r.content || 'report')
+          uni.showToast({ title: res.message || t('noteDetail.reportSuccess'), icon: 'none' })
         }
       })
     },
     async submitComment() {
       if (!this.ensureLogin()) return
       if (!this.commentText.trim()) {
-        uni.showToast({ title: '评论内容不能为空', icon: 'none' })
+        uni.showToast({ title: t('noteDetail.emptyComment'), icon: 'none' })
         return
       }
       this.commentSubmitting = true
@@ -291,9 +303,9 @@ export default {
       if (!this.ensureLogin()) return
       const target = reply || comment
       uni.showModal({
-        title: `回复 @${target.username}`,
+        title: t('noteDetail.replyTitle', { name: target.username }),
         editable: true,
-        placeholderText: '输入回复内容',
+        placeholderText: t('noteDetail.replyPlaceholder'),
         success: async (r) => {
           if (!r.confirm || !r.content) return
           const res = await addNoteComment(this.noteId, {
@@ -314,8 +326,8 @@ export default {
     },
     removeComment(commentId) {
       uni.showModal({
-        title: '提示',
-        content: '确定删除该评论吗？',
+        title: t('noteDetail.deleteTitle'),
+        content: t('noteDetail.deleteContent'),
         success: async (r) => {
           if (!r.confirm) return
           const res = await deleteNoteComment(commentId)
@@ -341,12 +353,12 @@ export default {
 <style scoped>
 .note-detail {
   min-height: 100vh;
-  background-color: var(--background-color, #f8faff);
+  background-color: var(--background-color, #F7F4EE);
   padding: 24rpx;
 }
 
 .header {
-  background-color: #fff;
+  background-color: var(--card-background);
   border-radius: 16rpx;
   padding: 28rpx;
 }
@@ -437,7 +449,7 @@ export default {
 
 .content {
   margin-top: 28rpx;
-  background-color: #fff;
+  background-color: var(--card-background);
   border-radius: 16rpx;
   padding: 28rpx;
   font-size: 30rpx;
@@ -451,7 +463,7 @@ export default {
 
 .section {
   margin-top: 28rpx;
-  background-color: #fff;
+  background-color: var(--card-background);
   border-radius: 16rpx;
   padding: 28rpx;
 }
@@ -525,7 +537,7 @@ export default {
 
 .action-btn {
   padding: 14rpx 28rpx;
-  background-color: #fff;
+  background-color: var(--card-background);
   border-radius: 36rpx;
   font-size: 26rpx;
   color: var(--text-secondary-color, #7d7e80);

@@ -15,26 +15,26 @@
 /* 颜色变量 */
 
 /* 行为相关颜色 */
-$uni-color-primary: #007aff;
-$uni-color-success: #4cd964;
-$uni-color-warning: #f0ad4e;
-$uni-color-error: #dd524d;
+$uni-color-primary: #1E5B48;
+$uni-color-success: #2F7A55;
+$uni-color-warning: #C08A2E;
+$uni-color-error: #B5482F;
 
 /* 文字基本颜色 */
-$uni-text-color:#333;//基本色
-$uni-text-color-inverse:#fff;//反色
-$uni-text-color-grey:#999;//辅助灰色，如加载更多的提示信息
-$uni-text-color-placeholder: #808080;
-$uni-text-color-disable:#c0c0c0;
+$uni-text-color:#1F2A24;//基本色
+$uni-text-color-inverse:#FFFDF8;//反色
+$uni-text-color-grey:#8C948B;//辅助灰色，如加载更多的提示信息
+$uni-text-color-placeholder: #9A9F94;
+$uni-text-color-disable:#C7C3B8;
 
 /* 背景颜色 */
-$uni-bg-color:#ffffff;
-$uni-bg-color-grey:#f8f8f8;
-$uni-bg-color-hover:#f1f1f1;//点击状态颜色
-$uni-bg-color-mask:rgba(0, 0, 0, 0.4);//遮罩颜色
+$uni-bg-color:#FFFDF8;
+$uni-bg-color-grey:#F7F4EE;
+$uni-bg-color-hover:#F4EFE6;//点击状态颜色
+$uni-bg-color-mask:rgba(15, 21, 18, 0.4);//遮罩颜色
 
 /* 边框颜色 */
-$uni-border-color:#c8c7cc;
+$uni-border-color:#DED8CB;
 
 /* 尺寸变量 */
 
@@ -68,9 +68,9 @@ $uni-spacing-col-lg: 12px;
 $uni-opacity-disabled: 0.3; // 组件禁用态的透明度
 
 /* 文章场景相关 */
-$uni-color-title: #2C405A; // 文章标题颜色
+$uni-color-title: #1F2A24; // 文章标题颜色
 $uni-font-size-title:20px;
-$uni-color-subtitle: #555555; // 二级标题颜色
+$uni-color-subtitle: #3C473F; // 二级标题颜色
 $uni-font-size-subtitle:26px;
-$uni-color-paragraph: #3F536E; // 文章段落颜色
+$uni-color-paragraph: #4A554C; // 文章段落颜色
 $uni-font-size-paragraph:15px;

@@ -1,17 +1,19 @@
 <template>
-  <view class="travelPlan-container">
-    <text>出行计划页面</text>
-  </view>
+  <div class="app-page app-page--plain">
+    <div class="shell">
+      <div class="empty-state" style="padding-top: 72px">
+        <div class="empty-state__icon">
+          <uni-icons type="calendar" size="26" color="#2F6BFF" />
+        </div>
+        {{ t('placeholder.travelPlan') }}
+      </div>
+    </div>
+  </div>
 </template>
 
-<script>
-export default {
-  name: 'TravelPlanIndex'
-}
-</script>
+<script setup>
+import UniIcons from '@/uni_modules/uni-icons/components/uni-icons/uni-icons.vue'
+import { t, usePageTitle } from '@/utils/i18n'
 
-<style scoped>
-.travelPlan-container {
-  padding: 20rpx;
-}
-</style>
+usePageTitle('page.travelPlan')
+</script>

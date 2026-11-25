@@ -8,62 +8,62 @@
             fill="currentColor"></path>
         </svg>
       </view>
-      <text class="scan-hero__title">扫一扫登录</text>
-      <text class="scan-hero__desc">扫描电脑端登录页的二维码，确认后电脑端自动登录</text>
+      <text class="scan-hero__title">{{ t('scan.title') }}</text>
+      <text class="scan-hero__desc">{{ t('scan.desc') }}</text>
     </view>
 
     <view class="scan-actions">
       <button class="scan-btn" :loading="scanning" :disabled="scanning || loading" @click="startScan">
-        {{ scanning ? '正在打开相机…' : '开始扫描' }}
+        {{ scanning ? t('scan.opening') : t('scan.start') }}
       </button>
-      <text class="scan-tip">请确保当前 App 已登录本人账号</text>
+      <text class="scan-tip">{{ t('scan.tip') }}</text>
     </view>
 
     <view class="scan-steps">
       <view class="scan-step">
         <text class="scan-step__index">1</text>
-        <text class="scan-step__text">在电脑端登录页打开扫码登录</text>
+        <text class="scan-step__text">{{ t('scan.step1') }}</text>
       </view>
       <view class="scan-step">
         <text class="scan-step__index">2</text>
-        <text class="scan-step__text">用本页扫一扫对准二维码</text>
+        <text class="scan-step__text">{{ t('scan.step2') }}</text>
       </view>
       <view class="scan-step">
         <text class="scan-step__index">3</text>
-        <text class="scan-step__text">核对设备信息并确认登录</text>
+        <text class="scan-step__text">{{ t('scan.step3') }}</text>
       </view>
     </view>
 
     <!-- 确认登录弹窗 -->
     <view v-if="popupVisible" class="device-mask">
       <view class="device-card" @click.stop>
-        <text class="device-title">确认登录电脑端？</text>
-        <text class="device-subtitle">请核对以下设备信息，确认是本人操作</text>
+        <text class="device-title">{{ t('scan.confirmTitle') }}</text>
+        <text class="device-subtitle">{{ t('scan.confirmDesc') }}</text>
 
         <view class="device-list">
           <view class="device-row">
-            <text class="device-label">浏览器</text>
-            <text class="device-value">{{ detail.browser || '未知浏览器' }}</text>
+            <text class="device-label">{{ t('scan.browser') }}</text>
+            <text class="device-value">{{ detail.browser || t('scan.unknownBrowser') }}</text>
           </view>
           <view class="device-row">
-            <text class="device-label">操作系统</text>
-            <text class="device-value">{{ detail.os || '未知系统' }}</text>
+            <text class="device-label">{{ t('scan.os') }}</text>
+            <text class="device-value">{{ detail.os || t('scan.unknownOs') }}</text>
           </view>
           <view class="device-row">
-            <text class="device-label">IP 地址</text>
-            <text class="device-value">{{ detail.ip || '未知' }}</text>
+            <text class="device-label">{{ t('scan.ip') }}</text>
+            <text class="device-value">{{ detail.ip || t('scan.unknown') }}</text>
           </view>
           <view class="device-row">
-            <text class="device-label">登录地点</text>
-            <text class="device-value">{{ detail.region || '未知地点' }}</text>
+            <text class="device-label">{{ t('scan.region') }}</text>
+            <text class="device-value">{{ detail.region || t('scan.unknown') }}</text>
           </view>
         </view>
 
-        <text class="device-warning">若非本人操作，请点击取消</text>
+        <text class="device-warning">{{ t('scan.warning') }}</text>
 
         <view class="device-actions">
-          <button class="device-btn device-btn--ghost" :disabled="submitting" @click="onCancel">取消</button>
-          <button class="device-btn device-btn--primary" :loading="submitting" @click="onConfirm">确认登录</button>
+          <button class="device-btn device-btn--ghost" :disabled="submitting" @click="onCancel">{{ t('scan.cancel') }}</button>
+          <button class="device-btn device-btn--primary" :loading="submitting" @click="onConfirm">{{ t('scan.confirm') }}</button>
         </view>
       </view>
     </view>
@@ -74,6 +74,9 @@
 import { reactive, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { cancelQr, confirmQr, scanQr } from '../../api/auth'
+import { t, usePageTitle } from '@/utils/i18n'
+
+usePageTitle('page.scan')
 
 const ticket = ref('')
 const scanning = ref(false)
@@ -141,9 +144,9 @@ const loadDetail = async (value) => {
       return
     }
 
-    showToast(response?.message || '二维码已失效，请刷新后重试')
+    showToast(response?.message || t('scan.expired'))
   } catch (error) {
-    showToast('网络异常，请稍后重试')
+    showToast(t('scan.networkError'))
   } finally {
     loading.value = false
   }
@@ -152,7 +155,7 @@ const loadDetail = async (value) => {
 const handleRawResult = (raw) => {
   const value = extractTicket(raw)
   if (!value) {
-    showToast('未识别到登录二维码')
+    showToast(t('scan.noQr'))
     return
   }
   ticket.value = value
@@ -170,7 +173,7 @@ const startScan = () => {
   }
 
   // #ifdef H5
-  showToast('请在 App 中使用扫一扫')
+  showToast(t('scan.useInApp'))
   return
   // #endif
 
@@ -183,7 +186,7 @@ const startScan = () => {
     fail: (error) => {
       const message = error?.errMsg || ''
       if (!message.includes('cancel')) {
-        showToast('扫码失败，请重试')
+        showToast(t('scan.failed'))
       }
     },
     complete: () => {
@@ -201,15 +204,15 @@ const onConfirm = async () => {
     const response = await confirmQr({ ticket: ticket.value })
     if (response && response.code === 200) {
       popupVisible.value = false
-      uni.showToast({ title: '登录成功', icon: 'success' })
+      uni.showToast({ title: t('scan.success'), icon: 'success' })
       setTimeout(() => {
         uni.navigateBack()
       }, 1200)
       return
     }
-    showToast(response?.message || '登录失败，请重试')
+    showToast(response?.message || t('scan.loginFailed'))
   } catch (error) {
-    showToast('网络异常，请稍后重试')
+    showToast(t('scan.networkError'))
   } finally {
     submitting.value = false
   }
@@ -222,7 +225,7 @@ const onCancel = async () => {
     // 取消失败不影响关闭弹窗
   }
   popupVisible.value = false
-  uni.showToast({ title: '已取消登录', icon: 'none' })
+  uni.showToast({ title: t('scan.canceled'), icon: 'none' })
 }
 
 onLoad((options) => {
@@ -240,7 +243,7 @@ onLoad((options) => {
   min-height: 100vh;
   box-sizing: border-box;
   padding: 48rpx 40rpx calc(48rpx + env(safe-area-inset-bottom, 0px));
-  background: linear-gradient(180deg, #eef6ff 0%, #f8faff 40%, #f8faff 100%);
+  background: var(--bg-color);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -261,16 +264,16 @@ onLoad((options) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #3a80d2;
-  background: #ffffff;
-  box-shadow: 0 16rpx 40rpx rgba(58, 128, 210, 0.16);
+  color: var(--primary-color);
+  background: var(--card-background);
+  box-shadow: var(--shadow-sm);
 }
 
 .scan-hero__title {
   margin-top: 28rpx;
   font-size: 40rpx;
   font-weight: 700;
-  color: #1f2d3d;
+  color: var(--text-color);
 }
 
 .scan-hero__desc {
@@ -278,7 +281,7 @@ onLoad((options) => {
   max-width: 560rpx;
   font-size: 26rpx;
   line-height: 1.6;
-  color: #7a8798;
+  color: var(--text-secondary-color);
 }
 
 .scan-actions {
@@ -297,8 +300,8 @@ onLoad((options) => {
   font-size: 32rpx;
   font-weight: 600;
   color: #ffffff;
-  background: linear-gradient(135deg, #4a90e2, #2f6fc4);
-  box-shadow: 0 16rpx 32rpx rgba(58, 128, 210, 0.28);
+  background: var(--primary-color);
+  box-shadow: var(--shadow-brand);
   border: none;
 }
 
@@ -309,7 +312,7 @@ onLoad((options) => {
 .scan-tip {
   margin-top: 20rpx;
   font-size: 24rpx;
-  color: #98a4b3;
+  color: var(--text-tertiary-color);
 }
 
 .scan-steps {
@@ -318,8 +321,8 @@ onLoad((options) => {
   padding: 32rpx;
   box-sizing: border-box;
   border-radius: 28rpx;
-  background: #ffffff;
-  box-shadow: 0 12rpx 32rpx rgba(31, 45, 61, 0.06);
+  background: var(--card-background);
+  box-shadow: var(--shadow-sm);
 }
 
 .scan-step {
@@ -340,21 +343,21 @@ onLoad((options) => {
   text-align: center;
   font-size: 22rpx;
   font-weight: 700;
-  color: #3a80d2;
-  background: #e8f2ff;
+  color: var(--primary-color);
+  background: var(--primary-soft);
 }
 
 .scan-step__text {
   margin-left: 18rpx;
   font-size: 26rpx;
-  color: #4a5568;
+  color: var(--text-secondary-color);
 }
 
 .device-mask {
   position: fixed;
   inset: 0;
   z-index: 999;
-  background: rgba(17, 24, 39, 0.45);
+  background: rgba(15, 21, 18, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -367,15 +370,15 @@ onLoad((options) => {
   box-sizing: border-box;
   padding: 40rpx 36rpx 32rpx;
   border-radius: 28rpx;
-  background: #ffffff;
-  box-shadow: 0 24rpx 60rpx rgba(17, 24, 39, 0.2);
+  background: var(--card-background);
+  box-shadow: var(--shadow-lg);
 }
 
 .device-title {
   display: block;
   font-size: 34rpx;
   font-weight: 700;
-  color: #1f2d3d;
+  color: var(--text-color);
 }
 
 .device-subtitle {
@@ -383,14 +386,14 @@ onLoad((options) => {
   margin-top: 12rpx;
   font-size: 24rpx;
   line-height: 1.5;
-  color: #7a8798;
+  color: var(--text-secondary-color);
 }
 
 .device-list {
   margin-top: 28rpx;
   padding: 24rpx;
   border-radius: 20rpx;
-  background: #f5f9ff;
+  background: var(--surface-2);
 }
 
 .device-row {
@@ -405,12 +408,12 @@ onLoad((options) => {
 
 .device-label {
   font-size: 24rpx;
-  color: #8896a6;
+  color: var(--text-tertiary-color);
 }
 
 .device-value {
   font-size: 26rpx;
-  color: #1f2d3d;
+  color: var(--text-color);
   max-width: 400rpx;
   text-align: right;
   word-break: break-all;
@@ -420,7 +423,7 @@ onLoad((options) => {
   display: block;
   margin-top: 24rpx;
   font-size: 24rpx;
-  color: #e6a23c;
+  color: var(--gold-color);
 }
 
 .device-actions {
@@ -440,12 +443,12 @@ onLoad((options) => {
 }
 
 .device-btn--ghost {
-  color: #4a5568;
-  background: #eef2f7;
+  color: var(--text-secondary-color);
+  background: var(--background-soft);
 }
 
 .device-btn--primary {
   color: #ffffff;
-  background: linear-gradient(135deg, #4a90e2, #2f6fc4);
+  background: var(--primary-color);
 }
 </style>

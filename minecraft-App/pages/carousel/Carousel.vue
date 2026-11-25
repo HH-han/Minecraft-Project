@@ -1,11 +1,11 @@
 <template>
-  <div class="carousel" @mouseenter="pauseAutoPlay" @mouseleave="startAutoPlay">
+  <div ref="carouselRef" class="carousel" @mouseenter="pauseAutoPlay" @mouseleave="startAutoPlay">
     <div class="carousel-viewport">
       <div class="carousel-track" :style="trackStyle" @touchstart="handleTouchStart" @touchmove="handleTouchMove" @touchend="handleTouchEnd">
         <!-- 克隆最后一个项目放在前面 -->
         <div class="carousel-slide" v-if="items.length > 1">
           <div class="slide-content">
-            <img :src="items[items.length - 1].imageUrl" class="slide-image" />
+            <img :src="items[items.length - 1].imageUrl" class="slide-image" alt="" />
             <div class="slide-overlay"></div>
             <div class="slide-caption" v-if="items[items.length - 1].title">
               <h3>{{ items[items.length - 1].title }}</h3>
@@ -17,7 +17,7 @@
         <!-- 正常项目 -->
         <div class="carousel-slide" v-for="(item, index) in items" :key="index">
           <div class="slide-content">
-            <img :src="item.imageUrl" class="slide-image" />
+            <img :src="item.imageUrl" class="slide-image" alt="" />
             <div class="slide-overlay"></div>
             <div class="slide-caption" v-if="item.title">
               <h3>{{ item.title }}</h3>
@@ -29,7 +29,7 @@
         <!-- 克隆第一个项目放在后面 -->
         <div class="carousel-slide" v-if="items.length > 1">
           <div class="slide-content">
-            <img :src="items[0].imageUrl" class="slide-image" />
+            <img :src="items[0].imageUrl" class="slide-image" alt="" />
             <div class="slide-overlay"></div>
             <div class="slide-caption" v-if="items[0].title">
               <h3>{{ items[0].title }}</h3>
@@ -47,6 +47,13 @@
       </button>
     </div>
 
+    <!-- 幻灯片计数 -->
+    <div class="carousel-counter" v-if="items.length > 1">
+      <span class="carousel-counter__current">{{ currentLabel }}</span>
+      <span class="carousel-counter__slash">/</span>
+      <span>{{ totalLabel }}</span>
+    </div>
+
     <!-- 导航箭头 -->
     <button class="carousel-nav prev" @click="prev" v-if="showArrows && items.length > 1" aria-label="Previous slide">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -62,7 +69,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps({
   items: {
@@ -93,6 +100,7 @@ const props = defineProps({
 })
 
 const currentIndex = ref(0)
+const carouselRef = ref(null)
 const autoPlayTimer = ref(null)
 const isTransitioning = ref(false)
 const touchStartX = ref(0)
@@ -106,6 +114,10 @@ const trackStyle = computed(() => {
     transition: isTransitioning.value ? `transform ${props.transitionDuration}ms cubic-bezier(0.16, 1, 0.3, 1)` : 'none'
   }
 })
+
+// 幻灯片计数：01 / 05
+const currentLabel = computed(() => String(currentIndex.value + 1).padStart(2, '0'))
+const totalLabel = computed(() => String(props.items.length).padStart(2, '0'))
 
 // 自动播放控制
 const startAutoPlay = () => {
@@ -132,22 +144,44 @@ const stopAutoPlay = () => {
 }
 
 // 进度条动画
+let progressRaf = null
+
 const startProgressBar = () => {
   clearProgressBar()
-  const progressBars = document.querySelectorAll('.progress-bar')
-  if (progressBars[currentIndex.value]) {
-    progressBars[currentIndex.value].style.transition = `width ${props.interval}ms linear`
-    progressBars[currentIndex.value].style.width = '100%'
-  }
+  nextTick(() => {
+    if (progressRaf) cancelAnimationFrame(progressRaf)
+    progressRaf = requestAnimationFrame(() => {
+      progressRaf = null
+      const root = carouselRef.value || document
+      const bar = root.querySelector('.progress-bar')
+      if (!bar) return
+      // 强制回流，确保新挂载的进度条能触发宽度过渡
+      bar.style.transition = 'none'
+      bar.style.width = '0%'
+      void bar.offsetWidth
+      bar.style.transition = `width ${props.interval}ms linear`
+      bar.style.width = '100%'
+    })
+  })
 }
 
 const clearProgressBar = () => {
-  const progressBars = document.querySelectorAll('.progress-bar')
+  if (progressRaf) {
+    cancelAnimationFrame(progressRaf)
+    progressRaf = null
+  }
+  const root = carouselRef.value || document
+  const progressBars = root.querySelectorAll('.progress-bar')
   progressBars.forEach(bar => {
     bar.style.transition = 'none'
     bar.style.width = '0%'
   })
 }
+
+// 自动播放切到下一张时，重新计时当前指示器进度
+watch(currentIndex, () => {
+  if (autoPlayTimer.value) startProgressBar()
+})
 
 // 导航方法
 const goTo = (index) => {
@@ -218,9 +252,9 @@ const handleTouchEnd = () => {
     } else {
       prev()
     }
-  } else {
-    startAutoPlay()
   }
+  // 手指离开后恢复自动播放与进度计时
+  startAutoPlay()
 }
 
 // 生命周期
@@ -237,27 +271,23 @@ onUnmounted(() => {
 <style scoped>
 .carousel {
   --carousel-aspect-ratio: v-bind('aspectRatio');
-  --primary-color: #4f46e5;
-  --text-color: #ffffff;
-  --bg-overlay: rgba(0, 0, 0, 0.4);
-  --nav-bg: rgba(255, 255, 255, 0.15);
-  --nav-bg-hover: rgba(255, 255, 255, 0.3);
-  --indicator-size: 15px;
-  --indicator-gap: 8px;
-  --border-radius: 16px;
+  --carousel-ink: #ffffff;
+  --carousel-radius: var(--radius-lg, 20px);
 
   position: relative;
   width: 100%;
   max-height: 100vh;
   aspect-ratio: var(--carousel-aspect-ratio);
   overflow: hidden;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  margin-bottom: 8px;
-  transition: all 0.3s ease;
+  border-radius: var(--carousel-radius);
+  background: var(--surface-2, #f4efe6);
+  isolation: isolate;
+  touch-action: pan-y;
+  transition: box-shadow 0.4s var(--ease-out, ease);
 }
 
 .carousel:hover {
-  box-shadow: 0 16px 48px rgba(31, 38, 135, 0.5);
+  box-shadow: var(--shadow-lg, 0 20px 44px rgba(38, 45, 36, 0.12));
 }
 
 .carousel-viewport {
@@ -271,12 +301,14 @@ onUnmounted(() => {
   display: flex;
   height: 100%;
   width: 100%;
+  will-change: transform;
 }
 
 .carousel-slide {
   flex: 0 0 100%;
   min-width: 100%;
   position: relative;
+  overflow: hidden;
 }
 
 .slide-content {
@@ -290,204 +322,262 @@ onUnmounted(() => {
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: all 0.5s ease;
+  user-select: none;
+  -webkit-user-drag: none;
+  transition: transform 0.9s var(--ease-out, ease);
 }
 
-.carousel-slide:hover .slide-image {
-  transform: scale(1.05);
+.carousel:hover .slide-image {
+  transform: scale(1.035);
 }
 
 .slide-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--bg-overlay);
+  inset: 0;
+  background: linear-gradient(180deg,
+      rgba(15, 21, 18, 0.34) 0%,
+      rgba(15, 21, 18, 0.06) 30%,
+      rgba(15, 21, 18, 0.1) 55%,
+      rgba(15, 21, 18, 0.78) 100%);
+  pointer-events: none;
 }
 
 .slide-caption {
   position: absolute;
-  bottom: 0;
   left: 0;
   right: 0;
-  padding: 2.5rem;
-  color: #ffffff;
-  margin: 0 auto;
-  text-align: center;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 60%, rgba(0, 0, 0, 0) 100%);
-  transform: translateY(0);
-  transition: all 0.5s ease;
-}
-
-.slide-caption:hover {
-  transform: translateY(-5px);
+  bottom: 0;
+  z-index: 2;
+  max-width: min(88%, 760px);
+  padding: clamp(20px, 4%, 40px) clamp(20px, 5%, 48px) clamp(52px, 8%, 72px);
+  color: var(--carousel-ink);
+  text-align: left;
 }
 
 .slide-caption h3 {
-  font-size: clamp(1.5rem, 3.5vw, 2.8rem);
+  margin: 0 0 10px;
+  font-size: clamp(1.25rem, 3vw, 2.4rem);
   font-weight: 800;
-  margin-bottom: 0.75rem;
-  line-height: 1.1;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.8);
+  line-height: 1.15;
   letter-spacing: -0.02em;
-  animation: fadeInUp 0.8s ease-out;
-  margin: 0 0 8px 0;
+  text-shadow: 0 2px 12px rgba(15, 21, 18, 0.45);
+}
+
+.slide-caption h3::before {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 3px;
+  margin-bottom: 12px;
+  border-radius: 2px;
+  background: var(--accent-color, #c4613c);
+  box-shadow: 0 1px 4px rgba(15, 21, 18, 0.35);
 }
 
 .slide-caption p {
-  font-size: clamp(0.9375rem, 1.7vw, 1.25rem);
-  margin-bottom: 0;
-  opacity: 0.95;
-  line-height: 1.6;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-  animation: fadeInUp 1s ease-out 0.2s both;
   margin: 0;
+  max-width: 46ch;
+  font-size: clamp(0.875rem, 1.5vw, 1.0625rem);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.86);
+  text-shadow: 0 1px 6px rgba(15, 21, 18, 0.5);
+}
+
+/* 右上角幻灯片计数 */
+.carousel-counter {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 5px 11px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(15, 21, 18, 0.34);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.carousel-counter__current {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.carousel-counter__slash {
+  opacity: 0.5;
 }
 
 .carousel-nav {
   position: absolute;
   top: 50%;
-  transform: translateY(-50%);
-  width: 48px;
-  height: 48px;
-  background: var(--nav-bg);
-  color: var(--text-color);
-  border: none;
-  border-radius: 50%;
+  z-index: 10;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transform: translateY(-50%);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: #ffffff;
   cursor: pointer;
-  z-index: 10;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s var(--ease-out, ease), background-color 0.3s var(--ease-out, ease),
+    border-color 0.3s var(--ease-out, ease), transform 0.3s var(--ease-out, ease);
+}
+
+.carousel:hover .carousel-nav,
+.carousel-nav:focus-visible {
+  opacity: 1;
+  visibility: visible;
 }
 
 .carousel-nav:hover {
-  background: var(--nav-bg-hover);
-  transform: translateY(-50%) scale(1.1);
+  background: var(--primary-color, #1e5b48);
+  border-color: var(--primary-color, #1e5b48);
+  transform: translateY(-50%) scale(1.06);
+}
+
+.carousel-nav:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
 }
 
 .carousel-nav svg {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
 }
 
 .prev {
-  left: 2rem;
+  left: 14px;
 }
 
 .next {
-  right: 2rem;
+  right: 14px;
 }
 
 .carousel-pagination {
   position: absolute;
-  bottom: 15px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 10px;
+  left: clamp(20px, 5%, 48px);
+  bottom: clamp(16px, 2.6%, 22px);
   z-index: 10;
-  padding: 6px;
-  border-radius: 24px;
-  background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .carousel-pagination button {
+  position: relative;
   width: 8px;
   height: 8px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.4);
-  border: none;
-  cursor: pointer;
   padding: 0;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.33, 1, 0.68, 1);
-  outline: none;
+  border: none;
+  border-radius: var(--radius-pill, 999px);
+  background: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 1px 4px rgba(15, 21, 18, 0.3);
+  cursor: pointer;
+  transition: width 0.35s var(--ease-out, ease), background-color 0.3s var(--ease-out, ease);
 }
 
+/* 扩大触控热区 */
 .carousel-pagination button::before {
   content: '';
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  opacity: 0;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  inset: -5px;
+  border-radius: 999px;
 }
 
 .carousel-pagination button:hover {
-  transform: scale(1.3);
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.85);
 }
 
-.carousel-pagination button:active::before {
-  transform: translate(-50%, -50%) scale(2);
-  opacity: 0.4;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+.carousel-pagination button:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 4px;
 }
 
 .carousel-pagination button.active {
-  width: 32px;
-  border-radius: 8px;
+  width: 26px;
   background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8);
 }
 
 .carousel-pagination button.active .progress-bar {
   position: absolute;
-  bottom: 0;
+  top: 0;
   left: 0;
+  width: 0;
   height: 100%;
-  background: linear-gradient(90deg, #3a7bd5, #00d2ff);
-  animation: progress var(--duration, 5s) linear forwards;
-  border-radius: 0 0 8px 8px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--primary-color, #1e5b48);
 }
 
-@keyframes progress {
-  from {
-    width: 0%;
-  }
-
-  to {
-    width: 100%;
-  }
-}
-
-/* 触摸设备优化 */
+/* 触摸设备：隐藏箭头，保留滑动与指示器 */
 @media (hover: none) {
-  .carousel-pagination button:hover {
+  .carousel-nav {
+    display: none;
+  }
+
+  .carousel:hover .slide-image {
     transform: none;
-    background: rgba(255, 255, 255, 0.4);
+  }
+
+  .carousel-pagination button:hover {
+    background: rgba(255, 255, 255, 0.45);
   }
 }
 
 @media (max-width: 768px) {
   .carousel {
-    --border-radius: 8px;
+    --carousel-radius: var(--radius-md, 16px);
   }
 
-  .carousel-nav {
-    width: 36px;
-    height: 36px;
+  .carousel-counter {
+    top: 10px;
+    right: 10px;
+    padding: 4px 9px;
+    font-size: 10px;
   }
 
-  .prev {
-    left: 1rem;
+  .slide-caption {
+    max-width: 100%;
+    padding: 12px 16px 40px;
   }
 
-  .next {
-    right: 1rem;
+  .slide-caption h3 {
+    margin-bottom: 4px;
+    font-size: clamp(1.05rem, 4.8vw, 1.5rem);
+  }
+
+  .slide-caption h3::before {
+    width: 18px;
+    margin-bottom: 7px;
+  }
+
+  .slide-caption p {
+    max-width: 100%;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .carousel-pagination {
+    left: 16px;
+    bottom: 14px;
+  }
+
+  .carousel-pagination button.active {
+    width: 22px;
   }
 }
 </style>

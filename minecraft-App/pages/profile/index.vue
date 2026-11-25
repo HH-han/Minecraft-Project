@@ -1,21 +1,36 @@
 <template>
-  <div class="profile-container">
-    <!-- 用户信息区域 -->
-    <div class="user-info">
-      <div class="avatar">
-        <img
-          :src="userInfo?.avatar || 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar%20profile%20picture&image_size=square'"
-          :alt="userInfo?.username || '用户头像'">
-      </div>
-      <div class="user-details">
-        <h2>{{ userInfo?.username || userInfo?.username || '用户名' }}</h2>
-        <p v-if="userInfo">{{ userInfo?.signature || '个人签名' }}</p>
-        <p v-else @click="navigateTo('/pages/login/index')" style="cursor: pointer; color: var(--primary-color);">点击登录</p>
-      </div>
-    </div>
+  <div class="app-page">
+    <div class="shell">
+      <!-- 用户信息区域 -->
+      <header class="profile-hero reveal">
+        <div class="hero-glow"></div>
+        <div class="hero-ring"></div>
+        <div class="profile-main">
+          <div class="avatar">
+            <img
+              :src="userInfo?.avatar || 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar%20profile%20picture&image_size=square'"
+              :alt="userInfo?.username || '用户头像'">
+          </div>
+          <div class="user-details">
+            <div class="user-name-row">
+              <h2>{{ userInfo?.username || t('profile.guestName') }}</h2>
+              <span v-if="userInfo" class="member-tag">{{ t('profile.signedIn') }}</span>
+            </div>
+            <p class="user-sign">{{ userInfo?.signature || t('profile.defaultSign') }}</p>
+            <button v-if="!userInfo" class="login-cta" @click="navigateTo('/pages/login/index')">
+              {{ t('profile.signIn') }}
+              <uni-icons type="right" size="13" color="#FFFFFF" />
+            </button>
+          </div>
+        </div>
+      </header>
 
-    <!-- 功能菜单 -->
-    <div class="menu-section">
+      <!-- 我的服务 -->
+      <div class="section-head">
+        <div class="section-title">{{ t('profile.services') }}</div>
+        <span class="section-sub">{{ t('profile.servicesSub') }}</span>
+      </div>
+      <div class="panel">
       <div class="menu-item" @click="navigateTo('/pages/order/index')">
         <div class="menu-icon">
           <svg t="1776003895239" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
@@ -40,8 +55,8 @@
               fill="#F67B7A" p-id="12910"></path>
           </svg>
         </div>
-        <div class="menu-text">我的订单</div>
-        <div class="menu-arrow">›</div>
+        <div class="menu-text">{{ t('profile.order') }}</div>
+        <uni-icons class="menu-arrow" type="right" size="16" color="#8C948B" />
       </div>
       <div class="menu-item" @click="navigateTo('/pages/collection/index')">
         <div class="menu-icon">
@@ -63,25 +78,25 @@
               fill="#FF716E" p-id="14774"></path>
           </svg>
         </div>
-        <div class="menu-text">我的收藏</div>
-        <div class="menu-arrow">›</div>
+        <div class="menu-text">{{ t('profile.collection') }}</div>
+        <uni-icons class="menu-arrow" type="right" size="16" color="#8C948B" />
       </div>
       <div class="menu-item" @click="navigateTo('/pages/travelNote/mine')">
         <div class="menu-icon">
           <svg t="1776003921083" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"
             p-id="14769" width="256" height="256">
             <path d="M510.3616 505.9584m-450.816 0a450.816 450.816 0 1 0 901.632 0 450.816 450.816 0 1 0-901.632 0Z"
-              fill="#E3F0FF" p-id="14770"></path>
+              fill="#E7EADF" p-id="14770"></path>
             <path
               d="M826.7776 459.776a49.5104 49.5104 0 0 0-27.4432-84.4288l-142.2848-20.48a49.6128 49.6128 0 0 1-37.2736-27.1872l-63.6416-129.024a49.5104 49.5104 0 0 0-88.7808 0L403.712 327.68a49.6128 49.6128 0 0 1-37.2736 27.0848l-142.2848 20.48a49.5104 49.5104 0 0 0-27.4432 84.5312l102.9632 100.352a49.5104 49.5104 0 0 1 14.2336 44.032l-24.32 141.7216a49.5104 49.5104 0 0 0 71.68 52.1728l127.232-66.8672a49.5616 49.5616 0 0 1 46.08 0l127.232 66.8672a49.5104 49.5104 0 0 0 71.68-52.1728L709.5808 604.16a49.5104 49.5104 0 0 1 14.2336-43.8272z"
-              fill="#3A80D2" p-id="14771"></path>
+              fill="#1E5B48" p-id="14771"></path>
             <path
               d="M542.72 181.7088a49.6128 49.6128 0 0 0-75.264 16.9472L403.712 327.68a49.6128 49.6128 0 0 1-37.2736 27.0848l-142.2848 20.48a49.5104 49.5104 0 0 0-27.4432 84.5312l4.1472 4.0448A396.9024 396.9024 0 0 0 542.72 181.7088z"
-              fill="#5B9BE0" p-id="14774"></path>
+              fill="#4F8A74" p-id="14774"></path>
           </svg>
         </div>
-        <div class="menu-text">我的笔记</div>
-        <div class="menu-arrow">›</div>
+        <div class="menu-text">{{ t('profile.notes') }}</div>
+        <uni-icons class="menu-arrow" type="right" size="16" color="#8C948B" />
       </div>
       <div class="menu-item" @click="navigateTo('/pages/comment/index')">
         <div class="menu-icon">
@@ -95,8 +110,8 @@
               fill="#A8CD53" p-id="16646"></path>
           </svg>
         </div>
-        <div class="menu-text">我的评论</div>
-        <div class="menu-arrow">›</div>
+        <div class="menu-text">{{ t('profile.comments') }}</div>
+        <uni-icons class="menu-arrow" type="right" size="16" color="#8C948B" />
       </div>
       <div class="menu-item" @click="navigateTo('/pages/points/index')">
         <div class="menu-icon">
@@ -104,38 +119,38 @@
             p-id="16644" width="256" height="256">
             <path
               d="M512 51.2c-256 0-460.8 204.8-460.8 460.8s204.8 460.8 460.8 460.8 460.8-204.8 460.8-460.8-204.8-460.8-460.8-460.8zm0 870.4c-225.28 0-409.6-184.32-409.6-409.6s184.32-409.6 409.6-409.6 409.6 184.32 409.6 409.6-184.32 409.6-409.6 409.6z"
-              fill="#FFD700" p-id="16645"></path>
+              fill="#C08A2E" p-id="16645"></path>
             <path
               d="M512 307.2c-35.84 0-64 28.16-64 64v153.6c0 35.84 28.16 64 64 64s64-28.16 64-64V371.2c0-35.84-28.16-64-64-64z"
-              fill="#FFD700" p-id="16646"></path>
+              fill="#C08A2E" p-id="16646"></path>
             <path
               d="M512 128c-21.76 0-38.4 16.64-38.4 38.4v57.6c0 21.76 16.64 38.4 38.4 38.4s38.4-16.64 38.4-38.4v-57.6c0-21.76-16.64-38.4-38.4-38.4z"
-              fill="#FFD700" p-id="16647"></path>
+              fill="#C08A2E" p-id="16647"></path>
             <path
               d="M512 832c-21.76 0-38.4 16.64-38.4 38.4v57.6c0 21.76 16.64 38.4 38.4 38.4s38.4-16.64 38.4-38.4v-57.6c0-21.76-16.64-38.4-38.4-38.4z"
-              fill="#FFD700" p-id="16648"></path>
+              fill="#C08A2E" p-id="16648"></path>
             <path
               d="M128 512c0-21.76-16.64-38.4-38.4-38.4h-57.6c-21.76 0-38.4 16.64-38.4 38.4s16.64 38.4 38.4 38.4h57.6c21.76 0 38.4-16.64 38.4-38.4z"
-              fill="#FFD700" p-id="16649"></path>
+              fill="#C08A2E" p-id="16649"></path>
             <path
               d="M956.8 512c0-21.76-16.64-38.4-38.4-38.4h-57.6c-21.76 0-38.4 16.64-38.4 38.4s16.64 38.4 38.4 38.4h57.6c21.76 0 38.4-16.64 38.4-38.4z"
-              fill="#FFD700" p-id="16650"></path>
+              fill="#C08A2E" p-id="16650"></path>
             <path
               d="M264.704 264.704c-14.08 0-25.6 11.52-25.6 25.6v92.16c0 14.08 11.52 25.6 25.6 25.6s25.6-11.52 25.6-25.6v-92.16c0-14.08-11.52-25.6-25.6-25.6z"
-              fill="#FFD700" p-id="16651"></path>
+              fill="#C08A2E" p-id="16651"></path>
             <path
               d="M806.656 264.704c-14.08 0-25.6 11.52-25.6 25.6v92.16c0 14.08 11.52 25.6 25.6 25.6s25.6-11.52 25.6-25.6v-92.16c0-14.08-11.52-25.6-25.6-25.6z"
-              fill="#FFD700" p-id="16652"></path>
+              fill="#C08A2E" p-id="16652"></path>
             <path
               d="M264.704 806.656c-14.08 0-25.6 11.52-25.6 25.6v92.16c0 14.08 11.52 25.6 25.6 25.6s25.6-11.52 25.6-25.6v-92.16c0-14.08-11.52-25.6-25.6-25.6z"
-              fill="#FFD700" p-id="16653"></path>
+              fill="#C08A2E" p-id="16653"></path>
             <path
               d="M806.656 806.656c-14.08 0-25.6 11.52-25.6 25.6v92.16c0 14.08 11.52 25.6 25.6 25.6s25.6-11.52 25.6-25.6v-92.16c0-14.08-11.52-25.6-25.6-25.6z"
-              fill="#FFD700" p-id="16654"></path>
+              fill="#C08A2E" p-id="16654"></path>
           </svg>
         </div>
-        <div class="menu-text">积分商城</div>
-        <div class="menu-arrow">›</div>
+        <div class="menu-text">{{ t('profile.points') }}</div>
+        <uni-icons class="menu-arrow" type="right" size="16" color="#8C948B" />
       </div>
       <div class="menu-item" @click="navigateTo('/pages/chat/index')">
         <div class="menu-icon">
@@ -143,29 +158,32 @@
             p-id="19477" width="256" height="256">
             <path
               d="M512.02 1013.551a498.239 498.239 0 0 1-354.672-146.889A498.239 498.239 0 0 1 10.48 512.01a498.302 498.302 0 0 1 146.91-354.693A498.239 498.239 0 0 1 512.02 10.47a498.134 498.134 0 0 1 354.611 146.888 498.448 498.448 0 0 1 146.93 354.652 498.302 498.302 0 0 1-146.909 354.632 498.176 498.176 0 0 1-354.631 146.91zM311.886 282.597a80.936 80.936 0 0 0-80.852 80.853v262.807a80.936 80.936 0 0 0 80.852 80.832h34.878l63.027 75.503a30.49 30.49 0 0 0 21.441 8.881 30.49 30.49 0 0 0 21.44-8.881l62.965-75.503h196.437a80.936 80.936 0 0 0 80.832-80.832V363.45a80.936 80.936 0 0 0-80.832-80.853z"
-              fill="#10C55B" p-id="19478"></path>
+              fill="#2F7A55" p-id="19478"></path>
             <path
               d="M613.395 461.606H380.262a26.707 26.707 0 0 1 0-53.394h233.133a26.707 26.707 0 0 1 0 53.394z m-97.884 123.17H380.262a26.707 26.707 0 0 1 0-53.394h135.249a26.707 26.707 0 0 1 0 53.394z m0 0"
-              fill="#10C55B" p-id="19479"></path>
+              fill="#2F7A55" p-id="19479"></path>
           </svg>
         </div>
-        <div class="menu-text">在线客服</div>
-        <div class="menu-arrow">›</div>
+        <div class="menu-text">{{ t('profile.support') }}</div>
+        <uni-icons class="menu-arrow" type="right" size="16" color="#8C948B" />
       </div>
     </div>
 
-    <!-- 设置区域 -->
-    <div class="menu-section">
+      <!-- 设置区域 -->
+      <div class="section-head">
+        <div class="section-title">{{ t('profile.settingsMore') }}</div>
+      </div>
+      <div class="panel">
       <div class="menu-item" @click="navigateTo('/pages/login/scan')">
         <div class="menu-icon">
           <svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="256" height="256">
             <path
               d="M117.368 487.445h371.92v-371.92h-371.92v371.92z m92.981-278.94h185.96v185.96h-185.96v-185.96z m325.43-92.98v371.92h371.92v-371.92H535.78z m278.94 278.94h-185.96v-185.96h185.96v185.96z m-557.88-46.49h92.98v-92.98h-92.98v92.98z m-139.47 557.88h371.92v-371.92h-371.92v371.92z m92.98-278.94h185.96v185.96h-185.96v-185.96z m557.88-371.92h-92.98v92.98h92.98v-92.98z m-232.45 650.86h92.98v-92.98h-92.98v92.98z m92.98-278.94v185.96h92.98v-185.96h-92.98z m185.96 185.96h-92.98v92.98h185.96v-185.96h-92.98v92.98z m0-185.96h92.98v-92.98h-92.98v92.98z m-278.94-92.98v92.98h92.98v-92.98h-92.98z m-278.94 232.45h92.98v-92.98h-92.98v92.98z"
-              fill="#3A80D2"></path>
+              fill="#1E5B48"></path>
           </svg>
         </div>
-        <div class="menu-text">扫一扫登录</div>
-        <div class="menu-arrow">›</div>
+        <div class="menu-text">{{ t('profile.scan') }}</div>
+        <uni-icons class="menu-arrow" type="right" size="16" color="#8C948B" />
       </div>
       <div class="menu-item" @click="navigateTo('/pages/profile/settings')">
         <div class="menu-icon">
@@ -173,14 +191,14 @@
             p-id="21474" width="256" height="256">
             <path
               d="M512 512m-98.133333 0a98.133333 98.133333 0 1 0 196.266666 0 98.133333 98.133333 0 1 0-196.266666 0Z"
-              fill="#BBC3C9" p-id="21475"></path>
+              fill="#8C948B" p-id="21475"></path>
             <path
               d="M891.733333 418.133333H853.333333c-42.666667 0-64-51.2-34.133333-81.066666l25.6-25.6c17.066667-17.066667 17.066667-46.933333 0-68.266667l-68.266667-68.266667c-17.066667-17.066667-46.933333-17.066667-68.266666 0l-25.6 25.6c-29.866667 29.866667-81.066667 8.533333-81.066667-34.133333v-34.133333c0-25.6-21.333333-46.933333-46.933333-46.933334h-93.866667c-25.6 0-46.933333 21.333333-46.933333 46.933334V170.666667c0 42.666667-51.2 64-81.066667 34.133333l-21.333333-29.866667c-17.066667-17.066667-46.933333-17.066667-68.266667 0L174.933333 243.2c-17.066667 17.066667-17.066667 46.933333 0 68.266667l25.6 25.6c29.866667 29.866667 8.533333 81.066667-29.866666 81.066666h-38.4c-25.6 0-46.933333 21.333333-46.933334 46.933334v93.866666c0 25.6 21.333333 46.933333 46.933334 46.933334H170.666667c42.666667 0 64 51.2 34.133333 81.066666l-25.6 25.6c-17.066667 17.066667-17.066667 46.933333 0 68.266667l68.266667 68.266667c17.066667 17.066667 46.933333 17.066667 68.266666 0l25.6-25.6c29.866667-29.866667 81.066667-8.533333 81.066667 34.133333v34.133333c0 25.6 21.333333 46.933333 46.933333 46.933334h93.866667c25.6 0 46.933333-21.333333 46.933333-46.933334V853.333333c0-42.666667 51.2-64 81.066667-34.133333l25.6 25.6c17.066667 17.066667 46.933333 17.066667 68.266667 0l68.266666-68.266667c17.066667-17.066667 17.066667-46.933333 0-68.266666l-25.6-25.6c-29.866667-29.866667-8.533333-81.066667 34.133334-81.066667h34.133333c25.6 0 46.933333-21.333333 46.933333-46.933333v-93.866667c-4.266667-21.333333-25.6-42.666667-51.2-42.666667zM512 695.466667c-102.4 0-183.466667-81.066667-183.466667-183.466667S409.6 328.533333 512 328.533333s183.466667 81.066667 183.466667 183.466667-81.066667 183.466667-183.466667 183.466667z"
-              fill="#BBC3C9" p-id="21476"></path>
+              fill="#8C948B" p-id="21476"></path>
           </svg>
         </div>
-        <div class="menu-text">设置</div>
-        <div class="menu-arrow">›</div>
+        <div class="menu-text">{{ t('profile.settings') }}</div>
+        <uni-icons class="menu-arrow" type="right" size="16" color="#8C948B" />
       </div>
       <div class="menu-item" @click="navigateTo('/pages/profile/about')">
         <div class="menu-icon">
@@ -188,22 +206,30 @@
             p-id="23382" width="256" height="256">
             <path
               d="M512 51.2C257.6384 51.2 51.2 257.6384 51.2 512s206.4384 460.8 460.8 460.8 460.8-206.4384 460.8-460.8S766.3616 51.2 512 51.2z m-36.864 239.616c0-20.2752 16.5888-36.864 36.864-36.864s36.864 16.5888 36.864 36.864v294.912c0 20.2752-16.5888 36.864-36.864 36.864s-36.864-16.5888-36.864-36.864V290.816zM512 770.048c-30.4128 0-55.296-24.8832-55.296-55.296s24.8832-55.296 55.296-55.296 55.296 24.8832 55.296 55.296-24.8832 55.296-55.296 55.296z"
-              fill="#409EFF" p-id="23383"></path>
+              fill="#1E5B48" p-id="23383"></path>
           </svg>
         </div>
-        <div class="menu-text">关于我们</div>
-        <div class="menu-arrow">›</div>
+        <div class="menu-text">{{ t('profile.about') }}</div>
+        <uni-icons class="menu-arrow" type="right" size="16" color="#8C948B" />
       </div>
     </div>
 
     <!-- 退出登录按钮 -->
-    <button class="logout-btn" @click="logout">退出登录</button>
+    <button v-if="userInfo" class="logout-btn" @click="logout">{{ t('profile.logout') }}</button>
+    </div>
+
+    <TabBar current="profile" />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getUserInfo } from '@/api/user'
+import UniIcons from '@/uni_modules/uni-icons/components/uni-icons/uni-icons.vue'
+import TabBar from '@/components/tabbar/index.vue'
+import { t, usePageTitle } from '@/utils/i18n'
+
+usePageTitle('page.profile')
 
 // 用户信息
 const userInfo = ref(null)
@@ -241,8 +267,8 @@ const fetchUserInfo = async () => {
 // 退出登录
 const logout = () => {
   uni.showModal({
-    title: '退出登录',
-    content: '确定要退出登录吗？',
+    title: t('profile.logoutTitle'),
+    content: t('profile.logoutContent'),
     success: function (res) {
       if (res.confirm) {
         // 清除登录状态
@@ -270,64 +296,144 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.profile-container {
-  min-height: 100vh;
-  background-color: var(--background-color);
-  padding: 20px;
+/* 用户信息 Hero */
+.profile-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 24px 20px;
+  border-radius: var(--radius-xl);
+  background: var(--primary-color);
+  box-shadow: var(--shadow-brand);
+  color: #fff;
 }
 
-.user-info {
+.hero-glow {
+  position: absolute;
+  top: -70px;
+  right: -40px;
+  width: 210px;
+  height: 210px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.hero-ring {
+  position: absolute;
+  right: -46px;
+  bottom: -84px;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  pointer-events: none;
+}
+
+.profile-main {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
-  padding: 20px;
-  background-color: var(--card-background);
-  border-radius: 12px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  gap: 14px;
 }
 
 .avatar {
-  width: 80px;
-  height: 80px;
+  flex: 0 0 auto;
+  width: 74px;
+  height: 74px;
+  padding: 3px;
   border-radius: 50%;
-  overflow: hidden;
-  margin-right: 16px;
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 20px rgba(6, 24, 60, 0.18);
 }
 
 .avatar img {
   width: 100%;
   height: 100%;
+  border-radius: 50%;
   object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.7);
 }
 
-.user-details h2 {
-  margin: 0 0 4px 0;
-  font-size: 18px;
-  font-weight: 500;
-  color: var(--text-color);
+.user-details {
+  flex: 1;
+  min-width: 0;
 }
 
-.user-details p {
-  margin: 0;
-  font-size: 14px;
-  color: var(--text-secondary-color);
+.user-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.menu-section {
-  background-color: var(--card-background);
-  border-radius: 12px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.user-name-row h2 {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.member-tag {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.user-sign {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.82);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.login-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  transition: all 0.28s var(--ease-out);
+}
+
+.login-cta:hover {
+  background: rgba(255, 255, 255, 0.32);
+  transform: translateY(-1px);
+}
+
+/* 菜单面板 */
+.panel {
+  background: var(--card-background);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 
 .menu-item {
   display: flex;
   align-items: center;
-  padding: 16px 20px;
+  gap: 12px;
+  padding: 14px 16px;
   border-bottom: 1px solid var(--border-color);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.25s var(--ease-out), padding-left 0.25s var(--ease-out);
 }
 
 .menu-item:last-child {
@@ -335,46 +441,96 @@ onMounted(() => {
 }
 
 .menu-item:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+  background: var(--surface-2);
+  padding-left: 20px;
 }
 
 .menu-icon {
-  font-size: 20px;
-  margin-right: 16px;
-  width: 24px;
-  text-align: center;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  transition: transform 0.3s var(--ease-spring);
+}
+
+.menu-item:hover .menu-icon {
+  transform: scale(1.08);
 }
 
 .menu-icon svg {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
 }
 
 .menu-text {
   flex: 1;
-  font-size: 16px;
+  font-size: 15px;
+  font-weight: 500;
   color: var(--text-color);
 }
 
 .menu-arrow {
-  font-size: 18px;
-  color: var(--text-secondary-color);
+  display: flex;
+  align-items: center;
+  color: var(--text-tertiary-color);
+  transition: transform 0.25s var(--ease-out);
 }
 
+.menu-item:hover .menu-arrow {
+  transform: translateX(3px);
+}
+
+/* 退出登录 */
 .logout-btn {
   width: 100%;
-  background-color: #F44336;
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-top: 20px;
+  height: 48px;
+  margin-top: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--card-background);
+  border: 1px solid rgba(240, 68, 56, 0.28);
+  color: #F04438;
+  font-size: 15px;
+  font-weight: 600;
+  transition: all 0.28s var(--ease-out);
 }
 
 .logout-btn:hover {
-  background-color: #D32F2F;
+  background: rgba(240, 68, 56, 0.08);
+  border-color: rgba(240, 68, 56, 0.45);
+}
+
+.logout-btn:active {
+  transform: scale(0.985);
+}
+
+@media (min-width: 768px) {
+  .profile-hero {
+    padding: 34px 38px;
+  }
+
+  .avatar {
+    width: 92px;
+    height: 92px;
+  }
+
+  .user-name-row h2 {
+    font-size: 25px;
+  }
+
+  .user-sign {
+    font-size: 14px;
+  }
+
+  .menu-item {
+    padding: 16px 22px;
+  }
+
+  .menu-text {
+    font-size: 16px;
+  }
 }
 </style>

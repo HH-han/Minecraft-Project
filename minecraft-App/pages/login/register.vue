@@ -10,15 +10,15 @@
     <view class="register-form">
       <view class="logo">
         <text class="logo-text">Minecraft</text>
-        <text class="logo-subtext">创建新账户</text>
+        <text class="logo-subtext">{{ t('auth.registerSubtitle') }}</text>
       </view>
       <!-- 头像上传区域 -->
       <view class="avatar-upload-container">
         <view class="avatar-preview"
           :style="{ backgroundImage: formData.avatar ? `url(${formData.avatar})` : `url(${defaultAvatar})` }">
           <label for="avatar-upload" class="avatar-upload-label">
-            <text v-if="!formData.avatar">点击上传头像</text>
-            <text v-else>更换头像</text>
+            <text v-if="!formData.avatar">{{ t('auth.uploadAvatar') }}</text>
+            <text v-else>{{ t('auth.changeAvatar') }}</text>
             <input id="avatar-upload" type="file" accept="image/*" @change="handleAvatarUpload" class="avatar-upload" />
           </label>
         </view>
@@ -42,7 +42,7 @@
                 fill="#0972E7" p-id="7505"></path>
             </svg>
           </text>
-          <input v-model="formData.username" placeholder="请输入用户名" class="form-input"
+          <input v-model="formData.username" :placeholder="t('auth.usernamePlaceholder')" class="form-input"
             :class="{ 'error': errors.username }" />
         </view>
         <text v-if="errors.username" class="error-message">{{ errors.username }}</text>
@@ -66,7 +66,7 @@
                 fill="#FFFFFF" p-id="12599"></path>
             </svg>
           </text>
-          <input v-model="formData.password" type="password" placeholder="请输入密码" class="form-input"
+          <input v-model="formData.password" type="password" :placeholder="t('auth.passwordPlaceholder')" class="form-input"
             :class="{ 'error': errors.password }" />
         </view>
         <text v-if="errors.password" class="error-message">{{ errors.password }}</text>
@@ -90,7 +90,7 @@
                 fill="#FFFFFF" p-id="12599"></path>
             </svg>
           </text>
-          <input v-model="formData.confirmPassword" type="password" placeholder="请确认密码" class="form-input"
+          <input v-model="formData.confirmPassword" type="password" :placeholder="t('auth.confirmPasswordPlaceholder')" class="form-input"
             :class="{ 'error': errors.confirmPassword }" />
         </view>
         <text v-if="errors.confirmPassword" class="error-message">{{ errors.confirmPassword }}</text>
@@ -178,7 +178,7 @@
               <path d="M922.3 275.3a5.7 6.3 0 1 0 11.4 0 5.7 6.3 0 1 0-11.4 0Z" fill="#3268CF" p-id="10644"></path>
             </svg>
           </text>
-          <input v-model="formData.email" placeholder="请输入邮箱" class="form-input" :class="{ 'error': errors.email }" />
+          <input v-model="formData.email" :placeholder="t('auth.emailPlaceholder')" class="form-input" :class="{ 'error': errors.email }" />
         </view>
         <text v-if="errors.email" class="error-message">{{ errors.email }}</text>
       </view>
@@ -315,18 +315,18 @@
               <path d="M512 719m-18 0a18 18 0 1 0 36 0 18 18 0 1 0-36 0Z" fill="#CAF6E1" p-id="9542"></path>
             </svg>
           </text>
-          <input v-model="formData.phone" placeholder="请输入手机号" class="form-input" :class="{ 'error': errors.phone }" />
+          <input v-model="formData.phone" :placeholder="t('auth.phonePlaceholder')" class="form-input" :class="{ 'error': errors.phone }" />
         </view>
         <text v-if="errors.phone" class="error-message">{{ errors.phone }}</text>
       </view>
       <view class="form-item">
         <button :loading="loading" @click="submitForm" class="register-button">
-          <text class="button-text">注册</text>
+          <text class="button-text">{{ t('auth.register') }}</text>
         </button>
       </view>
       <view class="login-link">
-        <text>已有账号？</text>
-        <text class="link" @click="goLogin">立即登录</text>
+        <text>{{ t('auth.haveAccount') }}</text>
+        <text class="link" @click="goLogin">{{ t('auth.loginNow') }}</text>
       </view>
     </view>
   </view>
@@ -335,6 +335,9 @@
 <script setup>
 import { ref, reactive } from 'vue';
 import { register } from '../../api/auth';
+import { t, usePageTitle } from '@/utils/i18n';
+
+usePageTitle('page.register');
 
 const loading = ref(false);
 
@@ -384,53 +387,53 @@ const validateForm = () => {
 
   // 验证用户名
   if (!formData.username.trim()) {
-    errors.username = '请输入用户名';
+    errors.username = t('auth.usernameRequired');
     isValid = false;
   } else if (formData.username.length < 3 || formData.username.length > 20) {
-    errors.username = '用户名长度必须在3-20位之间';
+    errors.username = t('auth.usernameLength');
     isValid = false;
   }
 
   // 验证密码
   if (!formData.password.trim()) {
-    errors.password = '请输入密码';
+    errors.password = t('auth.passwordRequired');
     isValid = false;
   } else if (formData.password.length < 6 || formData.password.length > 20) {
-    errors.password = '密码长度必须在6-20位之间';
+    errors.password = t('auth.passwordLength');
     isValid = false;
   }
 
   // 验证确认密码
   if (!formData.confirmPassword.trim()) {
-    errors.confirmPassword = '请确认密码';
+    errors.confirmPassword = t('auth.confirmRequired');
     isValid = false;
   } else if (formData.confirmPassword !== formData.password) {
-    errors.confirmPassword = '两次输入密码不一致';
+    errors.confirmPassword = t('auth.passwordMismatch');
     isValid = false;
   }
 
   // 验证邮箱
   if (!formData.email.trim()) {
-    errors.email = '请输入邮箱';
+    errors.email = t('auth.emailRequired');
     isValid = false;
   } else {
     // 简单的邮箱格式验证
     const emailRegex = /^[^@]+@[^@]+\.[^@]+$/;
     if (!emailRegex.test(formData.email)) {
-      errors.email = '请输入正确的邮箱格式';
+      errors.email = t('auth.emailInvalid');
       isValid = false;
     }
   }
 
   // 验证手机号
   if (!formData.phone.trim()) {
-    errors.phone = '请输入手机号';
+    errors.phone = t('auth.phoneRequired');
     isValid = false;
   }
 
   // 验证头像
   if (!formData.avatar) {
-    errors.avatar = '请上传头像';
+    errors.avatar = t('auth.avatarRequired');
     isValid = false;
   }
 
@@ -453,7 +456,7 @@ const submitForm = async () => {
       const response = await register(registerData);
       if (response.code === 200) {
         uni.showToast({
-          title: '注册成功',
+          title: t('auth.registerSuccess'),
           icon: 'success'
         });
         uni.navigateTo({
@@ -461,13 +464,13 @@ const submitForm = async () => {
         });
       } else {
         uni.showToast({
-          title: response.message || '注册失败',
+          title: response.message || t('auth.registerFailed'),
           icon: 'none'
         });
       }
     } catch (error) {
       uni.showToast({
-        title: '网络错误，请稍后重试',
+        title: t('auth.networkError'),
         icon: 'none'
       });
     } finally {
@@ -484,15 +487,6 @@ const goLogin = () => {
 </script>
 
 <style scoped>
-/* CSS 变量定义 */
-:root {
-  --bg-color: #f5f5f5;
-  --card-color: #ffffff;
-  --text-color: #333333;
-  --border-color: #e0e0e0;
-  --primary-color: #007aff;
-}
-
 .register-container {
   display: flex;
   flex-direction: column;
@@ -516,7 +510,7 @@ const goLogin = () => {
 
 .block {
   position: absolute;
-  background-color: rgba(0, 122, 255, 0.05);
+  background-color: var(--primary-soft);
   border-radius: 50%;
   animation: float 8s infinite ease-in-out;
 }
@@ -577,7 +571,7 @@ const goLogin = () => {
   width: 100%;
   max-width: 300px;
   padding: 60rpx 40rpx;
-  background-color: var(--card-color);
+  background-color: var(--card-background);
   border-radius: 20rpx;
   box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.1);
   position: relative;
@@ -616,14 +610,14 @@ const goLogin = () => {
   position: relative;
   cursor: pointer;
   border: 3rpx solid var(--primary-color);
-  box-shadow: 0 4rpx 12rpx rgba(0, 122, 255, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(30, 91, 72, 0.26);
   transition: all 0.3s ease;
   animation: scaleIn 0.5s ease-out 0.4s both;
 }
 
 .avatar-preview:hover {
   transform: scale(1.05);
-  box-shadow: 0 6rpx 16rpx rgba(0, 122, 255, 0.4);
+  box-shadow: 0 6rpx 16rpx rgba(30, 91, 72, 0.32);
 }
 
 .avatar-upload-label {
@@ -701,7 +695,7 @@ const goLogin = () => {
 
 .input-wrapper:focus-within {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3rpx rgba(0, 122, 255, 0.1);
+  box-shadow: 0 0 0 3rpx rgba(30, 91, 72, 0.12);
 }
 
 .input-wrapper.error {
@@ -760,49 +754,24 @@ const goLogin = () => {
   width: 100%;
   padding: 2rpx;
   font-size: 30rpx;
-  background: linear-gradient(135deg, var(--primary-color), #0056b3);
+  background: var(--primary-color);
   color: white;
   border: none;
   border-radius: 12rpx;
   transition: all 0.3s ease;
-  box-shadow: 0 4rpx 12rpx rgba(0, 122, 255, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(30, 91, 72, 0.26);
   overflow: hidden;
   position: relative;
 }
 
-.register-button::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(to right,
-      rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.3) 50%,
-      rgba(255, 255, 255, 0) 100%);
-  transform: rotate(30deg);
-  animation: shine 2s infinite;
-}
-
-@keyframes shine {
-  0% {
-    transform: translateX(-100%) rotate(30deg);
-  }
-
-  100% {
-    transform: translateX(100%) rotate(30deg);
-  }
-}
-
 .register-button:hover {
   transform: translateY(-2rpx);
-  box-shadow: 0 6rpx 16rpx rgba(0, 122, 255, 0.4);
+  box-shadow: 0 6rpx 16rpx rgba(30, 91, 72, 0.32);
 }
 
 .register-button:active {
   transform: translateY(0);
-  box-shadow: 0 2rpx 8rpx rgba(0, 122, 255, 0.3);
+  box-shadow: 0 2rpx 8rpx rgba(30, 91, 72, 0.22);
 }
 
 .button-text {
@@ -829,7 +798,7 @@ const goLogin = () => {
 }
 
 .link:hover {
-  color: #0056b3;
+  color: var(--primary-color);
   text-decoration: underline;
 }
 </style>

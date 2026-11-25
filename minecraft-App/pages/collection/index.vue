@@ -1,86 +1,105 @@
 <template>
-  <div class="collection-container">
-    <div class="collection-header">
-      <h1>我的收藏</h1>
-    </div>
-    
-    <div class="collection-tabs">
-      <div class="tab-item active">全部</div>
-      <div class="tab-item">景点</div>
-      <div class="tab-item">酒店</div>
-      <div class="tab-item">美食</div>
-    </div>
-    
-    <div class="collection-list">
-      <div class="collection-item">
-        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20scenic%20landscape&image_size=landscape_4_3" alt="收藏景点" class="collection-image">
-        <div class="collection-info">
-          <h3>长城</h3>
-          <p class="collection-desc">中国著名景点，历史悠久</p>
-          <div class="collection-meta">
-            <span class="collection-type">景点</span>
-            <span class="collection-time">2026-03-28</span>
-          </div>
-        </div>
-        <div class="collection-action">
-          <button class="action-btn" @click="removeCollection">
-            <span class="icon">❤️</span>
-          </button>
-        </div>
+  <div class="app-page app-page--plain">
+    <div class="shell">
+      <header class="simple-head">
+        <div class="page-eyebrow">{{ t('collection.eyebrow') }}</div>
+        <h1 class="page-title">{{ t('collection.title') }}</h1>
+        <p class="page-sub">{{ t('collection.sub') }}</p>
+      </header>
+
+      <div class="chip-row tab-row">
+        <button v-for="tab in tabs" :key="tab.value" class="chip" :class="{ 'is-active': activeTab === tab.value }"
+          @click="activeTab = tab.value">
+          {{ t(tab.labelKey) }}
+        </button>
       </div>
-      
-      <div class="collection-item">
-        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=luxury%20hotel%20exterior&image_size=landscape_4_3" alt="收藏酒店" class="collection-image">
-        <div class="collection-info">
-          <h3>豪华酒店</h3>
-          <p class="collection-desc">五星级酒店，舒适体验</p>
-          <div class="collection-meta">
-            <span class="collection-type">酒店</span>
-            <span class="collection-time">2026-03-27</span>
+
+      <div v-if="filteredCollections.length" class="collection-grid">
+        <article v-for="item in filteredCollections" :key="item.id" class="collection-card">
+          <div class="collection-media">
+            <img :src="item.image" :alt="item.title" loading="lazy">
+            <span class="type-badge">{{ t(item.typeKey) }}</span>
+            <button class="remove-btn" @click.stop="removeCollection(item.id)" :aria-label="t('collection.removeTitle')">
+              <uni-icons type="heart-filled" size="15" color="#C4613C" />
+            </button>
           </div>
-        </div>
-        <div class="collection-action">
-          <button class="action-btn" @click="removeCollection">
-            <span class="icon">❤️</span>
-          </button>
-        </div>
+          <div class="collection-info">
+            <h3 class="collection-title">{{ t(item.titleKey) }}</h3>
+            <p class="collection-desc clamp-2">{{ t(item.descKey) }}</p>
+            <div class="collection-meta">
+              <span><uni-icons type="calendar" size="12" color="currentColor" />{{ item.time }}</span>
+              <span class="go-link">{{ t('collection.viewDetail') }}<uni-icons type="right" size="11" color="currentColor" /></span>
+            </div>
+          </div>
+        </article>
       </div>
-      
-      <div class="collection-item">
-        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=chinese%20food%20dish&image_size=landscape_4_3" alt="收藏美食" class="collection-image">
-        <div class="collection-info">
-          <h3>北京烤鸭</h3>
-          <p class="collection-desc">传统名菜，口感独特</p>
-          <div class="collection-meta">
-            <span class="collection-type">美食</span>
-            <span class="collection-time">2026-03-26</span>
-          </div>
-        </div>
-        <div class="collection-action">
-          <button class="action-btn" @click="removeCollection">
-            <span class="icon">❤️</span>
-          </button>
-        </div>
+
+      <div v-else class="empty-state">
+        <div class="empty-state__icon"><uni-icons type="star" size="26" color="#1E5B48" /></div>
+        {{ t('collection.empty') }}
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import UniIcons from '@/uni_modules/uni-icons/components/uni-icons/uni-icons.vue'
+import { t, usePageTitle } from '@/utils/i18n'
 
-// 移除收藏
-const removeCollection = () => {
+usePageTitle('page.collection')
+
+const tabs = [
+  { labelKey: 'common.all', value: 'all' },
+  { labelKey: 'collection.typeAttraction', value: 'attraction' },
+  { labelKey: 'collection.typeHotel', value: 'hotel' },
+  { labelKey: 'collection.typeFood', value: 'food' }
+]
+
+const activeTab = ref('all')
+
+const collections = ref([
+  {
+    id: 1,
+    type: 'attraction',
+    typeKey: 'collection.typeAttraction',
+    titleKey: 'collection.itemGreatWall',
+    descKey: 'collection.itemGreatWallDesc',
+    time: '2026-03-28',
+    image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20scenic%20landscape%20great%20wall&image_size=landscape_4_3'
+  },
+  {
+    id: 2,
+    type: 'hotel',
+    typeKey: 'collection.typeHotel',
+    titleKey: 'collection.itemHotel',
+    descKey: 'collection.itemHotelDesc',
+    time: '2026-03-27',
+    image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=luxury%20hotel%20exterior%20mountain%20view&image_size=landscape_4_3'
+  },
+  {
+    id: 3,
+    type: 'food',
+    typeKey: 'collection.typeFood',
+    titleKey: 'collection.itemFood',
+    descKey: 'collection.itemFoodDesc',
+    time: '2026-03-26',
+    image: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=chinese%20roast%20duck%20dish&image_size=landscape_4_3'
+  }
+])
+
+const filteredCollections = computed(() =>
+  activeTab.value === 'all' ? collections.value : collections.value.filter((item) => item.type === activeTab.value)
+)
+
+const removeCollection = (id) => {
   uni.showModal({
-    title: '移除收藏',
-    content: '确定要移除这个收藏吗？',
-    success: function(res) {
+    title: t('collection.removeTitle'),
+    content: t('collection.removeContent'),
+    success: (res) => {
       if (res.confirm) {
-        // 移除收藏逻辑
-        uni.showToast({
-          title: '已移除收藏',
-          icon: 'success'
-        })
+        collections.value = collections.value.filter((item) => item.id !== id)
+        uni.showToast({ title: t('collection.removed'), icon: 'none', position: 'bottom' })
       }
     }
   })
@@ -88,130 +107,165 @@ const removeCollection = () => {
 </script>
 
 <style scoped>
-.collection-container {
-  min-height: 100vh;
-  background-color: var(--background-color);
-  padding: 20px;
+.simple-head {
+  padding: 6px 2px 0;
 }
 
-.collection-header {
-  margin-bottom: 20px;
+.page-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  color: var(--primary-color);
 }
 
-.collection-header h1 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 600;
+.page-title {
+  margin-top: 7px;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
   color: var(--text-color);
 }
 
-.collection-tabs {
-  display: flex;
-  background-color: var(--card-background);
-  border-radius: 12px;
-  margin-bottom: 20px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.tab-item {
-  flex: 1;
-  padding: 16px;
-  text-align: center;
-  font-size: 14px;
+.page-sub {
+  margin-top: 5px;
+  font-size: 13px;
   color: var(--text-secondary-color);
-  cursor: pointer;
-  transition: all 0.3s ease;
 }
 
-.tab-item.active {
-  background-color: var(--primary-color);
-  color: white;
+.tab-row {
+  margin-top: 16px;
 }
 
-.collection-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.collection-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: 14px;
 }
 
-.collection-item {
-  display: flex;
-  background-color: var(--card-background);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+.collection-card {
+  background: var(--card-background);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: transform 0.35s var(--ease-out), box-shadow 0.35s var(--ease-out);
 }
 
-.collection-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.collection-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
 }
 
-.collection-image {
-  width: 120px;
-  height: 80px;
-  border-radius: 8px;
+.collection-media {
+  position: relative;
+  height: 168px;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.collection-media img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  margin-right: 16px;
+  transition: transform 0.7s var(--ease-out);
+}
+
+.collection-card:hover .collection-media img {
+  transform: scale(1.06);
+}
+
+.type-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--primary-color);
+  font-size: 11px;
+  font-weight: 700;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.remove-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 12px rgba(38, 45, 36, 0.16);
+  transition: transform 0.25s var(--ease-spring);
+}
+
+.remove-btn:hover {
+  transform: scale(1.1);
 }
 
 .collection-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  padding: 14px 15px 15px;
 }
 
-.collection-info h3 {
-  margin: 0 0 8px 0;
+.collection-title {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 700;
   color: var(--text-color);
 }
 
 .collection-desc {
-  margin: 0 0 8px 0;
-  font-size: 14px;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.6;
   color: var(--text-secondary-color);
-  line-height: 1.4;
 }
 
 .collection-meta {
   display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: var(--text-secondary-color);
-}
-
-.collection-type {
-  background-color: rgba(30, 136, 229, 0.1);
-  color: var(--primary-color);
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-
-.collection-action {
-  display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px dashed var(--border-color);
+  font-size: 11px;
+  color: var(--text-tertiary-color);
 }
 
-.action-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
-  transition: all 0.3s ease;
+.collection-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 
-.action-btn:hover {
-  background-color: rgba(0, 0, 0, 0.05);
+.go-link {
+  color: var(--primary-color);
+  font-weight: 600;
 }
 
-.icon {
-  font-size: 20px;
-  color: #F44336;
+@media (min-width: 768px) {
+  .page-title {
+    font-size: 32px;
+  }
+
+  .collection-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .collection-media {
+    height: 200px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .collection-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 </style>

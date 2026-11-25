@@ -1,17 +1,19 @@
 <template>
-  <view class="product-container">
-    <text>特产商城页面</text>
-  </view>
+  <div class="app-page app-page--plain">
+    <div class="shell">
+      <div class="empty-state" style="padding-top: 72px">
+        <div class="empty-state__icon">
+          <uni-icons type="shop" size="26" color="#2F6BFF" />
+        </div>
+        {{ t('placeholder.product') }}
+      </div>
+    </div>
+  </div>
 </template>
 
-<script>
-export default {
-  name: 'ProductIndex'
-}
-</script>
+<script setup>
+import UniIcons from '@/uni_modules/uni-icons/components/uni-icons/uni-icons.vue'
+import { t, usePageTitle } from '@/utils/i18n'
 
-<style scoped>
-.product-container {
-  padding: 20rpx;
-}
-</style>
+usePageTitle('page.product')
+</script>

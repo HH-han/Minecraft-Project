@@ -1,7 +1,7 @@
 <template>
   <view class="records-container">
     <view class="header">
-      <text class="title">积分记录</text>
+      <text class="title">{{ t('page.pointsRecords') }}</text>
     </view>
     
     <view class="records-list">
@@ -20,7 +20,7 @@
         </view>
       </view>
       <view v-if="records.length === 0" class="empty">
-        <text>暂无积分记录</text>
+        <text>{{ t('points.emptyRecords') }}</text>
       </view>
     </view>
   </view>
@@ -28,6 +28,7 @@
 
 <script>
 import { getPointsRecords } from '@/api/points'
+import { t } from '@/utils/i18n'
 
 export default {
   data() {
@@ -38,7 +39,11 @@ export default {
   onLoad() {
     this.loadRecords()
   },
+  onShow() {
+    uni.setNavigationBarTitle({ title: t('page.pointsRecords') })
+  },
   methods: {
+    t,
     async loadRecords() {
       try {
         const res = await getPointsRecords()
@@ -49,9 +54,9 @@ export default {
     },
     getTypeText(type) {
       const typeMap = {
-        'INCOME': '积分收入',
-        'EXCHANGE': '积分兑换',
-        'REFUND': '积分退款'
+        'INCOME': t('points.typeIncome'),
+        'EXCHANGE': t('points.typeExchange'),
+        'REFUND': t('points.typeRefund')
       }
       return typeMap[type] || type
     },
@@ -67,13 +72,13 @@ export default {
 <style scoped>
 .records-container {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: var(--bg-color);
 }
 
 .header {
-  background-color: white;
+  background-color: var(--card-background);
   padding: 20rpx;
-  border-bottom: 1rpx solid #eee;
+  border-bottom: 1rpx solid var(--border-color);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -82,7 +87,7 @@ export default {
 .title {
   font-size: 32rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
 }
 
 .records-list {
@@ -93,7 +98,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: white;
+  background-color: var(--card-background);
   border-radius: 12rpx;
   padding: 20rpx;
   margin-bottom: 15rpx;
@@ -107,14 +112,14 @@ export default {
 .record-type {
   font-size: 28rpx;
   font-weight: bold;
-  color: #333;
+  color: var(--text-color);
   margin-bottom: 5rpx;
   display: block;
 }
 
 .record-remark {
   font-size: 24rpx;
-  color: #666;
+  color: var(--text-secondary-color);
   margin-bottom: 5rpx;
   display: block;
   white-space: nowrap;
@@ -124,7 +129,7 @@ export default {
 
 .record-time {
   font-size: 20rpx;
-  color: #999;
+  color: var(--text-tertiary-color);
   display: block;
 }
 
@@ -136,17 +141,17 @@ export default {
 }
 
 .income {
-  color: #4CAF50;
+  color: var(--success-color);
 }
 
 .expense {
-  color: #ff6b6b;
+  color: var(--accent-color);
 }
 
 .empty {
   text-align: center;
   padding: 100rpx 0;
-  color: #999;
+  color: var(--text-tertiary-color);
   font-size: 24rpx;
 }
 </style>
