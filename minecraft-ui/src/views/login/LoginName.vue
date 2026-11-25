@@ -321,7 +321,7 @@
   </div>
   <!-- 二维码登录模态框 -->
   <div v-if="isQrCodeVisible" class="loginpage-modal" @click="closeQrCode">
-    <QRcodeLogin @click.stop />
+    <QRcodeLogin @click.stop @success="handleQrLoginSuccess" />
   </div>
   <!-- 模糊背景模态框 -->
   <div v-if="isModalVisible" class="blur-modal" @click="closeModal">
@@ -455,6 +455,12 @@ const showQrCode = () => {
 // 关闭二维码登录模态框
 const closeQrCode = () => {
   isQrCodeVisible.value = false;
+};
+
+// 扫码登录成功：关闭弹层并跳转（登录态已由二维码面板写入）
+const handleQrLoginSuccess = () => {
+  isQrCodeVisible.value = false;
+  router.push(getRedirectPath());
 };
 
 // 显示账号信息模态框

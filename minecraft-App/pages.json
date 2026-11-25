@@ -202,6 +202,14 @@
 			}
 		},
 		{
+			"path": "pages/login/scan",
+			"style": {
+				"navigationBarTitleText": "扫一扫登录",
+				"navigationBarBackgroundColor": "#4A90E2",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
 			"path": "pages/points/index",
 			"style": {
 				"navigationBarTitleText": "积分商城",

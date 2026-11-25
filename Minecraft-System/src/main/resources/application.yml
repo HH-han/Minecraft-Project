@@ -122,6 +122,22 @@ perm:
   # 应急旁路开关：false 时跳过所有 @PreAuthorize 权限校验（仅用于线上故障应急）
   enabled: true
 
+# APP 扫码授权 Web 登录
+qr-login:
+  # 秒级开关：false 时 /api/auth/qr/generate 返回“暂不支持扫码登录”
+  enabled: true
+  # 二维码有效期（秒）
+  ttl-seconds: 120
+  # APP 确认后 Web 端必须在该时间内消费（秒）
+  confirmed-ttl-seconds: 30
+  # WebSocket 不可用时启用轮询兜底
+  poll-fallback: true
+  ws-heartbeat-seconds: 25
+  qr-protocol: minecraft://qrLogin
+  rate-limit:
+    generate-per-ip-per-min: 10
+    scan-per-user-per-min: 20
+
 websocket:
   allowed-origins: "*"
 

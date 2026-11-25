@@ -13,6 +13,27 @@
       "success": "Verified in %s s",
       "fail": "Verification failed, please try again",
       "brandSlogan": "Travel with ease, depart with joy"
+    },
+    "qr": {
+      "title": "Scan to log in",
+      "appTip": "Sign in to the Minecraft App first, then scan to confirm on your phone",
+      "hint": "Scan with the Minecraft App",
+      "countdown": "QR code expires in {seconds}s",
+      "scanned": "Scanned. Please confirm on your phone",
+      "confirming": "Signing in, please wait…",
+      "expired": "QR code expired",
+      "canceled": "Login canceled, please scan again",
+      "consumed": "This QR code has been used, please refresh",
+      "error": "Failed to generate QR code, please retry",
+      "disabled": "Scan login is currently unavailable",
+      "refresh": "Refresh QR code",
+      "loading": "Generating QR code…",
+      "success": "Logged in successfully",
+      "securityTip": "Credentials stay in this browser; the App never receives the Web token",
+      "back": "Back to password login",
+      "step1": "Scan in the App",
+      "step2": "Confirm device info on phone",
+      "step3": "This page logs in automatically"
     }
   }
 }

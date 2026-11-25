@@ -36,5 +36,20 @@
                 }
             }
         }
+    },
+    "app-plus" : {
+        "distribute" : {
+            "android" : {
+                "permissions" : [
+                    "<uses-permission android:name=\"android.permission.CAMERA\"/>",
+                    "<uses-feature android:name=\"android.hardware.camera\" android:required=\"false\"/>"
+                ]
+            },
+            "ios" : {
+                "privacyDescription" : {
+                    "NSCameraUsageDescription" : "用于扫描电脑端登录二维码"
+                }
+            }
+        }
     }
 }

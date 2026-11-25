@@ -89,10 +89,22 @@
 
 <script setup>
 import { ref, reactive } from 'vue';
+import { onLoad } from '@dcloudio/uni-app';
 import { login } from '../../api/auth';
 
 const loading = ref(false);
 const remember = ref(false);
+let redirectUrl = '';
+
+onLoad((options) => {
+  if (options?.redirect) {
+    try {
+      redirectUrl = decodeURIComponent(options.redirect);
+    } catch (error) {
+      redirectUrl = '';
+    }
+  }
+});
 
 // 头像相关
 const defaultAvatar = 'https://img.icons8.com/ios-filled/50/000000/user.png';
@@ -160,9 +172,18 @@ const submitForm = async () => {
           icon: 'success'
         });
 
-        uni.switchTab({
-          url: '/pages/index/index'
-        });
+        if (redirectUrl) {
+          uni.redirectTo({
+            url: redirectUrl,
+            fail: () => {
+              uni.switchTab({ url: '/pages/index/index' });
+            }
+          });
+        } else {
+          uni.switchTab({
+            url: '/pages/index/index'
+          });
+        }
       } else {
         uni.showToast({
           title: response.message || '登录失败',

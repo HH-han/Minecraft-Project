@@ -13,6 +13,27 @@
       "success": "验证成功，耗时 %s 秒",
       "fail": "验证失败，请重新尝试",
       "brandSlogan": "安心出行 · 快乐出发"
+    },
+    "qr": {
+      "title": "扫码登录",
+      "appTip": "请先在手机上登录 Minecraft App，再使用扫一扫确认登录",
+      "hint": "请使用 Minecraft App 扫一扫",
+      "countdown": "二维码有效期 {seconds} 秒",
+      "scanned": "扫描成功，请在手机端确认登录",
+      "confirming": "登录中，请稍候…",
+      "expired": "二维码已失效",
+      "canceled": "已取消登录，请重新扫码",
+      "consumed": "该二维码已使用，请刷新",
+      "error": "二维码生成失败，请重试",
+      "disabled": "暂不支持扫码登录",
+      "refresh": "刷新二维码",
+      "loading": "正在生成二维码…",
+      "success": "登录成功",
+      "securityTip": "凭据仅保存在当前浏览器，APP 不会获取 Web 端 Token",
+      "back": "返回账号密码登录",
+      "step1": "打开 App 扫一扫",
+      "step2": "在手机上确认设备信息",
+      "step3": "本页自动登录"
     }
   }
 }

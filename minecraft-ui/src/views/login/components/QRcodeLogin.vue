@@ -1,371 +1,399 @@
 <template>
-  <div class="QRCode-container">
-    <div class="QRCode-card">
-      <form class="QRCode-form">
-        <h1 class="QRCode-title">扫码登录</h1>
+  <div class="qr-panel">
+    <button class="qr-panel__close" type="button" :aria-label="t('login.qr.back')" @click="$emit('close')">
+      <el-icon><Close /></el-icon>
+    </button>
 
-        <!-- 二维码区域 -->
-        <div class="QRCode-display">
-          <div class="QRCode-wrapper" :class="{ 'QRCode-pulse': refreshing }">
-            <transition name="QRCode-fade" mode="out-in">
-              <img :key="currentPlatform" :src="qrCodeImage" alt="QR Code" class="QRCode-image" />
-            </transition>
-            <div class="QRCode-refresh" @click="refreshQRCode" v-if="!refreshing">
-              <svg viewBox="0 0 24 24">
-                <path
-                  d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" />
-              </svg>
-            </div>
-            <div class="QRCode-loading" v-if="refreshing">
-              <div class="QRCode-spinner"></div>
-            </div>
-          </div>
-          <p class="QRCode-hint">使用{{ platformNames[currentPlatform] }}扫描二维码登录</p>
+    <header class="qr-panel__header">
+      <h2 class="qr-panel__title">{{ t('login.qr.title') }}</h2>
+      <p class="qr-panel__subtitle">{{ t('login.qr.appTip') }}</p>
+    </header>
+
+    <div class="qr-stage">
+      <div class="qr-box" :class="{ 'qr-box--pulse': isWaiting && !loading }">
+        <img v-if="qrDataUrl && !loading" :src="qrDataUrl" class="qr-image" alt="QR Code" />
+        <div v-else class="qr-placeholder"></div>
+
+        <div v-if="loading" class="qr-mask">
+          <el-icon class="qr-mask__icon is-spinning"><Loading /></el-icon>
+          <p class="qr-mask__text">{{ t('login.qr.loading') }}</p>
         </div>
 
-        <!-- 平台选择 -->
-        <div class="QRCode-platforms">
-          <button v-for="platform in platforms" :key="platform" @click="generateQRCode(platform)" :class="{
-            'QRCode-platform-btn': true,
-            'QRCode-platform-active': currentPlatform === platform
-          }">
-            <img :src="platformIcons[platform]" :alt="platformNames[platform]" class="QRCode-platform-icon" />
-            <span class="QRCode-platform-name">{{ platformNames[platform] }}</span>
+        <div v-else-if="maskText" class="qr-mask" :class="`qr-mask--${maskTone}`">
+          <el-icon v-if="status === 'SCANNED'" class="qr-mask__icon is-success"><CircleCheckFilled /></el-icon>
+          <el-icon v-else-if="status === 'CONFIRMED'" class="qr-mask__icon is-spinning"><Loading /></el-icon>
+          <el-icon v-else class="qr-mask__icon"><WarningFilled /></el-icon>
+          <p class="qr-mask__text">{{ maskText }}</p>
+          <button v-if="canRefresh" class="qr-mask__action" type="button" @click="refresh">
+            <el-icon><RefreshRight /></el-icon>
+            <span>{{ t('login.qr.refresh') }}</span>
           </button>
         </div>
+      </div>
 
-        <!-- 返回按钮 -->
-        <button class="QRCode-back-btn" @click.prevent="navigateToLoginName">
-          <svg viewBox="0 0 24 24" class="QRCode-back-icon">
-            <path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" />
-          </svg>
-          返回账号密码登录
-        </button>
-      </form>
+      <p v-if="isWaiting" class="qr-hint">{{ t('login.qr.hint') }}</p>
+      <p v-if="isWaiting" class="qr-countdown">{{ t('login.qr.countdown', { seconds: countdown }) }}</p>
     </div>
+
+    <ol class="qr-steps">
+      <li class="qr-step">
+        <span class="qr-step__index">1</span>
+        <span class="qr-step__text">{{ t('login.qr.step1') }}</span>
+      </li>
+      <li class="qr-step">
+        <span class="qr-step__index">2</span>
+        <span class="qr-step__text">{{ t('login.qr.step2') }}</span>
+      </li>
+      <li class="qr-step">
+        <span class="qr-step__index">3</span>
+        <span class="qr-step__text">{{ t('login.qr.step3') }}</span>
+      </li>
+    </ol>
+
+    <p class="qr-security">
+      <el-icon><Lock /></el-icon>
+      <span>{{ t('login.qr.securityTip') }}</span>
+    </p>
+
+    <button class="qr-back" type="button" @click="$emit('close')">
+      <el-icon><Back /></el-icon>
+      <span>{{ t('login.qr.back') }}</span>
+    </button>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { ElMessage } from 'element-plus'
+import { useQrLogin } from '@/hooks/useQrLogin'
 
-const router = useRouter()
+const emit = defineEmits(['success', 'close'])
 
-// 平台数据
-const platforms = ['wechat', 'qq', 'alipay']
-const platformIcons = {
-  wechat: new URL('@/assets/social/WX.webp', import.meta.url).href,
-  qq: new URL('@/assets/social/QQ.png', import.meta.url).href,
-  alipay: new URL('@/assets/social/ZFB.png', import.meta.url).href
-}
-const platformNames = {
-  wechat: '微信',
-  qq: 'QQ',
-  alipay: '支付宝'
-}
+const { t } = useI18n()
 
-// 状态
-const currentPlatform = ref('wechat')
-const qrCodeImage = ref('')
-const refreshing = ref(false)
-
-// 生成二维码
-const generateQRCode = (platform) => {
-  currentPlatform.value = platform
-  refreshQRCode()
-}
-
-// 刷新二维码
-const refreshQRCode = () => {
-  refreshing.value = true
-  // 模拟API请求延迟
-  setTimeout(() => {
-    // 这里应该是实际获取二维码的API调用
-    // 模拟不同平台的二维码图片
-    qrCodeImage.value = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-      `${platformNames[currentPlatform.value]}登录:${Date.now()}`
-    )}`
-    refreshing.value = false
-  }, 800)
-}
-
-// 返回账号密码登录
-const navigateToLoginName = () => {
-  router.push('/login')
-}
-
-// 初始化
-onMounted(() => {
-  refreshQRCode()
+const { status, qrDataUrl, countdown, loading, errorCode, errorMessage, start, refresh } = useQrLogin({
+  onSuccess: (data) => {
+    ElMessage.success(t('login.qr.success'))
+    emit('success', data)
+  }
 })
+
+const isWaiting = computed(() => status.value === 'WAITING')
+
+const maskText = computed(() => {
+  switch (status.value) {
+    case 'SCANNED':
+      return t('login.qr.scanned')
+    case 'CONFIRMED':
+      return t('login.qr.confirming')
+    case 'EXPIRED':
+      return t('login.qr.expired')
+    case 'CANCELED':
+      return t('login.qr.canceled')
+    case 'CONSUMED':
+      return t('login.qr.consumed')
+    case 'ERROR':
+      return errorCode.value === 4008
+        ? t('login.qr.disabled')
+        : errorMessage.value || t('login.qr.error')
+    default:
+      return ''
+  }
+})
+
+const maskTone = computed(() => {
+  if (status.value === 'SCANNED' || status.value === 'CONFIRMED') return 'success'
+  if (status.value === 'ERROR' && errorCode.value === 4008) return 'disabled'
+  return 'warn'
+})
+
+const canRefresh = computed(
+  () => ['EXPIRED', 'CANCELED', 'CONSUMED', 'ERROR'].includes(status.value) && errorCode.value !== 4008
+)
+
+onMounted(start)
 </script>
 
 <style scoped>
-/* 基础样式 */
-.QRCode-container {
-  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-
-.QRCode-card {
-  background: var(--theme-bg-surface);
-  border-radius: 16px;
-  box-shadow: var(--theme-shadow-md);
-  width: 100%;
-  min-width: 400px;
-  overflow: hidden;
-  transform: translateY(0);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.QRCode-card:hover {
-  transform: translateY(-5px);
+.qr-panel {
+  position: relative;
+  box-sizing: border-box;
+  width: min(92vw, 420px);
+  padding: 28px 28px 24px;
+  border-radius: 18px;
+  background: var(--theme-bg-elevated);
   box-shadow: var(--theme-shadow-lg);
-}
-
-.QRCode-form {
-  padding: 40px;
+  color: var(--theme-text-1);
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* 标题样式 */
-.QRCode-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--theme-text-1);
-  margin-bottom: 30px;
-  position: relative;
-}
-
-.QRCode-title::after {
-  content: '';
+.qr-panel__close {
   position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 50px;
-  height: 3px;
-  background: var(--theme-gradient);
-  border-radius: 3px;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--theme-text-3);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
-/* 二维码显示区域 */
-.QRCode-display {
-  margin-bottom: 30px;
+.qr-panel__close:hover {
+  background: var(--theme-bg-surface-2);
+  color: var(--theme-text-1);
+}
+
+.qr-panel__header {
   text-align: center;
+  margin-bottom: 20px;
 }
 
-.QRCode-wrapper {
-  width: 200px;
-  height: 200px;
-  margin: 0 auto 15px;
-  border-radius: 12px;
-  background: var(--theme-bg-surface);
+.qr-panel__title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--theme-text-1);
+}
+
+.qr-panel__subtitle {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--theme-text-2);
+}
+
+.qr-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.qr-box {
   position: relative;
-  box-shadow: var(--theme-shadow-sm);
+  width: 220px;
+  height: 220px;
+  padding: 12px;
+  box-sizing: border-box;
+  border-radius: 16px;
+  background: #ffffff;
   border: 1px solid var(--theme-hairline);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  overflow: hidden;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
-.QRCode-pulse {
-  animation: QRCode-pulse 1.5s infinite;
+.qr-box--pulse {
+  animation: qr-pulse 2.6s ease-in-out infinite;
 }
 
-@keyframes QRCode-pulse {
-  0% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--theme-primary) 40%, transparent);
+@keyframes qr-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--theme-primary) 26%, transparent);
   }
-
-  70% {
+  50% {
     box-shadow: 0 0 0 10px transparent;
   }
-
-  100% {
-    box-shadow: 0 0 0 0 transparent;
-  }
 }
 
-.QRCode-image {
-  width: 180px;
-  height: 180px;
+.qr-image {
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   border-radius: 8px;
 }
 
-.QRCode-hint {
+.qr-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  background: var(--theme-bg-surface-2);
+}
+
+.qr-mask {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  text-align: center;
+  background: color-mix(in srgb, var(--theme-bg-elevated) 90%, transparent);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.qr-mask--success {
+  background: color-mix(in srgb, var(--theme-primary) 88%, #000 4%);
+  color: var(--theme-primary-text);
+}
+
+.qr-mask__icon {
+  font-size: 34px;
+  color: var(--theme-primary);
+}
+
+.qr-mask--warn .qr-mask__icon {
+  color: var(--theme-warning, #e6a23c);
+}
+
+.qr-mask--success .qr-mask__icon {
+  color: var(--theme-primary-text);
+}
+
+.qr-mask__text {
+  margin: 0;
   font-size: 14px;
-  color: var(--theme-text-2);
-  margin-top: 10px;
+  line-height: 1.6;
+  color: inherit;
 }
 
-/* 刷新按钮 */
-.QRCode-refresh {
-  position: absolute;
-  bottom: -15px;
-  right: -15px;
-  width: 40px;
-  height: 40px;
-  background: var(--theme-gradient);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: var(--theme-shadow-sm);
-  transition: all 0.3s ease;
-  z-index: 2;
+.qr-mask--warn .qr-mask__text {
+  color: var(--theme-text-1);
 }
 
-.QRCode-refresh:hover {
-  transform: rotate(90deg) scale(1.1);
+.is-success {
+  color: var(--theme-primary-text);
 }
 
-.QRCode-refresh svg {
-  width: 20px;
-  height: 20px;
-  fill: var(--theme-primary-text);
+.is-spinning {
+  animation: qr-spin 1s linear infinite;
 }
 
-/* 加载状态 */
-.QRCode-loading {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--theme-bg-glass-strong);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-}
-
-.QRCode-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid color-mix(in srgb, var(--theme-primary) 20%, transparent);
-  border-top: 4px solid var(--theme-primary);
-  border-radius: 50%;
-  animation: QRCode-spin 1s linear infinite;
-}
-
-@keyframes QRCode-spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
+@keyframes qr-spin {
+  to {
     transform: rotate(360deg);
   }
 }
 
-/* 平台选择 */
-.QRCode-platforms {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-bottom: 30px;
-  width: 100%;
+.qr-mask__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 999px;
+  background: var(--theme-primary);
+  color: var(--theme-primary-text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.QRCode-platform-btn {
-  flex: 1;
-  max-width: 100px;
+.qr-mask__action:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.qr-hint {
+  margin: 16px 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--theme-text-1);
+}
+
+.qr-countdown {
+  margin: 0;
+  font-size: 12px;
+  color: var(--theme-text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.qr-steps {
+  width: 100%;
+  margin: 20px 0 0;
+  padding: 14px 16px;
+  list-style: none;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 12px 0;
-  background: var(--theme-bg-surface);
-  border: 1px solid var(--theme-border);
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  gap: 10px;
+  border-radius: 12px;
+  background: var(--theme-bg-surface-2);
+  box-sizing: border-box;
 }
 
-.QRCode-platform-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--theme-shadow-sm);
-}
-
-.QRCode-platform-active {
-  border-color: var(--theme-primary);
-  background: var(--theme-primary-soft);
-}
-
-.QRCode-platform-icon {
-  width: 30px;
-  height: 30px;
-  object-fit: contain;
-  margin-bottom: 8px;
-}
-
-.QRCode-platform-name {
-  font-size: 12px;
-  color: var(--theme-text-2);
-}
-
-/* 返回按钮 */
-.QRCode-back-btn {
+.qr-step {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding: 12px;
-  background: transparent;
-  border: 1px solid var(--theme-border);
-  border-radius: 8px;
+  gap: 10px;
+  font-size: 13px;
   color: var(--theme-text-2);
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
 }
 
-.QRCode-back-btn:hover {
-  background: var(--theme-bg-surface-2);
-  border-color: var(--theme-primary);
+.qr-step__index {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--theme-primary) 16%, transparent);
+  color: var(--theme-primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.qr-security {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 16px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--theme-text-3);
+  text-align: center;
+}
+
+.qr-back {
+  margin-top: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  color: var(--theme-text-2);
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.qr-back:hover {
   color: var(--theme-primary);
 }
 
-.QRCode-back-icon {
-  width: 18px;
-  height: 18px;
-  margin-right: 8px;
-  fill: currentColor;
-}
-
-/* 过渡动画 */
-.QRCode-fade-enter-active,
-.QRCode-fade-leave-active {
-  transition: opacity 0.5s ease;
-}
-
-.QRCode-fade-enter-from,
-.QRCode-fade-leave-to {
-  opacity: 0;
-}
-
-/* 响应式设计 */
 @media (max-width: 480px) {
-  .QRCode-form {
-    padding: 30px 20px;
+  .qr-panel {
+    width: calc(100vw - 32px);
+    padding: 24px 18px 20px;
   }
 
-  .QRCode-platforms {
-    gap: 10px;
+  .qr-box {
+    width: 200px;
+    height: 200px;
   }
 
-  .QRCode-platform-btn {
-    padding: 8px 0;
+  .qr-panel__title {
+    font-size: 20px;
+  }
+
+  .qr-steps {
+    margin-top: 16px;
   }
 }
 </style>
