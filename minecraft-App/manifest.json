@@ -48,6 +48,12 @@
             "ios" : {
                 "privacyDescription" : {
                     "NSCameraUsageDescription" : "用于扫描电脑端登录二维码"
+                },
+                "dSYMs" : false
+            },
+            "icons" : {
+                "android" : {
+                    "xxxhdpi" : "G:/文件/网站图标/草方块.png"
                 }
             }
         }

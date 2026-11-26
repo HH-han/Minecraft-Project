@@ -1,5 +1,16 @@
 // API基础配置
-export const BASE_URL = 'http://localhost:8080/api';
+// 接口地址统一从环境变量读取（.env.development / .env.production）
+const env = import.meta.env || {};
+const API_BASE = env.VITE_API_BASE_URL || env.VITE_APP_BASE_URL || '/api';
+
+// #ifdef H5
+// H5 开发环境走 Vite 代理（见 vite.config.js），避免浏览器跨域；生产构建仍使用完整接口地址
+export const BASE_URL = env.DEV ? '/api' : API_BASE;
+// #endif
+
+// #ifndef H5
+export const BASE_URL = API_BASE;
+// #endif
 
 export const API_CONFIG = {
   // 用户管理接口

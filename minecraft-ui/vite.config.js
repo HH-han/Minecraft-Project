@@ -3,6 +3,38 @@ import vue from '@vitejs/plugin-vue'
 import { resolve } from 'path'
 import { extraAppConfigPlugin } from './build/plugins/extra-app-config'
 
+/**
+ * 从模块 id 解析 npm 包名（兼容 npm / pnpm 的 node_modules 目录结构）
+ * 例：.../node_modules/element-plus/es/index.mjs -> element-plus
+ */
+function getPackageName(id) {
+  const normalized = id.replace(/\\/g, '/')
+  const marker = '/node_modules/'
+  const index = normalized.lastIndexOf(marker)
+  if (index === -1) return ''
+  const segments = normalized.slice(index + marker.length).split('/')
+  return segments[0]?.startsWith('@') ? `${segments[0]}/${segments[1]}` : segments[0] || ''
+}
+
+// 需要独立拆包的第三方库，未命中的 node_modules 统一归入 vendor
+const CHUNK_GROUPS = {
+  element: ['element-plus'],
+  globe: ['three', 'globe.gl', 'three-globe', 'topojson-client', '@amap/amap-jsapi-loader'],
+  utils: ['axios', 'dayjs', 'lodash', 'lodash-es']
+}
+
+const resolveChunkName = (pkg) => {
+  if (!pkg) return 'vendor'
+  // Element Plus 产物中包含 .vue2.mjs，必须整体归入 element，避免与 vendor 循环引用
+  if (pkg === 'element-plus' || pkg.startsWith('@element-plus/')) return 'element'
+  // three 生态（如 three-render-objects）与 three 强耦合，必须同属 globe
+  if (pkg === 'three' || pkg.startsWith('three-')) return 'globe'
+  for (const [name, packages] of Object.entries(CHUNK_GROUPS)) {
+    if (packages.includes(pkg)) return name
+  }
+  return 'vendor'
+}
+
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const root = __dirname
@@ -69,18 +101,8 @@ export default defineConfig(({ mode }) => {
               : 'assets/[name]-[hash][extname]'
           },
           manualChunks: (id) => {
-            if (id.includes('node_modules')) {
-              if (id.includes('three') || id.includes('globe.gl') || id.includes('amap')) {
-                return 'globe'
-              } else if (id.includes('vue') || id.includes('vue-router') || id.includes('pinia')) {
-                return 'vendor'
-              } else if (id.includes('element-plus')) {
-                return 'element'
-              } else if (id.includes('axios') || id.includes('dayjs') || id.includes('lodash')) {
-                return 'utils'
-              }
-              return 'vendor'
-            }
+            if (!id.includes('node_modules')) return
+            return resolveChunkName(getPackageName(id))
           }
         }
       }
