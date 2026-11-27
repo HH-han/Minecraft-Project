@@ -1,0 +1,89 @@
+{
+  "homeSections": {
+    "common": {
+      "viewDetail": "查看详情",
+      "expandAll": "展开全部",
+      "collapse": "收起",
+      "loading": "正在加载…",
+      "retry": "重新加载",
+      "empty": "暂无内容",
+      "featured": "精选",
+      "favorite": "收藏",
+      "free": "免费",
+      "networkError": "网络错误，请稍后重试",
+      "loadFailed": "加载失败，请稍后重试",
+      "pricePerNight": "¥{price}/晚",
+      "starLevel": "{level} 星级",
+      "imageAlt": {
+        "hotel": "酒店图片",
+        "food": "美食图片",
+        "attraction": "景点图片"
+      }
+    },
+    "content": {
+      "hotel": {
+        "title": "推荐酒店",
+        "subtitle": "精选住宿体验"
+      },
+      "food": {
+        "title": "特色美食",
+        "subtitle": "味蕾的环球之旅"
+      },
+      "attraction": {
+        "title": "热门景点",
+        "subtitle": "探索世界奇观"
+      },
+      "fetchFailed": "获取{type}失败"
+    },
+    "recommendations": {
+      "title": "精选推荐",
+      "subtitle": "探索值得去的目的地",
+      "filterCategory": "分类",
+      "filterPrice": "收费",
+      "all": "全部",
+      "free": "免费",
+      "paid": "收费",
+      "noSummary": "暂无简介",
+      "empty": "暂无推荐内容",
+      "categories": {
+        "nature": "自然风光",
+        "history": "历史文化",
+        "park": "主题乐园",
+        "food": "美食探店",
+        "resort": "休闲度假"
+      }
+    },
+    "news": {
+      "title": "热门新闻",
+      "subtitle": "最新资讯与精彩故事",
+      "unknownSource": "未知来源"
+    },
+    "safety": {
+      "title": "安全知识提示",
+      "subtitle": "出行必备的安全指南"
+    },
+    "details": {
+      "titles": {
+        "news": "新闻详情",
+        "hotel": "酒店详情",
+        "food": "美食详情",
+        "attraction": "景点详情",
+        "safety": "安全知识提示",
+        "recommendation": "推荐详情",
+        "default": "详情"
+      },
+      "readCount": "{count} 阅读",
+      "perNight": "/晚",
+      "recommendReason": "推荐理由",
+      "highlights": "亮点特色",
+      "category": "分类",
+      "bestTime": "最佳时间",
+      "duration": "游玩时长",
+      "ticket": "门票",
+      "openingHours": "开放时间",
+      "transport": "交通方式",
+      "tips": "注意事项",
+      "close": "关闭"
+    }
+  }
+}

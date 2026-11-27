@@ -99,7 +99,11 @@ page {
 }
 
 /* ---------- 2. 设计令牌：深色主题 ---------- */
+/* page 自身在浅色区已定义变量，必须同样在深色下重新定义，
+   否则 page（H5 为 uni-page-body）上的浅色令牌会覆盖 html 继承的深色值 */
 html[data-theme='dark'],
+html[data-theme='dark'] page,
+html[data-theme='dark'] uni-page-body,
 page[data-theme='dark'] {
 	--primary-color: #3E8A6D;
 	--primary-dark: #316F57;

@@ -1,17 +1,17 @@
 <template>
   <div v-if="visible" class="modal-overlay" @click="closeModal">
-    <div class="modal-content" @click.stop>
+    <div class="modal-content" role="dialog" aria-modal="true" :aria-label="title" @click.stop>
       <div class="modal-header">
         <h2 class="modal-title">{{ title }}</h2>
-        <button class="close-button" @click="closeModal">
+        <button class="close-button" :aria-label="$t('homeSections.details.close')" @click="closeModal">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5">
-            <line x1="18" y1="6" x2="6" y2="18"/>
-            <line x1="6" y1="6" x2="18" y2="18"/>
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
       </div>
       <div class="modal-body">
-        <div v-if="loading" class="loading">加载中...</div>
+        <div v-if="loading" class="loading">{{ $t('homeSections.common.loading') }}</div>
         <div v-else-if="error" class="error">{{ error }}</div>
         <div v-else>
           <div v-if="type === 'news'" class="detail-content">
@@ -22,12 +22,12 @@
               <h3 class="detail-title">{{ data.title }}</h3>
               <div class="detail-meta">
                 <span class="detail-date">{{ formatDate(data.createTime) }}</span>
-                <span class="detail-view">{{ data.viewCount || 0 }} 阅读</span>
+                <span class="detail-view">{{ $t('homeSections.details.readCount', { count: data.viewCount || 0 }) }}</span>
               </div>
               <div class="detail-text">{{ data.content }}</div>
             </div>
           </div>
-          
+
           <div v-if="type === 'hotel'" class="detail-content">
             <div class="detail-image">
               <img :src="data.coverImage || defaultHotelImage" :alt="data.name" />
@@ -35,19 +35,20 @@
             <div class="detail-info">
               <div class="info-header">
                 <h3 class="detail-title">{{ data.name }}</h3>
-                <span class="detail-price">¥{{ data.price }}<span class="price-unit">/晚</span></span>
+                <span class="detail-price">¥{{ data.price }}<span class="price-unit">{{
+                  $t('homeSections.details.perNight') }}</span></span>
               </div>
               <div class="detail-meta">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                  <circle cx="12" cy="10" r="3"/>
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
                 </svg>
                 <span>{{ data.city }} {{ data.address }}</span>
               </div>
               <div class="detail-text">{{ data.description }}</div>
             </div>
           </div>
-          
+
           <div v-if="type === 'food'" class="detail-content">
             <div class="detail-image">
               <img :src="data.coverImage || defaultFoodImage" :alt="data.name" />
@@ -59,15 +60,15 @@
               </div>
               <div class="detail-meta">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                  <circle cx="12" cy="10" r="3"/>
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
                 </svg>
                 <span>{{ data.city }} {{ data.restaurant }}</span>
               </div>
               <div class="detail-text">{{ data.description }}</div>
             </div>
           </div>
-          
+
           <div v-if="type === 'attraction'" class="detail-content">
             <div class="detail-image">
               <img :src="data.coverImage || defaultAttractionImage" :alt="data.name" />
@@ -79,15 +80,15 @@
               </div>
               <div class="detail-meta">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                  <circle cx="12" cy="10" r="3"/>
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
                 </svg>
                 <span>{{ data.city }} {{ data.address }}</span>
               </div>
               <div class="detail-text">{{ data.description }}</div>
             </div>
           </div>
-          
+
           <div v-if="type === 'safety'" class="detail-content">
             <div class="detail-image" v-if="data.imageUrl">
               <img :src="data.imageUrl" :alt="data.title" />
@@ -97,7 +98,7 @@
               <div class="detail-text">{{ data.description }}</div>
             </div>
           </div>
-          
+
           <div v-if="type === 'recommendation'" class="detail-content">
             <div class="detail-image">
               <img :src="data.coverImageUrl || defaultRecommendationImage" :alt="data.name" />
@@ -105,51 +106,52 @@
             <div class="detail-info">
               <div class="info-header">
                 <h3 class="detail-title">{{ data.name }}</h3>
-                <span class="detail-price">{{ data.isFree ? '免费' : `¥${data.minPrice || 0}` }}</span>
+                <span class="detail-price">{{ data.isFree ? $t('homeSections.common.free') : `¥${data.minPrice || 0}`
+                  }}</span>
               </div>
               <div class="detail-meta">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                  <circle cx="12" cy="10" r="3"/>
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
                 </svg>
                 <span>{{ data.city }} · {{ data.address }}</span>
               </div>
               <div class="detail-section">
-                <h4 class="section-title">推荐理由</h4>
+                <h4 class="section-title">{{ $t('homeSections.details.recommendReason') }}</h4>
                 <p>{{ data.recommendationReason }}</p>
               </div>
               <div class="detail-section">
-                <h4 class="section-title">亮点特色</h4>
+                <h4 class="section-title">{{ $t('homeSections.details.highlights') }}</h4>
                 <p>{{ data.highlights }}</p>
               </div>
               <div class="detail-grid">
                 <div class="grid-item">
-                  <span class="grid-label">分类</span>
+                  <span class="grid-label">{{ $t('homeSections.details.category') }}</span>
                   <span class="grid-value">{{ data.categoryName }}</span>
                 </div>
                 <div class="grid-item">
-                  <span class="grid-label">最佳时间</span>
+                  <span class="grid-label">{{ $t('homeSections.details.bestTime') }}</span>
                   <span class="grid-value">{{ data.bestTravelTime }}</span>
                 </div>
                 <div class="grid-item">
-                  <span class="grid-label">游玩时长</span>
+                  <span class="grid-label">{{ $t('homeSections.details.duration') }}</span>
                   <span class="grid-value">{{ data.visitDuration }}</span>
                 </div>
                 <div class="grid-item">
-                  <span class="grid-label">门票</span>
+                  <span class="grid-label">{{ $t('homeSections.details.ticket') }}</span>
                   <span class="grid-value">{{ data.ticketPriceDescription }}</span>
                 </div>
                 <div class="grid-item">
-                  <span class="grid-label">开放时间</span>
+                  <span class="grid-label">{{ $t('homeSections.details.openingHours') }}</span>
                   <span class="grid-value">{{ data.openingHoursWeekday }}</span>
                 </div>
                 <div class="grid-item">
-                  <span class="grid-label">交通方式</span>
+                  <span class="grid-label">{{ $t('homeSections.details.transport') }}</span>
                   <span class="grid-value">{{ data.transportation }}</span>
                 </div>
               </div>
               <div class="detail-section">
-                <h4 class="section-title">注意事项</h4>
+                <h4 class="section-title">{{ $t('homeSections.details.tips') }}</h4>
                 <p>{{ data.tips }}</p>
               </div>
             </div>
@@ -162,6 +164,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
     visible: {
@@ -187,17 +190,13 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close']);
+const { t, locale } = useI18n();
+
+const DETAIL_TYPES = ['news', 'hotel', 'food', 'attraction', 'safety', 'recommendation'];
 
 const title = computed(() => {
-    const titles = {
-        news: '新闻详情',
-        hotel: '酒店详情',
-        food: '美食详情',
-        attraction: '景点详情',
-        safety: '安全知识提示',
-        recommendation: '推荐详情'
-    };
-    return titles[props.type] || '详情';
+    const key = DETAIL_TYPES.includes(props.type) ? props.type : 'default';
+    return t(`homeSections.details.titles.${key}`);
 });
 
 const defaultNewsImage = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=news%20article%20placeholder%2C%20simple%20clean%20design&image_size=square'
@@ -213,17 +212,14 @@ const closeModal = () => {
 const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('zh-CN');
+    return date.toLocaleDateString(locale.value === 'en-US' ? 'en-US' : 'zh-CN');
 };
 </script>
 
 <style scoped>
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: var(--theme-overlay);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -231,19 +227,22 @@ const formatDate = (dateString) => {
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  padding: 20px;
+  padding: clamp(12px, 3vw, 32px);
 }
 
 .modal-content {
   background: var(--theme-bg-elevated);
-  border-radius: 28px;
-  max-width: 800px;
+  border: 1px solid var(--theme-border);
+  border-radius: 26px;
+  max-width: 820px;
   width: 100%;
-  max-height: 90vh;
+  max-height: min(90vh, 900px);
   overflow-y: auto;
-  animation: modalSlideUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  overscroll-behavior: contain;
+  animation: modalSlideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   scrollbar-width: none;
   -ms-overflow-style: none;
+  box-shadow: var(--theme-shadow-lg);
 }
 
 .modal-content::-webkit-scrollbar {
@@ -255,32 +254,39 @@ const formatDate = (dateString) => {
     opacity: 0;
     transform: translateY(20px) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
 }
 
+/* 顶部栏吸附 + 毛玻璃，长内容滚动时保持层级 */
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px;
+  gap: 16px;
+  padding: 18px clamp(18px, 2.4vw, 28px);
   border-bottom: 1px solid var(--theme-hairline);
   position: sticky;
   top: 0;
-  background: var(--theme-bg-elevated);
   z-index: 10;
+  background: var(--theme-bg-glass-strong);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
 }
 
 .modal-title {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
   margin: 0;
   color: var(--theme-text-1);
+  letter-spacing: -0.01em;
 }
 
 .close-button {
+  flex: none;
   background: var(--theme-bg-surface-2);
   border: none;
   width: 36px;
@@ -290,27 +296,32 @@ const formatDate = (dateString) => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--theme-text-1);
-  transition: all 0.2s;
+  color: var(--theme-text-2);
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .close-button:hover {
   background: var(--theme-bg-hover);
+  color: var(--theme-text-1);
+  transform: rotate(90deg);
 }
 
 .modal-body {
   padding: 0;
 }
 
-.loading {
+.loading,
+.error {
   text-align: center;
-  padding: 80px;
+  padding: 72px 24px;
+  font-size: 14.5px;
+}
+
+.loading {
   color: var(--theme-text-2);
 }
 
 .error {
-  text-align: center;
-  padding: 80px;
   color: var(--theme-danger);
 }
 
@@ -321,8 +332,9 @@ const formatDate = (dateString) => {
 
 .detail-image {
   width: 100%;
-  height: 300px;
+  height: clamp(200px, 30vw, 320px);
   overflow: hidden;
+  background: var(--theme-bg-surface-2);
 }
 
 .detail-image img {
@@ -332,31 +344,41 @@ const formatDate = (dateString) => {
 }
 
 .detail-info {
-  padding: 24px;
+  padding: clamp(18px, 2.4vw, 28px);
 }
 
 .info-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 16px;
+  gap: 16px;
+  margin-bottom: 14px;
 }
 
 .detail-title {
-  font-size: 24px;
+  font-size: clamp(20px, 2.2vw, 24px);
   font-weight: 700;
   margin: 0;
+  line-height: 1.3;
   color: var(--theme-text-1);
 }
 
 .detail-price {
-  font-size: 28px;
+  flex: none;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  padding: 6px 14px;
+  border-radius: 12px;
+  background: var(--theme-primary-soft);
+  font-size: clamp(18px, 2vw, 22px);
   font-weight: 700;
   color: var(--theme-primary);
+  white-space: nowrap;
 }
 
 .price-unit {
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 400;
   color: var(--theme-text-2);
 }
@@ -364,55 +386,66 @@ const formatDate = (dateString) => {
 .detail-meta {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
-  font-size: 14px;
+  font-size: 13.5px;
   color: var(--theme-text-2);
-  margin-bottom: 20px;
+  margin-bottom: 18px;
+}
+
+.detail-date,
+.detail-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .detail-text {
-  font-size: 16px;
-  line-height: 1.7;
+  font-size: 15px;
+  line-height: 1.75;
   color: var(--theme-text-2);
+  white-space: pre-line;
 }
 
 .detail-section {
-  margin-bottom: 24px;
+  margin-bottom: 22px;
 }
 
 .detail-section .section-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--theme-text-1);
-  margin: 0 0 12px;
+  margin: 0 0 10px;
 }
 
 .detail-section p {
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.7;
   color: var(--theme-text-2);
   margin: 0;
 }
 
 .detail-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 12px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  margin-bottom: 22px;
 }
 
 .grid-item {
   background: var(--theme-bg-surface-2);
-  padding: 16px;
-  border-radius: 12px;
+  border: 1px solid var(--theme-hairline);
+  padding: 14px 16px;
+  border-radius: 14px;
 }
 
 .grid-label {
   display: block;
-  font-size: 12px;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
   color: var(--theme-text-3);
   font-weight: 500;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
 }
 
 .grid-value {
@@ -421,45 +454,69 @@ const formatDate = (dateString) => {
   font-weight: 500;
 }
 
-@media (max-width: 768px) {
+/* 小屏：切换为底部上滑面板，更符合移动端操作习惯 */
+@media (max-width: 640px) {
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
   .modal-content {
-    width: 95%;
-    margin: 20px;
-    border-radius: 24px;
+    max-width: none;
+    max-height: 92dvh;
+    border-radius: 24px 24px 0 0;
+    border-bottom: none;
+    animation: sheetSlideUp 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+    padding-bottom: env(safe-area-inset-bottom);
   }
-  
-  .detail-image {
-    height: 200px;
+
+  @keyframes sheetSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(40px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
-  
-  .detail-title {
-    font-size: 20px;
+
+  .modal-header {
+    border-radius: 24px 24px 0 0;
   }
-  
+
+  .detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .grid-item {
+    padding: 12px 14px;
+  }
+
+  .info-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
   .detail-price {
-    font-size: 24px;
+    align-self: flex-start;
   }
-  
+
+  .detail-meta {
+    margin-bottom: 14px;
+  }
+
   .detail-text {
     font-size: 14px;
-  }
-  
-  .detail-info {
-    padding: 20px;
+    line-height: 1.7;
   }
 }
 
-@media (max-width: 480px) {
-  .detail-image {
-    height: 180px;
-  }
-  
-  .detail-title {
-    font-size: 18px;
-  }
-  
-  .detail-info {
-    padding: 16px;
+@media (max-width: 420px) {
+  .detail-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 </style>

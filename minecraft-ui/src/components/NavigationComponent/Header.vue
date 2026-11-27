@@ -1,6 +1,12 @@
 <template>
   <!-- 导航栏 -->
   <div class="navbar-background">
+    <!-- 液态玻璃装饰层：折射渐层 / 流动高光 / 底部亮边 -->
+    <div class="navbar-glass" aria-hidden="true">
+      <span class="navbar-glass__refraction"></span>
+      <span class="navbar-glass__sheen"></span>
+      <span class="navbar-glass__edge"></span>
+    </div>
     <div class="navbar-background-container">
       <div class="navbar-home">
         <div class="logo" @click="navigateTo('/home')">
@@ -8,29 +14,33 @@
           <img v-else :src="defaultLogo" :alt="$t('common.brand')">
           <span class="brand-text">{{ $t('common.brand') }}</span>
         </div>
-        <div class="nav-items">
+        <nav class="nav-items" :aria-label="$t('header.nav.sectionNav')">
           <div class="center-items">
             <button v-for="navItem in navItems" :key="navItem.path" class="action-btn"
-              :class="{ 'nav-item-active': isActiveNav(navItem.path) }"
+              :class="{ 'nav-item-active': isActiveNav(navItem.path) }" :aria-current="isActiveNav(navItem.path) ? 'page' : null"
               @click="navigateTo(navItem.path)">
               {{ navItem.labelKey ? $t(navItem.labelKey) : navItem.label }}
             </button>
           </div>
           <div class="dropdown">
-            <button class="action-btn dropdown-toggle">{{ $t('header.more') }}</button>
+            <button class="action-btn dropdown-toggle" aria-haspopup="true">
+              {{ $t('header.more') }}
+              <svg class="dropdown-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
             <div class="dropdown-menu_Home_2">
-              <button v-for="(item, index) in moreMenuItems" :key="item.path"
-                :style="index === moreMenuItems.length - 1 ? 'border-radius: 0 0 10px 10px' : ''"
-                class="dropdown-item_action-btn"
+              <button v-for="item in moreMenuItems" :key="item.path" class="dropdown-item_action-btn"
                 @click="navigateTo(item.path)">{{ item.labelKey ? $t(item.labelKey) : item.label }}</button>
             </div>
           </div>
-        </div>
+        </nav>
         <div class="actions">
           <LanguageSwitcher />
           <ThemeSwitching />
           <!-- 微信 -->
-          <button class="action-btn-iocn" @click="openSocialLogin('wechat')">
+          <button class="action-btn-iocn" aria-label="WeChat" @click="openSocialLogin('wechat')">
             <svg t="1737552806004" class="action-btn-iocn-size" viewBox="0 0 1024 1024" version="1.1"
               xmlns="http://www.w3.org/2000/svg" p-id="6242">
               <path
@@ -42,7 +52,7 @@
             </svg>
           </button>
           <!-- QQ -->
-          <button class="action-btn-iocn" @click="openSocialLogin('qq')">
+          <button class="action-btn-iocn" aria-label="QQ" @click="openSocialLogin('qq')">
             <svg t="1737552871738" class="action-btn-iocn-size" viewBox="0 0 1024 1024" version="1.1"
               xmlns="http://www.w3.org/2000/svg" p-id="7246">
               <path
@@ -51,7 +61,7 @@
             </svg>
           </button>
           <!--微博  -->
-          <button class="action-btn-iocn" @click="openSocialLogin('weibo')">
+          <button class="action-btn-iocn" aria-label="Weibo" @click="openSocialLogin('weibo')">
             <svg t="1737552907646" class="action-btn-iocn-size" viewBox="0 0 1024 1024" version="1.1"
               xmlns="http://www.w3.org/2000/svg" p-id="8263">
               <path
@@ -69,53 +79,22 @@
           <AnnouncementBell />
           <!-- 登录和注册按钮（未登录时显示） -->
           <template v-if="!isLoggedIn">
-            <button class="action-btn" @click="LoginName">
-              <svg t="1741965110034" class="icon" viewBox="0 0 1024 1024" version="1.1"
-                xmlns="http://www.w3.org/2000/svg" p-id="10018" width="20" height="20" style="vertical-align: middle;">
-                <path
-                  d="M65.843 512.919c0 246.179 199.576 445.755 445.76 445.755 246.179 0 445.755-199.576 445.755-445.755 0-246.185-199.576-445.76-445.755-445.76-246.184 0-445.76 199.575-445.76 445.76z m0 0"
-                  fill="#EDEEF5" p-id="10019"></path>
-                <path
-                  d="M411.306 468.342v111.437s3.898 72.549-44.577 83.581c0 0-1.559 117.01 156.015 117.01V468.342H411.306z m222.876 0v111.437s-3.898 72.549 44.577 83.581c0 0 1.561 117.01-156.014 117.01V468.342h111.437z m0 0"
-                  fill="#EDE7E6" p-id="10020"></path>
-                <path
-                  d="M400.16 546.349s100.296 138.075 267.457 111.439c-54.159-15.934-33.435-133.726-33.435-133.726L400.16 546.349z m0 0"
-                  fill="#E3DCDB" p-id="10021"></path>
-                <path
-                  d="M508.46 958.674c-151.279-0.025-292.22-76.766-374.329-203.822a408.723 408.723 0 0 1 240.598-97.064c22.012 60.866 80.154 101.116 144.872 100.296 93.719 0 133.726-100.296 133.726-100.296s156.014 16.494 236.7 85.586c-80.714 133.632-225.454 215.3-381.567 215.3z m0 0"
-                  fill="#3A8BCE" p-id="10022"></path>
-                <path
-                  d="M656.471 421.201s26.637-49.367 40.453-22.956c13.82 26.412-1.561 93.163-51.596 114.674l11.143-91.718z m0 0"
-                  fill="#EFE7E6" p-id="10023"></path>
-                <path
-                  d="M517.172 278.893c33.434 0 128.157 11.146 128.157 11.146s11.143 106.982 11.143 156.014c0 92.27-68.536 167.162-139.299 167.162-70.764 0-139.299-74.892-139.299-167.162 0-57.951 11.146-156.014 11.146-156.014s101.855-11.146 128.152-11.146z m0 0"
-                  fill="#F7EDEB" p-id="10024"></path>
-                <path
-                  d="M389.019 390.334s-59.732-63.856 0-167.162c30.089-52.041 93.162-55.719 122.585-55.719 104.861 0 170.055 34.323 178.302 122.585 7.687 82.908-17.276 112.887-22.288 111.437 0 0-33.435-53.602-33.435-89.15 0 0-122.579 45.912-200.587-44.577-35.663 9.027-44.577 100.297-44.577 122.586z m0 0"
-                  fill="#3A8BCE" p-id="10025"></path>
-              </svg>
-              <span style="vertical-align: middle;">{{ $t('header.login') }}</span>
+            <button class="action-btn action-btn--ghost" @click="LoginName">
+              <User class="btn-icon" aria-hidden="true" />
+              <span>{{ $t('header.login') }}</span>
             </button>
-            <button class="action-btn" @click="EnrolFirst">
-              <svg t="1741965357577" class="icon" viewBox="0 0 1024 1024" version="1.1"
-                xmlns="http://www.w3.org/2000/svg" p-id="15726" width="20" height="20" style="vertical-align: middle;">
-                <path
-                  d="M476.86656 537.6c151.97696 0 274.40128-119.46496 274.40128-268.8S628.84352 0 476.86656 0C324.89472 0 198.2464 119.46496 198.2464 268.8c4.224 149.33504 126.64832 268.8 278.62016 268.8z m-105.53344 51.2C177.14176 588.8 33.60768 712.53504 33.60768 900.26496V921.6c0 98.13504 156.19584 98.13504 350.3872 98.13504h194.19136c-84.4288-51.2-139.3152-140.8-139.3152-243.2C438.87616 704 464.20992 640 510.64832 588.8h-139.3152z"
-                  fill="#727BB2" p-id="15727"></path>
-                <path
-                  d="M738.60096 1024c33.77664 0 63.32416-4.26496 97.09568-17.06496 29.55264-12.8 54.88128-29.87008 80.20992-51.2 21.10976-21.33504 37.9904-46.93504 50.65728-76.8 12.66688-29.87008 21.10976-59.73504 21.10976-93.87008 0-34.12992-4.224-64-21.10976-93.86496-12.66176-29.86496-29.54752-55.46496-50.65728-76.8s-50.65728-38.4-80.20992-51.2c-29.54752-12.8-63.31904-17.06496-97.09568-17.06496-33.77152 0-67.54304 4.26496-97.09056 17.06496-29.55264 12.8-54.8864 29.86496-80.20992 51.2-21.10976 21.33504-42.2144 46.93504-54.88128 76.8-12.66176 25.6-21.10464 59.73504-21.10464 93.86496 0 34.13504 4.21888 64 21.10464 93.87008 12.66688 29.86496 29.55264 55.46496 54.88128 76.8 21.10464 21.32992 50.65728 38.4 80.20992 51.2 29.54752 12.8 63.31904 17.06496 97.09056 17.06496z m122.42432-281.6c21.10976 0 42.21952 17.06496 42.21952 38.4 0 8.53504-4.224 21.33504-12.66688 25.6-8.448 4.26496-16.88576 8.53504-29.55264 8.53504h-88.64768V896c0 12.8-4.224 21.33504-8.448 29.86496-8.44288 8.53504-16.88576 12.8-29.54752 12.8-12.66688 0-21.10976-4.26496-25.32864-12.8-4.224-8.52992-8.448-17.06496-8.448-29.86496v-81.06496h-80.2048c-12.66688 0-21.10976 0-29.55264-8.53504-8.44288-4.26496-12.66176-12.8-12.66176-25.6 0-8.53504 4.21888-21.33504 12.66176-25.6 8.448-8.53504 16.88576-12.8 29.55264-12.8h80.20992v-81.06496c0-8.53504 4.21888-21.33504 8.44288-25.6 4.21888-8.53504 16.88576-12.8 25.32864-12.8 12.66176 0 21.10464 4.26496 29.55264 12.8 8.44288 8.52992 8.44288 17.06496 8.44288 25.6V742.4h88.64768z"
-                  fill="#727BB2" p-id="15728"></path>
-              </svg>
-              <span style="vertical-align: middle;">{{ $t('header.register') }}</span>
+            <button class="action-btn action-btn--primary" @click="EnrolFirst">
+              <CirclePlus class="btn-icon" aria-hidden="true" />
+              <span>{{ $t('header.register') }}</span>
             </button>
           </template>
 
           <!-- 用户头像（登录后显示） -->
           <div class="user-actions" v-else>
             <div class="profilepicture">
-              <button class="profilepicture_button" @click="toggleDropdown">
+              <button class="profilepicture_button" :class="{ 'is-open': isDropdownVisible }" @click="toggleDropdown">
                 <div class="profilepicture_img">
-                  <img :src="avatarSrc" alt="用户头像" class="img1" @error="onAvatarError" />
+                  <img :src="avatarSrc" :alt="$t('header.userMenu.profile')" class="img1" @error="onAvatarError" />
                 </div>
               </button>
               <div class="profilepicture-inner" v-show="isDropdownVisible">
@@ -202,6 +181,7 @@
 import { useRoute, useRouter } from 'vue-router';
 import { ref, onMounted, onBeforeUnmount, computed, watch } from 'vue';
 import { ElMessage } from 'element-plus';
+import { User, CirclePlus } from '@element-plus/icons-vue';
 import { useI18n } from 'vue-i18n';
 // 页面组件
 import ThemeSwitching from '@/components/ThemeComponents/ThemeSwitching.vue';
@@ -320,13 +300,54 @@ const onDocumentClick = () => {
 const onWindowResize = () => {
   if (window.innerWidth > 992) mobileMenuOpen.value = false;
 };
+
+/* ---------- 果冻点击反馈：所有按钮（含子组件内按钮）统一使用 ---------- */
+const JELLY_SELECTOR = '.navbar-home button, .mobile-tab, .mobile-sheet-tile, .mobile-sheet-close, .logo';
+const JELLY_CLASS = 'is-jelly';
+
+const playJelly = (el) => {
+  if (!el || el.disabled) return;
+  el.classList.remove(JELLY_CLASS);
+  // 强制回流，保证连续快速点击也能重新播放动画
+  void el.offsetWidth;
+  el.classList.add(JELLY_CLASS);
+};
+
+const onJellyPress = (event) => {
+  // 鼠标 / 触摸操作时关闭键盘焦点环，避免点击后残留描边
+  document.documentElement.classList.remove('kb-nav');
+  const el = event.target?.closest?.(JELLY_SELECTOR);
+  if (el) playJelly(el);
+};
+
+// 键盘触发（Enter / Space）同样播放果冻反馈，并保留焦点环
+const onJellyKeyDown = (event) => {
+  if (event.key !== 'Enter' && event.key !== ' ') return;
+  document.documentElement.classList.add('kb-nav');
+  const el = event.target?.closest?.(JELLY_SELECTOR);
+  if (el) playJelly(el);
+};
+
+const onJellyAnimationEnd = (event) => {
+  if (event.animationName === 'jelly-pop') {
+    event.target?.classList?.remove(JELLY_CLASS);
+  }
+};
+
 onMounted(() => {
   document.addEventListener('click', onDocumentClick);
   window.addEventListener('resize', onWindowResize);
+  document.addEventListener('pointerdown', onJellyPress, { passive: true });
+  document.addEventListener('keydown', onJellyKeyDown);
+  document.addEventListener('animationend', onJellyAnimationEnd);
 });
 onBeforeUnmount(() => {
   document.removeEventListener('click', onDocumentClick);
   window.removeEventListener('resize', onWindowResize);
+  document.removeEventListener('pointerdown', onJellyPress);
+  document.removeEventListener('keydown', onJellyKeyDown);
+  document.removeEventListener('animationend', onJellyAnimationEnd);
+  document.documentElement.classList.remove('kb-nav');
   document.body.style.overflow = '';
 });
 
@@ -630,6 +651,629 @@ onMounted(() => {
   left: 120%;
 }
 
+/* ================= 导航栏骨架 ================= */
+
+/* ================= 液态玻璃导航外壳 ================= */
+
+.navbar-background {
+  --lg-tint: color-mix(in srgb, var(--theme-bg-app) 26%, transparent);
+  --lg-highlight: rgba(255, 255, 255, 0.62);
+  --lg-sheen: rgba(255, 255, 255, 0.42);
+  --lg-edge: color-mix(in srgb, var(--theme-text-1) 9%, transparent);
+
+  background: var(--lg-tint);
+  -webkit-backdrop-filter: blur(26px) saturate(200%);
+  backdrop-filter: blur(26px) saturate(200%);
+  border-bottom: 1px solid var(--lg-edge);
+  box-shadow:
+    0 22px 48px -34px rgba(15, 23, 42, 0.55),
+    inset 0 1px 0 var(--lg-highlight);
+}
+
+/* 暗色 / 游戏主题：压低白色高光，避免玻璃发灰 */
+html[data-theme="dark"] .navbar-background,
+html[data-theme="game"] .navbar-background {
+  --lg-tint: color-mix(in srgb, var(--theme-bg-app) 62%, transparent);
+  --lg-highlight: rgba(255, 255, 255, 0.14);
+  --lg-sheen: rgba(255, 255, 255, 0.2);
+  --lg-edge: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 24px 52px -32px rgba(0, 0, 0, 0.72),
+    inset 0 1px 0 var(--lg-highlight);
+}
+
+/* ================= 亮色主题文字可读性优化 ================= */
+
+/* 提高玻璃底白度，减少背后图片颜色渗透导致文字发灰 */
+html[data-theme="light"] .navbar-background {
+  --lg-tint: color-mix(in srgb, var(--theme-bg-app) 16%, transparent);
+  --lg-highlight: rgba(255, 255, 255, 0.78);
+  --lg-edge: color-mix(in srgb, var(--theme-text-1) 12%, transparent);
+}
+
+/* 亮色下降低折射白光强度，避免文字上方泛白 */
+html[data-theme="light"] .navbar-glass__refraction {
+  opacity: 0.42;
+}
+
+/* 全局 body 的白色文字辉光会让深色字边缘发虚，导航区统一清除 */
+.navbar-background {
+  text-shadow: none;
+}
+
+/* 品牌文字：亮色改为实色，避免渐变在浅色玻璃上失去对比 */
+html[data-theme="light"] .brand-text {
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-fill-color: currentColor;
+  color: var(--theme-text-1);
+}
+
+/* 亮色下导航默认使用最深文本色 */
+html[data-theme="light"] .nav-items .action-btn {
+  color: var(--theme-text-1);
+}
+
+/* 亮色选中态：白底胶囊 + 主题色细环 + 加深主色文字 */
+html[data-theme="light"] .nav-items .action-btn.nav-item-active {
+  color: color-mix(in srgb, var(--theme-primary) 78%, #ffffff);
+  background:
+    linear-gradient(180deg, #ffffff, color-mix(in srgb, #ffffff 88%, var(--theme-primary)));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--theme-primary) 24%, transparent),
+    inset 0 1px 0 #ffffff,
+    0 8px 18px -12px rgba(15, 23, 42, 0.35);
+}
+
+html[data-theme="light"] .nav-items .action-btn.nav-item-active::after {
+  background: var(--theme-primary);
+  box-shadow:
+    0 2px 8px color-mix(in srgb, var(--theme-primary) 42%, transparent),
+    0 1px 1px rgba(15, 23, 42, 0.12);
+}
+
+/* 装饰层：独立裁剪，不影响下拉面板溢出 */
+.navbar-glass {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* 折射渐层：左上白光 + 右上主题色光晕 */
+.navbar-glass__refraction {
+  position: absolute;
+  inset: -40% -10% auto -10%;
+  height: 220%;
+  background:
+    radial-gradient(58% 80% at 14% 0%, var(--lg-highlight), transparent 62%),
+    radial-gradient(46% 72% at 88% 6%, color-mix(in srgb, var(--theme-primary) 46%, transparent), transparent 66%);
+  opacity: 0.6;
+  filter: blur(6px);
+}
+
+/* 底部亮边：让玻璃边缘出现厚度 */
+.navbar-glass__edge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.75;
+}
+
+@keyframes lg-sheen {
+
+  0%,
+  62% {
+    transform: rotate(14deg) translateX(0);
+    opacity: 0;
+  }
+
+  70% {
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: rotate(14deg) translateX(420%);
+    opacity: 0;
+  }
+}
+
+.navbar-background-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 0 clamp(12px, 2.4vw, 28px);
+}
+
+/* 三栏网格：品牌 / 主导航（真正居中） / 操作区 */
+.navbar-home {
+  --jelly-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(12px, 2vw, 30px);
+  width: 100%;
+  max-width: 1480px;
+  min-width: 0;
+  height: 70px;
+  margin: 0 auto;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ================= 主导航 ================= */
+
+.nav-items {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.nav-items .action-btn {
+  position: relative;
+  padding: 9px 14px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--theme-text-2);
+  font-size: 14.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+  box-shadow: none;
+  overflow: visible;
+  transition: color 0.24s var(--theme-ease, ease), background 0.24s var(--theme-ease, ease),
+    transform 0.45s var(--jelly-spring);
+}
+
+/* 导航项保持安静：去掉全局按钮的涟漪与扫光层 */
+.nav-items .action-btn::before,
+.nav-items .action-btn::after {
+  display: none;
+}
+
+.nav-items .action-btn:hover {
+  background: var(--theme-bg-hover);
+  color: var(--theme-text-1);
+  transform: scale(1.04);
+  box-shadow: none;
+}
+
+.nav-items .action-btn.nav-item-active {
+  color: var(--theme-primary);
+  background: color-mix(in srgb, var(--theme-primary) 15%, transparent);
+  font-weight: 600;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    0 8px 18px -14px var(--theme-primary);
+}
+.dropdown {
+  display: flex;
+  align-items: center;
+  /* 向下扩展悬停热区，覆盖按钮与下拉面板之间的间隙，避免鼠标经过时菜单收起 */
+  padding-bottom: 12px;
+  margin-bottom: -12px;
+}
+
+.dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dropdown-caret {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.25s var(--theme-ease, ease);
+}
+
+.dropdown:hover .dropdown-caret,
+.dropdown:focus-within .dropdown-caret {
+  transform: rotate(180deg);
+}
+
+/* ================= 「更多」下拉 ================= */
+
+.navbar-home .dropdown-menu_Home_2 {
+  /* 与扩展后的悬停热区无缝衔接，鼠标可连续移动到选项上 */
+  top: 100%;
+  left: auto;
+  right: 0;
+  display: block;
+  min-width: 196px;
+  padding: 6px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--theme-bg-elevated) 84%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: var(--theme-shadow-lg), inset 0 1px 0 var(--lg-highlight);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 0.22s var(--theme-ease, ease), transform 0.22s var(--theme-ease, ease),
+    visibility 0.22s var(--theme-ease, ease);
+}
+
+.navbar-home .dropdown:hover .dropdown-menu_Home_2,
+.navbar-home .dropdown:focus-within .dropdown-menu_Home_2 {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* 悬浮桥接：填补按钮与面板之间的空隙，避免鼠标移动时菜单收起 */
+.navbar-home .dropdown-menu_Home_2::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 0;
+  right: 0;
+  height: 10px;
+}
+
+.navbar-home .dropdown-item_action-btn {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  transition: background 0.2s ease, padding-left 0.2s ease, transform 0.45s var(--jelly-spring);
+}
+
+.navbar-home .dropdown-item_action-btn:not(:last-child) {
+  border-bottom: none;
+}
+
+.navbar-home .dropdown-item_action-btn:hover {
+  padding-left: 18px;
+  background: var(--theme-bg-hover);
+  transform: scale(1.02);
+}
+
+/* ================= 右侧操作区 ================= */
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+}
+
+.actions .action-btn-iocn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 5px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--theme-bg-app) 32%, transparent);
+  box-shadow: inset 0 1px 0 var(--lg-highlight);
+  transition: background 0.24s var(--theme-ease, ease), border-color 0.24s var(--theme-ease, ease),
+    box-shadow 0.24s var(--theme-ease, ease), transform 0.45s var(--jelly-spring);
+}
+
+.actions .action-btn-iocn:hover {
+  background: var(--theme-bg-hover);
+  border-color: var(--lg-edge);
+  box-shadow:
+    inset 0 1px 0 var(--lg-highlight),
+    0 8px 16px -14px rgba(15, 23, 42, 0.42);
+  transform: translateY(-1px) scale(1.08);
+}
+
+.actions .action-btn-iocn-size {
+  width: 22px;
+  height: 22px;
+}
+
+/* 登录 / 注册：液态玻璃幽灵 + 渐变主按钮，同高胶囊 */
+.actions .action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 17px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: background 0.24s ease, color 0.24s ease, border-color 0.24s ease,
+    box-shadow 0.24s ease, transform 0.45s var(--jelly-spring);
+}
+
+.actions .action-btn .btn-icon {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  fill: currentColor;
+  transition: color 0.24s ease, transform 0.45s var(--jelly-spring);
+}
+
+.actions .action-btn span {
+  position: relative;
+  z-index: 1;
+  line-height: 1;
+}
+
+/* 去掉全局涟漪；注册按钮的玻璃扫光在下方单独实现 */
+.actions .action-btn::after {
+  display: none;
+}
+
+/* 登录：液态玻璃幽灵按钮 */
+.actions .action-btn--ghost {
+  background: color-mix(in srgb, var(--theme-bg-app) 45%, transparent);
+  border-color: var(--lg-edge);
+  color: var(--theme-text-1);
+  box-shadow: inset 0 1px 0 var(--lg-highlight);
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  backdrop-filter: blur(10px) saturate(150%);
+}
+
+.actions .action-btn--ghost::before {
+  display: none;
+}
+
+.actions .action-btn--ghost .btn-icon {
+  color: var(--theme-text-2);
+}
+
+.actions .action-btn--ghost:hover {
+  background: var(--theme-bg-hover);
+  border-color: var(--theme-border-strong);
+  color: var(--theme-text-1);
+  box-shadow:
+    inset 0 1px 0 var(--lg-highlight),
+    0 8px 18px -14px rgba(15, 23, 42, 0.45);
+  transform: translateY(-1px) scale(1.03);
+}
+
+.actions .action-btn--ghost:hover .btn-icon {
+  color: var(--theme-primary);
+  transform: scale(1.08);
+}
+
+/* 注册：渐变主按钮 + 顶部高光 + 主色光晕 */
+.actions .action-btn--primary {
+  position: relative;
+  margin-left: 2px;
+  background-color: var(--theme-primary);
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 60%),
+    var(--theme-gradient);
+  color: var(--theme-primary-text);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    0 10px 22px -12px color-mix(in srgb, var(--theme-primary) 76%, transparent);
+}
+
+/* 悬浮时掠过一道玻璃高光 */
+.actions .action-btn--primary::before {
+  content: '';
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(102deg,
+      transparent 38%,
+      rgba(255, 255, 255, 0.45) 50%,
+      transparent 62%);
+  background-size: 260% 100%;
+  background-position: 135% 0;
+  pointer-events: none;
+  transition: background-position 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.actions .action-btn--primary:hover::before {
+  background-position: -35% 0;
+}
+
+.actions .action-btn--primary > * {
+  position: relative;
+  z-index: 1;
+}
+
+.actions .action-btn--primary:hover {
+  color: var(--theme-primary-text);
+  filter: brightness(1.06);
+  transform: translateY(-1px) scale(1.03);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 14px 28px -12px color-mix(in srgb, var(--theme-primary) 82%, transparent);
+}
+
+.actions .action-btn--primary:hover .btn-icon {
+  transform: scale(1.1);
+}
+
+/* 头像：渐变玻璃描边 + 悬停光晕 */
+.actions .profilepicture {
+  width: 50px;
+  height: 50px;
+}
+
+.actions .profilepicture_button {
+  display: inline-flex;
+  padding: 0px;
+  border-radius: 50%;
+  transition: transform 0.45s var(--jelly-spring), box-shadow 0.32s ease;
+}
+
+.actions .profilepicture_button:hover,
+.actions .profilepicture_button.is-open {
+  transform: scale(1.06);
+  box-shadow: 0 0 0 0 var(--theme-bg-app),0 0 0 3px var(--theme-primary);
+}
+
+.actions .profilepicture_img {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--theme-bg-app);
+}
+
+.actions .profilepicture_img img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* 头像放大与描边由按钮统一控制，避免内外两层效果叠加 */
+.actions .profilepicture_img img:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* 公告铃铛：与头像同一视觉重量的玻璃圆钮 */
+.actions :deep(.bell-btn) {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  /* 柔光高光代替 1px 内描边，避免小圆钮出现「双圈」 */
+  background:
+    radial-gradient(120% 100% at 30% 0%,
+      color-mix(in srgb, var(--lg-highlight) 55%, transparent),
+      transparent 62%),
+    color-mix(in srgb, var(--theme-bg-app) 62%, transparent);
+  border: 1px solid var(--lg-edge);
+  box-shadow: 0 4px 12px -8px rgba(15, 23, 42, 0.45);
+  transition: background 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease,
+    color 0.24s ease, transform 0.45s var(--jelly-spring);
+}
+
+/* 与头像一致：悬停/按下只做单层柔和变化，不再叠亮底与重投影 */
+.actions :deep(.bell-btn:hover) {
+  background:
+    radial-gradient(120% 100% at 30% 0%,
+      color-mix(in srgb, var(--lg-highlight) 70%, transparent),
+      transparent 62%),
+    color-mix(in srgb, var(--theme-bg-app) 72%, transparent);
+  border-color: var(--theme-border-strong);
+  box-shadow: 0 6px 18px -8px color-mix(in srgb, var(--theme-primary) 50%, transparent);
+  transform: translateY(-1px) scale(1.05);
+}
+
+.actions :deep(.bell-btn:active) {
+  background:
+    radial-gradient(120% 100% at 30% 0%,
+      color-mix(in srgb, var(--lg-highlight) 70%, transparent),
+      transparent 62%),
+    color-mix(in srgb, var(--theme-bg-app) 78%, transparent);
+  transform: scale(0.92);
+}
+
+/* 点击/聚焦不再出现蓝色描边 */
+.actions :deep(.bell-btn:focus),
+.actions :deep(.bell-btn:focus-visible) {
+  outline: none;
+}
+
+/* 未读角标：断点更小、加玻璃托底描边 */
+.actions :deep(.bell-badge .el-badge__content) {
+  height: 17px;
+  min-width: 17px;
+  padding: 0 5px;
+  border: 2px solid var(--theme-bg-app);
+  border-radius: 999px;
+  background-color: var(--theme-danger);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 13px;
+  box-shadow: 0 2px 6px -2px rgba(15, 23, 42, 0.45);
+}
+
+/* 语言切换 / 公告铃铛同样使用果冻反馈 */
+.actions :deep(.ls-trigger),
+.actions :deep(.bell-btn) {
+  transition: transform 0.45s var(--jelly-spring), background 0.24s ease, color 0.24s ease,
+    border-color 0.24s ease, box-shadow 0.24s ease;
+}
+
+.actions :deep(.ls-trigger:hover),
+.actions :deep(.bell-btn:hover) {
+  transform: translateY(-1px) scale(1.05);
+}
+
+.actions .profilepicture-inner {
+  top: calc(100% + 10px);
+  width: 176px;
+  padding: 6px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--theme-bg-elevated) 84%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: var(--theme-shadow-lg), inset 0 1px 0 var(--lg-highlight);
+}
+
+.actions .profilepicture-inner button {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: transparent;
+  font-size: 13.5px;
+}
+
+.actions .profilepicture-inner button:not(:last-child) {
+  border-bottom: none;
+}
+
+.actions .profilepicture-inner button:hover {
+  padding-left: 18px;
+  background: var(--theme-bg-hover);
+}
+
+/* 菜单项点击不额外变色，反馈统一交给果冻动画 */
+.actions .profilepicture-inner button:active {
+  background: var(--theme-bg-hover);
+}
+
+/* 交互反馈：去掉点击产生的变色聚焦环与触摸高亮 */
+.navbar-home button,
+.mobile-tab,
+.mobile-sheet-tile,
+.mobile-sheet-close {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.navbar-home button:focus,
+.navbar-home button:focus-visible,
+.mobile-tab:focus,
+.mobile-tab:focus-visible,
+.mobile-sheet-tile:focus,
+.mobile-sheet-tile:focus-visible,
+.mobile-sheet-close:focus,
+.mobile-sheet-close:focus-visible {
+  outline: none;
+}
+
+/* 仅键盘导航时保留焦点环，鼠标点击不再出现 */
+html.kb-nav .navbar-home button:focus-visible,
+html.kb-nav .mobile-tab:focus-visible,
+html.kb-nav .mobile-sheet-tile:focus-visible,
+html.kb-nav .mobile-sheet-close:focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 2px;
+}
+
+
 /* ================= 响应式适配 ================= */
 
 /* 移动端底部导航条与「更多」浮层：默认隐藏，≤992px 显示 */
@@ -643,16 +1287,16 @@ onMounted(() => {
 @media (max-width: 1400px) {
   .navbar-home {
     gap: 12px;
-    padding: 10px 16px;
+    padding: 0;
   }
 
   .nav-items,
   .center-items {
-    gap: 8px;
+    gap: 2px;
   }
 
   .actions {
-    gap: 6px;
+    gap: 4px;
   }
 }
 
@@ -661,7 +1305,30 @@ onMounted(() => {
   .navbar-home {
     min-width: 0;
     width: 100%;
-    font-size: 20px;
+  }
+
+  /* 次要社交登录先让位，保证主导航与主要操作不挤压 */
+  .actions > .action-btn-iocn {
+    display: none;
+  }
+}
+
+/* ---- 窄桌面（≤1180px）：收起品牌文字，保留 Logo ---- */
+@media (max-width: 1180px) {
+  .brand-text {
+    display: none;
+  }
+}
+
+/* ---- 小桌面（≤1080px）：进一步收紧导航项间距 ---- */
+@media (max-width: 1080px) {
+  .navbar-home {
+    gap: 10px;
+  }
+
+  .nav-items .action-btn {
+    padding: 9px 9px;
+    font-size: 14px;
   }
 }
 
@@ -679,6 +1346,8 @@ onMounted(() => {
 
   /* 底部悬浮导航条：毛玻璃 + 主题令牌，居中悬浮于安全区之上 */
   .mobile-tabbar {
+    --jelly-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
     position: fixed;
     left: 50%;
     bottom: calc(14px + env(safe-area-inset-bottom));
@@ -689,13 +1358,23 @@ onMounted(() => {
     gap: 2px;
     width: min(560px, calc(100vw - 24px));
     padding: 6px;
-    border: 1px solid var(--theme-border);
+    border: 1px solid color-mix(in srgb, var(--theme-text-1) 9%, transparent);
     border-radius: 22px;
-    background: var(--theme-bg-glass-strong);
-    -webkit-backdrop-filter: blur(18px) saturate(160%);
-    backdrop-filter: blur(18px) saturate(160%);
-    box-shadow: var(--theme-shadow-lg);
+    background: color-mix(in srgb, var(--theme-bg-app) 58%, transparent);
+    -webkit-backdrop-filter: blur(26px) saturate(190%);
+    backdrop-filter: blur(26px) saturate(190%);
+    box-shadow:
+      var(--theme-shadow-lg),
+      inset 0 1px 0 rgba(255, 255, 255, 0.45);
     animation: mobile-tabbar-in 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) both;
+  }
+
+  /* 暗色 / 游戏主题下收敛高光 */
+  html[data-theme="dark"] .mobile-tabbar,
+  html[data-theme="game"] .mobile-tabbar {
+    box-shadow:
+      var(--theme-shadow-lg),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
   }
 
   @keyframes mobile-tabbar-in {
@@ -725,7 +1404,7 @@ onMounted(() => {
     color: var(--theme-text-3);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: color 0.2s ease;
+    transition: color 0.2s ease, transform 0.45s var(--jelly-spring);
   }
 
   .mobile-tab-icon {
@@ -777,10 +1456,6 @@ onMounted(() => {
     background: var(--theme-gradient);
   }
 
-  .mobile-tab:active .mobile-tab-icon {
-    transform: scale(0.92);
-  }
-
   /* 「更多」浮层遮罩 */
   .mobile-sheet-mask {
     display: block;
@@ -794,6 +1469,8 @@ onMounted(() => {
 
   /* 「更多」浮层：底部上滑面板，宫格展示其余入口 */
   .mobile-sheet {
+    --jelly-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
     display: block;
     position: fixed;
     left: 0;
@@ -804,8 +1481,12 @@ onMounted(() => {
     padding: 6px 16px calc(20px + env(safe-area-inset-bottom));
     border-top: 1px solid var(--theme-border);
     border-radius: 24px 24px 0 0;
-    background: var(--theme-bg-elevated);
-    box-shadow: var(--theme-shadow-lg);
+    background: color-mix(in srgb, var(--theme-bg-elevated) 88%, transparent);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    backdrop-filter: blur(28px) saturate(180%);
+    box-shadow:
+      var(--theme-shadow-lg),
+      inset 0 1px 0 rgba(255, 255, 255, 0.32);
     overflow-y: auto;
     overscroll-behavior: contain;
   }
@@ -844,7 +1525,7 @@ onMounted(() => {
     background: var(--theme-bg-muted);
     color: var(--theme-text-2);
     cursor: pointer;
-    transition: background 0.2s ease, color 0.2s ease;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.45s var(--jelly-spring);
   }
 
   .mobile-sheet-close svg {
@@ -878,11 +1559,8 @@ onMounted(() => {
     font-weight: 500;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-  }
-
-  .mobile-sheet-tile:active {
-    transform: scale(0.97);
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+      transform 0.45s var(--jelly-spring);
   }
 
   .mobile-sheet-tile:hover,
@@ -1004,10 +1682,14 @@ onMounted(() => {
   }
 
   /* 头像与公告铃铛同步缩小，保持同一视觉重量 */
-  .profilepicture,
-  .profilepicture_img {
+  .profilepicture {
     width: 36px;
     height: 36px;
+  }
+
+  .profilepicture_img {
+    width: 32px;
+    height: 32px;
   }
 
   /* 头像菜单右对齐，避免贴右侧时弹层溢出视口 */
@@ -1037,6 +1719,88 @@ onMounted(() => {
 
   .actions .action-btn {
     padding: 8px;
+  }
+}
+
+/* ============ 果冻点击反馈：先收缩，再弹性放大回弹 ============ */
+@keyframes jelly-pop {
+  0% {
+    transform: scale(1, 1);
+  }
+
+  26% {
+    transform: scale(0.88, 0.94);
+  }
+
+  46% {
+    transform: scale(1.07, 1.02);
+  }
+
+  64% {
+    transform: scale(0.96, 0.99);
+  }
+
+  82% {
+    transform: scale(1.02, 1);
+  }
+
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+/* :deep 让语言切换、主题切换、公告铃铛等子组件内部按钮同样生效 */
+:deep(.is-jelly) {
+  animation: jelly-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ============ 悬浮放大（仅支持悬停的设备） ============ */
+@media (hover: hover) and (pointer: fine) {
+  .mobile-tab:hover {
+    transform: translateY(-1px) scale(1.06);
+  }
+
+  .mobile-sheet-tile:hover {
+    transform: scale(1.04);
+  }
+
+  .mobile-sheet-close:hover {
+    transform: scale(1.08);
+  }
+}
+
+/* ============ 无障碍：尊重系统动效偏好 ============ */
+@media (prefers-reduced-motion: reduce) {
+
+  .navbar-glass__sheen,
+  .mobile-tabbar {
+    animation: none;
+  }
+
+  .navbar-glass__sheen {
+    opacity: 0;
+  }
+
+  :deep(.is-jelly) {
+    animation: none;
+  }
+
+  .nav-items .action-btn.nav-item-active::after {
+    animation: none;
+  }
+
+  .nav-items .action-btn:hover,
+  .actions .action-btn-iocn:hover,
+  .actions .action-btn--ghost:hover,
+  .actions .action-btn--primary:hover,
+  .actions .profilepicture_button:hover,
+  .navbar-home .dropdown-item_action-btn:hover,
+  .mobile-tab:hover,
+  .mobile-sheet-tile:hover,
+  .mobile-sheet-close:hover,
+  .actions :deep(.ls-trigger:hover),
+  .actions :deep(.bell-btn:hover) {
+    transform: none;
   }
 }
 </style>

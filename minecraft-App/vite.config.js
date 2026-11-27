@@ -22,7 +22,15 @@ export default defineConfig(({ mode }) => {
       proxy: {
         '/api': {
           target: proxyTarget,
-          changeOrigin: true
+          changeOrigin: true,
+          // 源码目录 api/ 的模块由 Vite 以 /api/xxx.js 的 URL 提供给浏览器，
+          // 必须交回 Vite 处理，否则会被代理转发到后端导致 404（模块加载失败）
+          bypass(req) {
+            const pathname = (req.url || '').split('?')[0];
+            if (/\.(m?js|ts|vue|css|scss|sass|less|json|map)$/i.test(pathname)) {
+              return req.url;
+            }
+          }
         },
         // 后端上传目录（Spring Boot 在 8080 提供 /upload 静态资源），
         // H5 下图片走同源代理，否则 /upload/xxx 会被当作前端静态资源返回 404

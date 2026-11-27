@@ -1119,7 +1119,7 @@ svg {
 .center-items{
   display: flex;
   justify-content: center;
-  gap: 15px;
+  gap: 8px;
 }
 
 .nav-item {

@@ -1,0 +1,89 @@
+{
+  "homeSections": {
+    "common": {
+      "viewDetail": "View Details",
+      "expandAll": "Show All",
+      "collapse": "Show Less",
+      "loading": "Loading…",
+      "retry": "Retry",
+      "empty": "Nothing here yet",
+      "featured": "Featured",
+      "favorite": "Save",
+      "free": "Free",
+      "networkError": "Network error, please try again later",
+      "loadFailed": "Failed to load, please try again later",
+      "pricePerNight": "¥{price}/night",
+      "starLevel": "{level}-star",
+      "imageAlt": {
+        "hotel": "Hotel photo",
+        "food": "Food photo",
+        "attraction": "Attraction photo"
+      }
+    },
+    "content": {
+      "hotel": {
+        "title": "Recommended Hotels",
+        "subtitle": "Handpicked stays for every trip"
+      },
+      "food": {
+        "title": "Local Flavors",
+        "subtitle": "A world tour for your taste buds"
+      },
+      "attraction": {
+        "title": "Popular Attractions",
+        "subtitle": "Discover the wonders of the world"
+      },
+      "fetchFailed": "Failed to load {type}"
+    },
+    "recommendations": {
+      "title": "Editor's Picks",
+      "subtitle": "Destinations worth the journey",
+      "filterCategory": "Category",
+      "filterPrice": "Price",
+      "all": "All",
+      "free": "Free",
+      "paid": "Paid",
+      "noSummary": "No description yet",
+      "empty": "No recommendations yet",
+      "categories": {
+        "nature": "Nature",
+        "history": "History & Culture",
+        "park": "Theme Parks",
+        "food": "Food & Drink",
+        "resort": "Resorts"
+      }
+    },
+    "news": {
+      "title": "Trending Stories",
+      "subtitle": "Fresh updates and inspiring reads",
+      "unknownSource": "Unknown source"
+    },
+    "safety": {
+      "title": "Travel Safety Tips",
+      "subtitle": "Essential advice before you go"
+    },
+    "details": {
+      "titles": {
+        "news": "Story Details",
+        "hotel": "Hotel Details",
+        "food": "Food Details",
+        "attraction": "Attraction Details",
+        "safety": "Safety Tips",
+        "recommendation": "Recommendation Details",
+        "default": "Details"
+      },
+      "readCount": "{count} reads",
+      "perNight": "/night",
+      "recommendReason": "Why We Recommend It",
+      "highlights": "Highlights",
+      "category": "Category",
+      "bestTime": "Best Time",
+      "duration": "Suggested Duration",
+      "ticket": "Tickets",
+      "openingHours": "Opening Hours",
+      "transport": "Getting There",
+      "tips": "Notes",
+      "close": "Close"
+    }
+  }
+}

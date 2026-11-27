@@ -1,8 +1,8 @@
 <template>
   <div class="safety-tips">
     <div class="section-header">
-      <h2 class="section-title">安全知识提示</h2>
-      <p class="section-description">出行必备的安全指南</p>
+      <h2 class="section-title">{{ $t('homeSections.safety.title') }}</h2>
+      <p class="section-description">{{ $t('homeSections.safety.subtitle') }}</p>
     </div>
 
     <div class="tips-grid">
@@ -12,7 +12,10 @@
         class="tips-card"
         :class="{ 'tips-card--expanded': isExpanded && index >= DEFAULT_DISPLAY_COUNT }"
         :style="{ animationDelay: `${Math.min(index, DEFAULT_DISPLAY_COUNT) * 0.05}s` }"
+        role="button"
+        tabindex="0"
         @click="openTipDetail(tip)"
+        @keydown.enter.prevent="openTipDetail(tip)"
       >
         <div class="tips-icon-wrapper">
           <svg t="1776522975294" class="icon" viewBox="0 0 1024 1024" version="1.1"
@@ -35,9 +38,18 @@
       </div>
     </div>
 
+    <div v-if="error" class="error-state">
+      <p class="error-text">{{ error }}</p>
+      <button class="retry-btn" @click="fetchSafetyTips">{{ $t('homeSections.common.retry') }}</button>
+    </div>
+
+    <div v-else-if="!displayedTips.length" class="empty-state">
+      <p class="empty-text">{{ $t('homeSections.common.empty') }}</p>
+    </div>
+
     <div v-if="hasMoreData" class="expand-actions">
       <button class="expand-btn" @click="toggleExpand">
-        <span>{{ isExpanded ? '收起' : '展开全部' }}</span>
+        <span>{{ isExpanded ? $t('homeSections.common.collapse') : $t('homeSections.common.expandAll') }}</span>
         <svg
           class="expand-arrow"
           :class="{ 'expand-arrow--up': isExpanded }"
@@ -55,16 +67,19 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import safetyTipsApi from '@/api/safetytips';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 
 const emit = defineEmits(['open-safety-detail']);
+const { t } = useI18n();
 
 // 默认展示的数据条数
 const DEFAULT_DISPLAY_COUNT = 4;
 
 const safetyTips = ref([]);
 const isExpanded = ref(false);
+const error = ref('');
 
 // 默认仅展示前若干条，展开后显示全部
 const displayedTips = computed(() => {
@@ -82,11 +97,13 @@ const toggleExpand = () => {
 };
 
 const fetchSafetyTips = async () => {
+    error.value = '';
     try {
         const response = await safetyTipsApi.getActiveSafetyTips();
         safetyTips.value = response.data || [];
-    } catch (error) {
-        console.error('获取安全知识提示失败:', error);
+    } catch (err) {
+        error.value = t('homeSections.common.loadFailed');
+        console.error('获取安全知识提示失败:', err);
     }
 };
 
@@ -284,6 +301,59 @@ onMounted(fetchSafetyTips);
 
 .expand-arrow--up {
   transform: rotate(180deg);
+}
+
+/* 空态 / 错误态 */
+.empty-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  background: var(--theme-bg-surface);
+  border: 1px dashed var(--theme-border);
+  border-radius: 22px;
+}
+
+.error-state {
+  border-style: solid;
+  border-color: var(--theme-danger);
+  background: var(--theme-danger-soft);
+}
+
+.empty-text {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--wi-txt-2, var(--theme-text-2));
+}
+
+.error-text {
+  margin: 0 0 16px;
+  font-size: 14.5px;
+  color: var(--theme-danger);
+}
+
+.retry-btn {
+  padding: 10px 26px;
+  border: none;
+  border-radius: 12px;
+  background: var(--theme-gradient);
+  color: var(--theme-primary-text);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.retry-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--theme-shadow-md);
+}
+
+.tips-card:focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 2px;
 }
 
 .modal-overlay {

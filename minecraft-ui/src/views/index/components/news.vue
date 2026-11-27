@@ -1,8 +1,8 @@
 <template>
   <div class="news-container">
     <div class="section-header">
-      <h2 class="section-title">热门新闻</h2>
-      <p class="section-description">最新资讯与精彩故事</p>
+      <h2 class="section-title">{{ $t('homeSections.news.title') }}</h2>
+      <p class="section-description">{{ $t('homeSections.news.subtitle') }}</p>
     </div>
 
     <div class="news-grid">
@@ -12,7 +12,10 @@
         class="news-card"
         :class="{ 'news-card--expanded': isExpanded && index >= DEFAULT_DISPLAY_COUNT }"
         :style="{ animationDelay: `${Math.min(index, DEFAULT_DISPLAY_COUNT) * 0.05}s` }"
+        role="button"
+        tabindex="0"
         @click="viewNewsDetail(news.id)"
+        @keydown.enter.prevent="viewNewsDetail(news.id)"
       >
         <div class="card-image-wrapper">
           <img 
@@ -31,7 +34,7 @@
               <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
               </svg>
-              {{ news.source || '未知来源' }}
+              {{ news.source || $t('homeSections.news.unknownSource') }}
             </span>
             <div class="stats">
               <span class="view-count">
@@ -52,9 +55,18 @@
       </div>
     </div>
 
+    <div v-if="error" class="error-state">
+      <p class="error-text">{{ error }}</p>
+      <button class="retry-btn" @click="fetchNews">{{ $t('homeSections.common.retry') }}</button>
+    </div>
+
+    <div v-else-if="!loading && !displayedNews.length" class="empty-state">
+      <p class="empty-text">{{ $t('homeSections.common.empty') }}</p>
+    </div>
+
     <div v-if="hasMoreData" class="expand-actions">
       <button class="expand-btn" @click="toggleExpand">
-        <span>{{ isExpanded ? '收起' : '展开全部' }}</span>
+        <span>{{ isExpanded ? $t('homeSections.common.collapse') : $t('homeSections.common.expandAll') }}</span>
         <svg
           class="expand-arrow"
           :class="{ 'expand-arrow--up': isExpanded }"
@@ -72,10 +84,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { getHotNews } from '@/api/news.js';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 
 const emit = defineEmits(['open-news-detail']);
+const { t } = useI18n();
 
 // 默认展示的数据条数
 const DEFAULT_DISPLAY_COUNT = 4;
@@ -108,10 +122,10 @@ const fetchNews = async () => {
         if (response.code === 200 && response.data) {
             newsList.value = response.data;
         } else {
-            error.value = '获取新闻失败';
+            error.value = t('homeSections.common.loadFailed');
         }
     } catch (err) {
-        error.value = '网络错误，请稍后重试';
+        error.value = t('homeSections.common.networkError');
         console.error('获取新闻失败:', err);
     } finally {
         loading.value = false;
@@ -392,6 +406,59 @@ onMounted(() => {
   text-align: center;
   padding: 60px 0;
   color: var(--theme-danger);
+}
+
+/* 空态 / 错误态 */
+.empty-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 20px;
+  background: var(--theme-bg-surface);
+  border: 1px dashed var(--theme-border);
+  border-radius: 24px;
+}
+
+.error-state {
+  border-style: solid;
+  border-color: var(--theme-danger);
+  background: var(--theme-danger-soft);
+}
+
+.empty-text {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--wi-txt-2, var(--theme-text-2));
+}
+
+.error-text {
+  margin: 0 0 16px;
+  font-size: 14.5px;
+  color: var(--theme-danger);
+}
+
+.retry-btn {
+  padding: 10px 26px;
+  border: none;
+  border-radius: 12px;
+  background: var(--theme-gradient);
+  color: var(--theme-primary-text);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.retry-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--theme-shadow-md);
+}
+
+.news-card:focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 2px;
 }
 
 @media (max-width: 768px) {

@@ -1517,17 +1517,17 @@ onBeforeUnmount(() => {
 
 /* —— 04 内容区（Recommendations / Content） —— */
 .website-introduction :deep(.stage-body--listing .section-header) {
-    margin-bottom: 28px;
+    margin-bottom: 0;
 }
 
 .website-introduction :deep(.stage-body--listing .section-title) {
-    font-size: clamp(24px, 3vw, 34px);
+    font-size: clamp(24px, 2.6vw, 34px);
     letter-spacing: -0.03em;
     color: var(--wi-txt-1);
 }
 
 .website-introduction :deep(.stage-body--listing .section-subtitle) {
-    font-size: 15px;
+    font-size: 14.5px;
     color: var(--wi-txt-2);
 }
 
@@ -1535,9 +1535,8 @@ onBeforeUnmount(() => {
     margin-bottom: 0;
 }
 
-/* 筛选胶囊与切换标签 */
-.website-introduction :deep(.stage-body--listing .category-filter),
-.website-introduction :deep(.stage-body--listing .tab-container) {
+/* 筛选胶囊与切换标签：沿用组件的紧凑分段控件，不再额外放大 */
+.website-introduction :deep(.stage-body--listing .category-filter) {
     min-height: auto;
     padding: 18px 20px;
     margin-bottom: 34px;
@@ -1548,31 +1547,42 @@ onBeforeUnmount(() => {
     -webkit-backdrop-filter: blur(16px);
 }
 
+.website-introduction :deep(.stage-body--listing .tab-container) {
+    min-height: auto;
+    padding: 5px;
+    margin-bottom: 28px;
+    border-radius: 14px;
+    border: 1px solid var(--wi-hairline);
+    background: var(--theme-bg-surface-2);
+}
+
 .website-introduction :deep(.stage-body--listing .filter-label) {
     color: var(--wi-txt-3);
 }
 
 .website-introduction :deep(.stage-body--listing .category-btn),
 .website-introduction :deep(.stage-body--listing .tab-btn) {
-    padding: 11px 22px;
-    font-size: 13.5px;
+    padding: 8px 16px;
+    font-size: 13px;
     color: var(--wi-txt-2);
-    background: var(--theme-bg-surface);
-    border: 1px solid var(--wi-hairline);
+    background: var(--theme-bg-surface-2);
+    border: 1px solid transparent;
     border-radius: 980px;
     box-shadow: none;
 }
 
 .website-introduction :deep(.stage-body--listing .tab-btn) {
-    padding: 14px 30px;
-    font-size: 14.5px;
+    padding: 9px 18px;
+    font-size: 14px;
+    border-radius: 10px;
+    background: transparent;
 }
 
 .website-introduction :deep(.stage-body--listing .category-btn:hover),
 .website-introduction :deep(.stage-body--listing .tab-btn:hover) {
     color: var(--wi-txt-1);
-    background: var(--theme-primary-soft);
-    transform: translateY(-1px);
+    background: var(--theme-bg-hover);
+    transform: none;
 }
 
 .website-introduction :deep(.stage-body--listing .category-btn.active),
@@ -1580,12 +1590,12 @@ onBeforeUnmount(() => {
     color: var(--theme-primary-text);
     border-color: transparent;
     background: var(--theme-gradient);
-    box-shadow: var(--theme-shadow-md);
+    box-shadow: var(--theme-shadow-sm);
 }
 
 /* 内容卡片改为玻璃底 */
 .website-introduction :deep(.stage-body--listing .card) {
-    border-radius: 28px;
+    border-radius: 26px;
     border: 1px solid var(--wi-hairline);
     background: var(--theme-bg-surface);
     box-shadow: var(--theme-shadow-lg);
@@ -1619,7 +1629,7 @@ onBeforeUnmount(() => {
 
 .website-introduction :deep(.stage-body--listing .primary-cta),
 .website-introduction :deep(.stage-body--listing .retry-btn) {
-    border-radius: 16px;
+    border-radius: 12px;
     background: var(--theme-gradient);
     box-shadow: var(--theme-shadow-md);
 }
@@ -1971,7 +1981,7 @@ onBeforeUnmount(() => {
     }
 
     .website-introduction :deep(.stage-body--listing .section-header) {
-        margin-bottom: 24px;
+        margin-bottom: 0;
     }
 
     .website-introduction :deep(.stage-body--listing .section-title) {
@@ -2017,7 +2027,7 @@ onBeforeUnmount(() => {
         grid-auto-columns: minmax(0, 1fr);
         gap: 6px;
         padding: 6px;
-        margin-bottom: 24px;
+        margin-bottom: 0;
         border-radius: 20px;
     }
 

@@ -146,10 +146,10 @@ onBeforeUnmount(() => {
   scroll-behavior: smooth;
 }
 
-/* 主视觉 Hero */
+/* 主视觉 Hero：略低于满屏，让下方内容露头，减少空白 */
 .hero-section {
   width: 100%;
-  min-height: 100vh;
+  min-height: clamp(520px, 84vh, 960px);
   position: relative;
   overflow: hidden;
   display: flex;
@@ -174,13 +174,14 @@ onBeforeUnmount(() => {
   z-index: 1;
   max-width: 1244px;
   margin: 0 auto;
-  padding: 0 22px 96px;
+  padding: 0 22px 88px;
 }
 
 .insight-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 44px;
+  align-items: start;
+  gap: 40px;
 }
 
 .stage {
