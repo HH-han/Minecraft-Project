@@ -1,0 +1,24 @@
+# 依赖
+node_modules/
+
+# HBuilderX / uni-app 编译产物与打包缓存
+unpackage/
+dist/
+
+# 打包证书与签名文件（禁止上传）
+*.keystore
+*.jks
+*.p12
+certini
+certdata
+
+# HBuilderX 本地配置
+.hbuilderx/
+
+# 日志
+logs/
+*.log
+
+# 系统文件
+.DS_Store
+Thumbs.db
